@@ -1,0 +1,118 @@
+<odoo>
+
+    <template id="appointment_summary_template">
+
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+
+                <main>
+                    <div class="page">
+
+                          <!-- HEADER -->
+                        <div style="overflow:hidden;padding-bottom:10px;">
+
+                            <!-- LEFT -->
+                            <div style="float:left;">
+                                <h2 style="color:#2a7f62;font-size:30px;font-weight:bold;">
+                                    Appointment Summary Report
+                                </h2>
+                            </div>
+                            <!-- RIGHT -->
+                            <div style="float:right;font-size:14px;line-height:1.8;display:flex;flex-direction:column;align-items:flex-end;">
+
+                                <div>
+                                    <strong>Generated On :</strong>
+                                    <span t-esc="generated_on.strftime('%d-%m-%Y %I:%M %p')"/>
+                                </div>
+
+                                <div style="margin-top:8px;">
+                                    <strong>Total Appointments :</strong>
+                                    <span t-esc="len(docs)"/>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- TABLE -->
+                        <table class="table table-sm"
+                               style="border-collapse:collapse;width:100%;font-size:16px;margin-top:30px;border:1px solid #ddd;">
+
+                            <!-- TABLE HEADER -->
+                            <thead style="background:#2a7f62;color:white;">
+
+                                <tr>
+                                    <th style="padding:12px;color:white;border:1px solid #ddd;">ID</th>
+                                    <th style="padding:12px;color:white;border:1px solid #ddd;">Doctor</th>
+                                    <th style="padding:12px;color:white;border:1px solid #ddd;">Patient</th>
+                                    <th style="padding:12px;color:white;border:1px solid #ddd;">Date</th>
+                                    <th style="padding:12px;color:white;border:1px solid #ddd;">Fees</th>
+                                    <th style="padding:12px;color:white;border:1px solid #ddd;">Status</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                <!-- If appointments exist -->
+                                <t t-if="docs">
+
+                                    <t t-foreach="docs" t-as="o">
+
+                                        <tr style="border-bottom:1px solid #ddd;">
+
+                                            <td style="padding:10px;border:1px solid #eee;">
+                                                <span t-esc="o.name"/>
+                                            </td>
+
+                                            <td style="padding:10px;border:1px solid #eee;">
+                                                <span t-esc="'[' + (o.doctor_id.hospital_code or '') + '] ' + (o.doctor_id.name or '')"/>
+                                            </td>
+
+                                            <td style="padding:10px;border:1px solid #eee;">
+                                                <span t-esc="'[' + (o.patient_id.hospital_code or '') + '] ' + (o.patient_id.name or '')"/>
+                                            </td>
+
+                                            <td style="padding:10px;border:1px solid #eee;">
+                                                <span t-field="o.start_date"/>
+                                            </td>
+
+                                            <td style="padding:10px;border:1px solid #eee;text-align:right;">
+                                                <span t-field="o.fees"/>
+                                            </td>
+
+                                            <td style="padding:10px;border:1px solid #eee;">
+                                                <span t-esc="dict(o._fields['state'].selection).get(o.state)"/>
+                                            </td>
+
+                                        </tr>
+
+                                    </t>
+
+                                </t>
+
+                                <!-- If no appointment -->
+                                <t t-if="not docs">
+
+                                    <tr>
+                                        <td colspan="6"
+                                            style="text-align:center;padding:30px;font-size:20px;color:red;font-weight:bold;">
+                                            No Appointment Found
+                                        </td>
+                                    </tr>
+
+                                </t>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </main>
+
+            </t>
+        </t>
+
+    </template>
+
+</odoo>

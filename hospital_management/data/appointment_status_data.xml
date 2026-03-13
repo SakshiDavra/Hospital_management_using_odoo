@@ -1,0 +1,28 @@
+<odoo>
+
+    <record id="status_draft" model="hospital.appointment.status">
+        <field name="name">Draft</field>
+        <field name="code">draft</field>
+    </record>
+
+    <record id="status_requested" model="hospital.appointment.status">
+        <field name="name">Requested</field>
+        <field name="code">requested</field>
+    </record>
+
+    <record id="status_confirmed" model="hospital.appointment.status">
+        <field name="name">Confirmed</field>
+        <field name="code">confirmed</field>
+    </record>
+
+    <record id="status_done" model="hospital.appointment.status">
+        <field name="name">Done</field>
+        <field name="code">done</field>
+    </record>
+
+    <record id="status_cancel" model="hospital.appointment.status">
+        <field name="name">Cancelled</field>
+        <field name="code">cancel</field>
+    </record>
+
+</odoo>

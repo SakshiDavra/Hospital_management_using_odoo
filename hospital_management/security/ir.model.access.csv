@@ -1,0 +1,20 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hospital_role_admin,hospital.role admin,model_hospital_role,base.group_system,1,1,1,1
+access_hospital_appointment_admin,hospital.appointment admin,model_hospital_appointment,base.group_system,1,1,1,1
+access_hospital_doctor_schedule_admin,hospital.doctor.schedule admin,model_hospital_doctor_schedule,base.group_system,1,1,1,1
+access_hospital_specialization_admin,hospital.specialization admin,model_hospital_specialization,base.group_system,1,1,1,1
+access_hospital_appointment_status_admin,hospital.appointment.status admin,model_hospital_appointment_status,base.group_system,1,1,1,1
+
+access_hospital_appointment_doctor,hospital.appointment doctor,model_hospital_appointment,hospital_management.group_hospital_doctor,1,1,1,0
+access_hospital_doctor_schedule_doctor,hospital.doctor.schedule doctor,model_hospital_doctor_schedule,hospital_management.group_hospital_doctor,1,0,0,0
+access_hospital_specialization_doctor,hospital.specialization doctor,model_hospital_specialization,hospital_management.group_hospital_doctor,1,0,0,0
+access_hospital_role_doctor,hospital.role doctor,model_hospital_role,hospital_management.group_hospital_doctor,1,0,0,0
+
+access_hospital_appointment_patient,hospital.appointment patient,model_hospital_appointment,hospital_management.group_hospital_patient,1,1,1,0
+access_hospital_specialization_patient,hospital.specialization patient,model_hospital_specialization,hospital_management.group_hospital_patient,1,0,0,0
+access_hospital_doctor_schedule_patient,hospital.doctor.schedule patient,model_hospital_doctor_schedule,hospital_management.group_hospital_patient,1,0,0,0
+access_hospital_role_patient,hospital.role patient,model_hospital_role,hospital_management.group_hospital_patient,1,0,0,0
+
+access_appointment_cancel_wizard,appointment.cancel.wizard,model_appointment_cancel_wizard,base.group_user,1,1,1,0
+access_appointment_report_wizard,appointment.report.wizard,model_appointment_report_wizard,base.group_user,1,1,1,0
+access_hospital_appointment_status_user,hospital.appointment.status user,model_hospital_appointment_status,base.group_user,1,0,0,0

@@ -1,0 +1,38 @@
+<odoo>
+    <record id="view_hospital_settings" model="ir.ui.view">
+        <field name="name">hospital.settings.view</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+
+            <xpath expr="//form" position="inside">
+
+                <app name="hospital_management" string="Hospital Management" logo="/hospital_management/static/description/icon.png">
+
+                    <block title="Appointments">
+
+                        <setting string="Default Appointment Duration">
+                            <field name="appointment_duration"/>
+                        </setting>
+
+                        <setting string="Appointment Reminder Before">
+                            <field name="reminder_days"/>
+                            <span class="text-muted"> days</span>
+                        </setting>
+
+                        <setting string="Maximum Appointment Duration">
+                            <field name="max_appointment_duration"/>
+                            <span class="text-muted"> minutes</span>
+                        </setting>
+
+                    </block>
+
+                </app>
+
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

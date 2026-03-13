@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ================= ROOT MENU ================= -->
+    <menuitem id="hospital_main_menu"
+              name="Hospital Management"
+              sequence="10"/>
+
+    <!-- ================= ROLES ================= -->
+    <record id="action_hospital_role" model="ir.actions.act_window">
+        <field name="name">Hospital Roles</field>
+        <field name="res_model">hospital.role</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ================= DOCTORS ================= -->
+    <record id="action_hospital_doctors" model="ir.actions.act_window">
+        <field name="name">Doctors</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_doctor_form"/>
+        <field name="domain">
+            [('role_ids.name','=','Doctor')]
+        </field>
+
+        <field name="context">
+            {'default_doctor': True}
+        </field>
+    </record>
+
+    <!-- ================= PATIENTS ================= -->
+    <record id="action_hospital_patients" model="ir.actions.act_window">
+        <field name="name">Patients</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_patient_form"/>
+        <field name="domain">
+            [('role_ids.name','=','Patient')]
+        </field>
+
+        <field name="context">
+            {'default_patient': True}
+        </field>
+    </record>
+
+    <!-- ================= SCHEDULE ================= -->
+    <record id="action_hospital_schedule" model="ir.actions.act_window">
+        <field name="name">Doctor Schedules</field>
+        <field name="res_model">hospital.doctor.schedule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <!-- ================= SETTINGS ================= -->
+    <record id="action_hospital_settings" model="ir.actions.act_window">
+        <field name="name">Configuration</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'hospital_management'}</field>
+    </record>
+
+
+    <menuitem id="menu_hospital_appointments"
+          name="Appointments"
+          parent="hospital_main_menu"
+          action="action_hospital_appointment"
+          sequence="1"
+          groups="base.group_user"/>
+              
+    <menuitem id="menu_hospital_doctors"
+              name="Doctors"
+              parent="hospital_main_menu"
+              action="action_hospital_doctors"
+              sequence="2"/>
+
+    <menuitem id="menu_hospital_patients"
+              name="Patients"
+              parent="hospital_main_menu"
+              action="action_hospital_patients"
+              sequence="3"/>
+
+    <menuitem
+            id="menu_appointment_report"
+            name="Appointment Report"
+            parent="hospital_main_menu"
+            action="action_appointment_report_wizard"
+            sequence="4"
+    />
+
+    <!-- ================= SCHEDULE MENU ================= -->
+  
+    <menuitem id="menu_hospital_configuration"
+          name="Configuration"
+          parent="hospital_main_menu"
+          sequence="5"/>
+
+    <menuitem id="menu_hospital_settings"
+          name="Settings"
+          parent="menu_hospital_configuration"
+          action="action_hospital_settings"
+          sequence="1"/>
+
+    <menuitem id="hospital_role_menu"
+          name="Roles"
+          parent="menu_hospital_configuration"
+          action="action_hospital_role"
+          sequence="2"/>
+
+    <menuitem id="menu_hospital_schedule"
+          name="Schedules"
+          parent="menu_hospital_configuration"
+          action="action_hospital_schedule"
+          git 

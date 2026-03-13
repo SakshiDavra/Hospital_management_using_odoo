@@ -1,0 +1,9 @@
+<odoo>
+    <record id="role_doctor" model="hospital.role">
+        <field name="name">Doctor</field>
+    </record>
+
+    <record id="role_patient" model="hospital.role">
+        <field name="name">Patient</field>
+    </record>
+</odoo>

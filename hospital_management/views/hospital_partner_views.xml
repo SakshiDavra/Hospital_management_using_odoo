@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ================= SLOT LIST VIEW ================= -->
+    <record id="view_hospital_slot_list" model="ir.ui.view">
+        <field name="name">hospital.slot.list</field>
+        <field name="model">hospital.doctor.schedule</field>
+        <field name="arch" type="xml">
+            <list string="Doctor Schedules">
+                <field name="day"/>
+                <field name="start_time"/>
+                <field name="end_time"/>
+                <field name="doctor_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================= SLOT FORM VIEW ================= -->
+    <record id="view_hospital_slot_form" model="ir.ui.view">
+        <field name="name">hospital.slot.form</field>
+        <field name="model">hospital.doctor.schedule</field>
+        <field name="arch" type="xml">
+            <form string="Schedule">
+                <sheet>
+
+                    <div class="oe_title">
+                        <h2>Schedule Details</h2>
+                    </div>
+
+                    <group col="2">
+                        <group string="Time Information">
+                            <field name="day"/>
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                        </group>
+
+                        <group string="Assigned Doctors">
+                            <field name="doctor_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================= DOCTOR FORM ================= -->
+    <record id="view_doctor_form" model="ir.ui.view">
+        <field name="name">res.partner.doctor.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form string="Doctor">
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+
+                        <button name="action_view_appointments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="appointment_count"
+                                widget="statinfo"
+                                string="Appointments"/>
+                        </button>
+
+
+                    </div>
+                    <!-- HEADER -->
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Doctor Name"/>
+                        </h1>
+                    </div>
+
+                    <group col="2">
+
+                        <!-- LEFT COLUMN -->
+                        <group string="Contact Information">
+                            <field name="phone"/>
+                            <field name="email"/>
+                        </group>
+
+                        <!-- RIGHT COLUMN -->
+                        <group string="Professional Information">
+                            <field name="hospital_code" readonly="1"/>
+                            <field name="specialization_id"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="consultation_fees"/>
+                            <field name="role_ids" widget="many2many_tags"/>
+                        </group>
+
+                    </group>
+
+                    <!-- SLOT SECTION -->
+                    <notebook>
+                        <page string="Available Slots">
+
+                            <div class="alert alert-info" role="alert">
+                                    Assign available time slots for this doctor.
+                                </div>
+
+                            <field name="slot_ids" widget="many2many_tags"/>
+
+                        </page>
+                    </notebook>
+
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================= DOCTOR LIST ================= -->
+    <record id="view_doctor_list" model="ir.ui.view">
+        <field name="name">res.partner.doctor.list</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list string="Doctors">
+                <field name="hospital_code"/>
+                <field name="name"/>
+                <field name="specialization_id"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="consultation_fees" widget="monetary"/>
+                <field name="phone"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================= PATIENT FORM ================= -->
+    <record id="view_patient_form" model="ir.ui.view">
+        <field name="name">res.partner.patient.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form string="Patient">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+
+                        <button name="action_view_patient_appointments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+
+                            <field name="patient_appointment_count"
+                                widget="statinfo"
+                                string="Appointments"/>
+
+                        </button>
+                        
+
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Patient Name"/>
+                        </h1>
+                    </div>
+
+                    <group col="2">
+
+                        <group string="Contact Information">
+                            <field name="phone"/>
+                            <field name="email"/>
+                        </group>
+
+                        <group string="Medical Information">
+                            <field name="hospital_code" readonly="1"/>
+                            <field name="age"/>
+                            <field name="blood_group"/>
+                            <field name="role_ids" widget="many2many_tags"/>
+                        </group>
+
+                    </group>
+                </sheet>
+                <!-- RIGHT SIDE CHATTER -->
+            <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================= PATIENT LIST ================= -->
+    <record id="view_patient_list" model="ir.ui.view">
+        <field name="name">res.partner.patient.list</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list string="Patients">
+                <field name="hospital_code"/>
+                <field name="name"/>
+                <field name="age"/>
+                <field name="phone"/>
+                <field name="blood_group"/>
+            </list>
+        </field>
+    </record>
+
+<!-- ================= SPECIALIZATION LIST ================= -->
+<record id="view_specialization_list" model="ir.ui.view">
+    <field name="name">hospital.specialization.list</field>
+    <field name="model">hospital.specialization</field>
+    <field name="arch" type="xml">
+        <list string="Specializations">
+            <field name="name"/>
+            <field name="description"/>
+        </list>
+    </field>
+</record>
+
+<!-- ================= SPECIALIZATION FORM ================= -->
+<record id="view_specialization_form" model="ir.ui.view">
+    <field name="name">hospital.specialization.form</field>
+    <field name="model">hospital.specialization</field>
+    <field name="arch" type="xml">
+        <form string="Specialization">
+            <sheet>
+                <group>
+                    <field name="name"/>
+                    <field name="description"/>
+                </group>
+            </sheet>
+        </form>
+    </field>
+</record>
+</odoo>

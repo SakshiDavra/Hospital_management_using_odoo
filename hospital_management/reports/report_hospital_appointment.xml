@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Report Action -->
+    <record id="action_report_hospital_appointment" model="ir.actions.report">
+        <field name="name">Appointment Report</field>
+        <field name="model">hospital.appointment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hospital_management.report_hospital_appointment</field>
+        <field name="report_file">hospital_management.report_hospital_appointment</field>
+        <field name="print_report_name">'Appointment - %s' % (object.name)</field>
+    </record>
+
+
+    <!-- REPORT TEMPLATE -->
+    <template id="report_hospital_appointment">
+
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+
+                <t t-call="web.external_layout">
+
+                    <div class="page">
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+                            <h2 style="color:#2a7f62;margin:0;">
+                                Hospital Appointment Report
+                            </h2>
+
+                            <div style="font-size:18px;">
+                                <strong>Generated On :</strong>
+                                <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y %I:%M %p')"/>
+                            </div>
+
+                        </div>
+
+                        <!-- APPOINTMENT DETAILS -->
+                        <h4 style="margin-top:40px;">Appointment Details</h4>
+
+                        <table class="table table-bordered" style="width:100%;font-size:18px;">
+
+                            <tr>
+                                <th width="30%">Appointment No</th>
+                                <td>
+                                    <t t-esc="doc.name"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Company</th>
+                                <td>
+                                    <t t-esc="doc.company_id.name"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Patient</th>
+                                <td>
+                                    <t t-esc="doc.patient_id.name"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Specialization</th>
+                                <td>
+                                    <t t-esc="doc.specialization_id.name"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Doctor</th>
+                                <td>
+                                    <t t-esc="doc.doctor_id.name"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Appointment Start</th>
+                                <td>
+                                    <t t-esc="doc.start_date"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Appointment End</th>
+                                <td>
+                                    <t t-esc="doc.end_date"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Consultation Fees</th>
+                                <td>
+                                    ₹ <t t-esc="doc.fees"/>
+                                </td>
+                            </tr>
+
+                        </table>
+
+
+                        <!-- MEDICAL INFO -->
+                        <h4 style="margin-top:30px;">Medical Information</h4>
+
+                        <table class="table table-bordered">
+
+                            <tr>
+                                <th width="30%">Symptoms</th>
+                                <td>
+                                    <t t-esc="doc.symptoms or 'N/A'"/>
+                                </td>
+                            </tr>
+
+        
+
+                        </table>
+
+
+                        
+
+                    </div>
+
+                </t>
+
+            </t>
+        </t>
+
+    </template>
+
+</odoo>

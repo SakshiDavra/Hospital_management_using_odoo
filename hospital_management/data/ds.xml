@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="email_template_doctor_request" model="mail.template">
+            <field name="name">Doctor Appointment Request: Professional</field>
+            <field name="model_id" ref="model_hospital_appointment"/>
+            <field name="subject">New Appointment Notification - {{ object.name }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px; background-color: #f8f9fa; font-family: 'Segoe UI', Helvetica, Arial, sans-serif;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8f9fa; padding: 20px;">
+                        <tr>
+                            <td align="center">
+                                <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e1e4e8; overflow: hidden;">
+                                    <tr>
+                                        <td align="left" style="padding: 25px; background-color: #1a73e8; color: #ffffff;">
+                                            <h2 style="margin: 0; font-size: 20px;">New Appointment Request</h2>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 30px; color: #3c4043; line-height: 1.5;">
+                                            <p style="font-size: 16px;">Dear <strong>Dr. {{ object.doctor_id.name }}</strong>,</p>
+                                            <p>A new appointment has been scheduled for you. Below are the patient details:</p>
+                                            
+                                            <table width="100%" style="margin: 20px 0; border-collapse: collapse; background-color: #f1f3f4; border-radius: 6px;">
+                                                <tr>
+                                                    <td style="padding: 12px; color: #5f6368;">Patient Name:</td>
+                                                    <td style="padding: 12px; font-weight: bold;">{{ object.patient_id.name }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 12px; color: #5f6368;">Date &amp; Time:</td>
+                                                    <td style="padding: 12px; font-weight: bold;">{{ format_datetime(object.start_date) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 12px; color: #5f6368;">Appointment ID:</td>
+                                                    <td style="padding: 12px; font-weight: bold;">{{ object.name }}</td>
+                                                </tr>
+                                            </table>
+
+                                            <p>Please log in to the hospital portal to view history or manage this request.</p>
+                                            <p style="text-align:center; margin-top:20px;">
+                                                <a href="{{ object.get_base_url() }}/web#id={{ object.id }}&model=hospital.appointment&view_type=form"
+                                                style="display:inline-block;
+                                                        padding:12px 24px;
+                                                        background-color:#1a73e8;
+                                                        color:#ffffff;
+                                                        text-decoration:none;
+                                                        border-radius:6px;
+                                                        font-weight:bold;">
+                                                    View Appointment
+                                                </a>
+                                            </p>
+                                            <hr style="border: 0; border-top: 1px solid #e8eaed; margin: 25px 0;"/>
+                                            <p style="font-size: 14px; color: #70757a;">Regards,<br/><strong>Hospital Administration</strong></p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </field>
+        </record>
+
+
+        <record id="email_template_patient_confirm" model="mail.template">
+            <field name="name">Appointment Confirmed: Professional</field>
+            <field name="model_id" ref="model_hospital_appointment"/>
+            <field name="subject">Confirmed: Your Appointment {{ object.name }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px; background-color: #f4f7f6; font-family: 'Segoe UI', Helvetica, Arial, sans-serif;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f7f6; padding: 20px;">
+                        <tr>
+                            <td align="center">
+                                <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; border: 1px solid #dcdcdc; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    <tr>
+                                        <td align="center" style="padding: 35px; background-color: #28a745; color: #ffffff;">
+                                            <div style="font-size: 40px; margin-bottom: 10px;">📅</div>
+                                            <h2 style="margin: 0; font-size: 24px;">Appointment Confirmed!</h2>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 40px; color: #444444; line-height: 1.6;">
+                                            <p style="font-size: 17px;">Hello <strong>{{ object.patient_id.name }}</strong>,</p>
+                                            <p>Your appointment has been successfully booked. We have reserved a slot for you with our specialist.</p>
+                                            
+                                            <div style="border: 1px solid #e0e0e0; border-radius: 8px; margin: 25px 0; padding: 5px;">
+                                                <table width="100%" style="border-collapse: collapse;">
+                                                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                                                        <td style="padding: 12px; color: #666666;">Doctor</td>
+                                                        <td style="padding: 12px; font-weight: bold;">Dr. {{ object.doctor_id.name }}</td>
+                                                    </tr>
+                                                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                                                        <td style="padding: 12px; color: #666666;">Date &amp; Time</td>
+                                                        <td style="padding: 12px; font-weight: bold;">{{ format_datetime(object.start_date) }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding: 12px; color: #666666;">Consultation Fee</td>
+                                                        <td style="padding: 12px; font-weight: bold; color: #28a745;">₹ {{ object.fees }}</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+
+                                            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 25px;">
+                                                <p style="margin: 0; font-size: 14px; color: #856404;">
+                                                    <strong>Note:</strong> Please arrive 15 minutes before your scheduled time for registration.
+                                                </p>
+                                            </div>
+                                            <p style="text-align:center; margin:25px 0;">
+                                            <a href="{{ object.get_base_url() }}/web#id={{ object.id }}&model=hospital.appointment&view_type=form"
+                                            style="display:inline-block;
+                                                    padding:12px 24px;
+                                                    background-color:#28a745;
+                                                    color:#ffffff;
+                                                    text-decoration:none;
+                                                    border-radius:6px;
+                                                    font-weight:bold;">
+                                            View Appointment
+                                            </a>
+                                            </p>
+                                            <p style="text-align: center; margin-top: 30px;">
+                                                <small style="color: #999;">If you need to cancel or reschedule, please call our helpdesk.</small>
+                                            </p>
+                                            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;"/>
+                                            <p style="text-align: center; font-weight: bold; color: #28a745;">Thank you for trusting our services!</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </field>
+        </record>
+
+    </data>
+</odoo>
