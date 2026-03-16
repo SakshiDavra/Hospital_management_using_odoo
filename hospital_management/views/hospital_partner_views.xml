@@ -57,7 +57,9 @@
                         <button name="action_view_appointments"
                                 type="object"
                                 class="oe_stat_button"
-                                icon="fa-calendar">
+                                icon="fa-calendar"
+                                invisible="appointment_count == 0">
+                                
                             <field name="appointment_count"
                                 widget="statinfo"
                                 string="Appointments"/>
@@ -138,12 +140,12 @@
                         <button name="action_view_patient_appointments"
                                 type="object"
                                 class="oe_stat_button"
-                                icon="fa-calendar">
+                                icon="fa-calendar"
+                                invisible="patient_appointment_count == 0">
 
                             <field name="patient_appointment_count"
                                 widget="statinfo"
                                 string="Appointments"/>
-
                         </button>
                         
 

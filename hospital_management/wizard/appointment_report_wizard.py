@@ -43,51 +43,7 @@ class AppointmentReportWizard(models.TransientModel):
         string="Status"
     )
 
-
-    def action_print_report(self):
-
-        domain = []
-
-        # Doctor login restriction
-        if self.env.user.has_group('hospital_management.group_hospital_doctor'):
-            domain.append(('doctor_id.user_id', '=', self.env.user.id))
-
-        elif self.doctor_ids:
-            domain.append(('doctor_id', 'in', self.doctor_ids.ids))
-
-        if self.patient_ids:
-            domain.append(('patient_id', 'in', self.patient_ids.ids))
-
-        if self.status_ids:
-            domain.append(('state', 'in', self.status_ids.mapped('code')))
-
-        if self.date_from:
-            domain.append(('start_date', '>=', self.date_from))
-
-        if self.date_to:
-            domain.append(('start_date', '<=', self.date_to))
-
-
-        appointments = self.env['hospital.appointment'].sudo().search(domain)
-
-        # IMPORTANT VALIDATION
-        if not appointments:
-            raise UserError("No Appointment Found!")
-
-
-        data = {
-            'ids': appointments.ids,
-            'model': 'hospital.appointment',
-        }
-
-        return self.env.ref(
-            'hospital_management.action_appointment_summary_report'
-        ).report_action(appointments, data=data)
-
-
-
-
-    def action_export_excel(self):
+    def _get_filtered_appointments(self):
 
         domain = []
 
@@ -114,6 +70,31 @@ class AppointmentReportWizard(models.TransientModel):
 
         if not appointments:
             raise UserError("No Appointment Found!")
+
+        return appointments
+
+
+    def action_print_report(self):
+
+        domain = []
+
+        appointments = self._get_filtered_appointments()
+
+
+        data = {
+            'ids': appointments.ids,
+            'model': 'hospital.appointment',
+        }
+
+        return self.env.ref(
+            'hospital_management.action_appointment_summary_report'
+        ).report_action(appointments, data=data)
+
+    def action_export_excel(self):
+
+        domain = []
+
+        appointments = self._get_filtered_appointments()
 
         wb = Workbook()
         sheet = wb.active

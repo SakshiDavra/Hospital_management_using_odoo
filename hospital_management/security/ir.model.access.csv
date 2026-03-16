@@ -10,6 +10,9 @@ access_hospital_doctor_schedule_doctor,hospital.doctor.schedule doctor,model_hos
 access_hospital_specialization_doctor,hospital.specialization doctor,model_hospital_specialization,hospital_management.group_hospital_doctor,1,0,0,0
 access_hospital_role_doctor,hospital.role doctor,model_hospital_role,hospital_management.group_hospital_doctor,1,0,0,0
 
+
+access_res_partner_doctor,res.partner doctor,base.model_res_partner,hospital_management.group_hospital_doctor,1,1,0,0
+
 access_hospital_appointment_patient,hospital.appointment patient,model_hospital_appointment,hospital_management.group_hospital_patient,1,1,1,0
 access_hospital_specialization_patient,hospital.specialization patient,model_hospital_specialization,hospital_management.group_hospital_patient,1,0,0,0
 access_hospital_doctor_schedule_patient,hospital.doctor.schedule patient,model_hospital_doctor_schedule,hospital_management.group_hospital_patient,1,0,0,0

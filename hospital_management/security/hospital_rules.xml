@@ -1,17 +1,19 @@
 <odoo>
     <data>
 
+        <!-- ================= PATIENT APPOINTMENTS ================= -->
 
         <record id="rule_patient_own_appointments" model="ir.rule">
             <field name="name">Patient: See Only Own Appointments</field>
             <field name="model_id" ref="model_hospital_appointment"/>
-
             <field name="groups" eval="[(4, ref('hospital_management.group_hospital_patient'))]"/>
-
             <field name="domain_force">
                 [('patient_id.user_id','=',user.id)]
             </field>
         </record>
+
+
+        <!-- ================= DOCTOR APPOINTMENTS ================= -->
 
         <record id="rule_doctor_own_appointments" model="ir.rule">
             <field name="name">Doctor Own Appointments</field>
@@ -20,6 +22,31 @@
             <field name="domain_force">
                 [('doctor_id.user_id','=',user.id)]
             </field>
+        </record>
+
+
+        <!-- ================= DOCTOR READ ALL PARTNERS ================= -->
+        <!-- Required for chatter + company partner -->
+
+        <record id="rule_doctor_read_all_partners" model="ir.rule">
+            <field name="name">Doctor Read All Partners</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="groups" eval="[(4, ref('hospital_management.group_hospital_doctor'))]"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+        </record>
+
+
+        <!-- ================= DOCTOR EDIT OWN PROFILE ================= -->
+
+        <record id="rule_doctor_edit_own_profile" model="ir.rule">
+            <field name="name">Doctor Edit Own Profile</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="groups" eval="[(4, ref('hospital_management.group_hospital_doctor'))]"/>
+            <field name="domain_force">[('id','=',user.partner_id.id)]</field>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="True"/>
         </record>
 
     </data>

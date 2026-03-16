@@ -17,7 +17,7 @@ class ResPartner(models.Model):
     user_id = fields.One2many(
     'res.users',
     'partner_id',
-    string="Users"
+    string="Portal User"
     )
 
     # ================= COMMON HOSPITAL CODE =================
@@ -65,13 +65,16 @@ class ResPartner(models.Model):
     ], string="Blood Group" , tracking=True)
 
     # ================= UNIQUE CONSTRAINT =================
-    _sql_constraints = [
-    (
-        'unique_hospital_code',
-        'unique(hospital_code)',
-        'Hospital Code must be unique!'
-    )
-    ]
+    @api.constrains('hospital_code')
+    def _check_unique_code(self):
+        for rec in self:
+            if rec.hospital_code:
+                existing = self.search([
+                    ('hospital_code', '=', rec.hospital_code),
+                    ('id', '!=', rec.id)
+                ])
+                if existing:
+                    raise ValidationError("Hospital code must be unique!")
 
     # ================= APPOINTMENT COUNTS =================
     appointment_count = fields.Integer(

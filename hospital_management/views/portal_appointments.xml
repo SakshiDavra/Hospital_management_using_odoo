@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- =====================================
+         Add Appointments Card in Portal Home
+    ====================================== -->
+
+    <template id="portal_my_home_appointments"
+              inherit_id="portal.portal_my_home"
+              name="Add Appointments Card">
+
+        <xpath expr="//div[@id='portal_common_category']" position="inside">
+
+            <t t-call="portal.portal_docs_entry">
+
+                <t t-set="icon"
+                   t-value="'/portal/static/src/img/portal-addresses.svg'"/>
+
+                <t t-set="title">
+                    Appointments
+                </t>
+
+                <t t-set="text">
+                    View your hospital appointments
+                </t>
+
+                <t t-set="url"
+                   t-value="'/my/appointments'"/>
+
+                <t t-set="config_card" t-value="True"/>
+
+            </t>
+
+        </xpath>
+
+    </template>
+
+
+    <!-- =====================================
+         Portal Appointment List Page
+    ====================================== -->
+
+    <template id="portal_my_appointments_page"
+              name="My Appointments">
+
+        <t t-call="portal.portal_layout">
+        
+
+            <!-- important -->
+            <t t-set="page_name">my_appointments</t>
+
+            <div class="container mt-4">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Appointment No</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Specialization</th>
+                            <th>Date</th>
+                            <th>Fees</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <t t-if="appointments">
+
+                            <t t-foreach="appointments" t-as="app">
+
+                                <tr>
+
+                                    <td>
+                                        <a t-att-href="'/my/appointment/%s' % app.id">
+                                        <t t-esc="app.name"/>
+                                        </a>
+                                    </td>
+
+                                    <td><t t-esc="app.patient_id.name"/></td>
+                                    <td><t t-esc="app.doctor_id.name"/></td>
+                                    <td><t t-esc="app.specialization_id.name"/></td>
+
+                                    <td>
+                                        <t t-esc="format_datetime(request.env, app.start_date)"/>
+                                    </td>
+
+                                    <td><t t-esc="app.fees"/></td>
+
+                                    <td>
+
+                                        <span class="badge bg-success"
+                                              t-if="app.state == 'done'">Done</span>
+
+                                        <span class="badge bg-info"
+                                              t-if="app.state == 'confirmed'">Confirmed</span>
+
+                                        <span class="badge bg-warning"
+                                              t-if="app.state == 'requested'">Requested</span>
+
+                                        <span class="badge bg-danger"
+                                              t-if="app.state == 'cancel'">Cancelled</span>
+
+                                        <span class="badge bg-secondary"
+                                              t-if="app.state == 'draft'">Draft</span>
+
+                                    </td>
+
+                                </tr>
+
+                            </t>
+
+                        </t>
+
+                        <t t-if="not appointments">
+
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    No appointments found
+                                </td>
+                            </tr>
+
+                        </t>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </t>
+
+    </template>
+
+
+<template id="portal_appointment_page"
+          name="Appointment Portal"
+          inherit_id="portal.portal_sidebar"
+          primary="True">
+
+<t t-call="portal.portal_layout" position="inside"/>
+
+<xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+
+<div class="row">
+
+<!-- ===== LEFT SIDEBAR ===== -->
+
+<t t-call="portal.portal_record_sidebar">
+
+<t t-set="classes" t-value="'col-lg-4 col-xl-3 d-print-none'"/>
+
+<t t-set="title">
+
+<h2 class="mb-0 text-break">
+₹ <t t-esc="appointment.fees"/>
+</h2>
+
+</t>
+
+<t t-set="entries">
+
+<div class="mt-3">
+
+<a class="btn btn-light w-100"
+   t-att-href="'/my/appointments'">
+
+<i class="fa fa-arrow-left"/> Back to Appointments
+
+</a>
+
+</div>
+
+<div class="mt-3">
+
+<strong>Status :</strong>
+
+<span class="badge bg-success"
+      t-if="appointment.state == 'done'">
+Done
+</span>
+
+<span class="badge bg-info"
+      t-if="appointment.state == 'confirmed'">
+Confirmed
+</span>
+
+<span class="badge bg-warning"
+      t-if="appointment.state == 'requested'">
+Requested
+</span>
+
+<span class="badge bg-danger"
+      t-if="appointment.state == 'cancel'">
+Cancelled
+</span>
+
+</div>
+
+</t>
+
+</t>
+
+
+<!-- ===== RIGHT CONTENT ===== -->
+
+<div class="col-lg-8 col-xl-9 mt-5 mt-lg-0">
+
+<h2>
+Appointment -
+<em t-esc="appointment.name"/>
+</h2>
+
+<hr/>
+
+<div class="row">
+
+<div class="col-md-6">
+
+<h5>Appointment Information</h5>
+
+<hr/>
+
+<p>
+<strong>Patient :</strong>
+<t t-esc="appointment.patient_id.name"/>
+</p>
+
+<p>
+<strong>Doctor :</strong>
+<t t-esc="appointment.doctor_id.name"/>
+</p>
+
+<p>
+<strong>Specialization :</strong>
+<t t-esc="appointment.specialization_id.name"/>
+</p>
+
+</div>
+
+
+<div class="col-md-6">
+
+<h5>Details</h5>
+
+<hr/>
+
+<p>
+<strong>Start Date :</strong>
+<t t-esc="appointment.start_date"/>
+</p>
+
+<p>
+<strong>End Date :</strong>
+<t t-esc="appointment.end_date"/>
+</p>
+
+<!-- Billing -->
+<div class="col-md-6">
+
+<h5>Billing</h5>
+<hr/>
+
+<p>
+<strong>Consultation Fees :</strong>
+₹ <t t-esc="appointment.fees"/>
+</p>
+
+<p>
+<strong>Status :</strong>
+<t t-esc="appointment.state"/>
+</p>
+
+</div>
+
+</div>
+
+<hr/>
+
+<h5>Medical Information</h5>
+
+<p>
+<strong>Symptoms :</strong>
+<t t-esc="appointment.symptoms"/>
+</p>
+
+<p>
+<strong>Doctor Notes :</strong>
+<t t-esc="appointment.notes"/>
+</p>
+
+</div>
+
+<!-- ===== Communication ===== -->
+
+<hr/>
+
+<div id="appointment_communication">
+
+<h3>Communication history</h3>
+
+<t t-set="object" t-value="appointment"/>
+
+<t t-call="portal.message_thread"/>
+
+</div>
+
+</div>
+
+</div>
+
+</xpath>
+
+</template>
+
+
+
+</odoo>

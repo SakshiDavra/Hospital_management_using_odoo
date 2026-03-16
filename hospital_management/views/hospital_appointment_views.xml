@@ -410,7 +410,6 @@
     <field name="res_model">hospital.appointment</field>
     <field name="view_mode">calendar,kanban,list,form,pivot,graph</field>
     <field name="search_view_id" ref="view_hospital_appointment_search"/>
-    <field name="limit">20</field>
 
 </record>
 

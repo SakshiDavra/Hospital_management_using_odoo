@@ -13,6 +13,8 @@
     'category': 'Healthcare',
     'depends': [
         'base',
+        'website',
+        'portal', 
         'contacts',
         'mail',   # ADD THIS
     ],
@@ -21,6 +23,8 @@
         'security/hospital_groups.xml',
         'security/ir.model.access.csv',
         'security/hospital_rules.xml',
+
+        
 
         'wizard/appointment_report_wizard_view.xml',
 
@@ -40,11 +44,10 @@
         # Views
         'views/hospital_role_views.xml',
         'views/hospital_partner_views.xml',
-
+        'views/portal_appointments.xml',
         'views/hospital_appointment_views.xml',
         'views/hospital_settings_views.xml',
         'views/appointment_cancel_wizard_views.xml',
-
 
         'views/hospital_menus.xml',
     ],

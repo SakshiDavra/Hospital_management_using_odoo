@@ -64,19 +64,21 @@
           parent="hospital_main_menu"
           action="action_hospital_appointment"
           sequence="1"
-          groups="base.group_user"/>
+          groups="hospital_management.group_hospital_doctor,hospital_management.group_hospital_patient,base.group_system"/>
               
     <menuitem id="menu_hospital_doctors"
               name="Doctors"
               parent="hospital_main_menu"
               action="action_hospital_doctors"
-              sequence="2"/>
+              sequence="2"
+              groups="hospital_management.group_hospital_doctor,hospital_management.group_hospital_patient,base.group_system"/>
 
     <menuitem id="menu_hospital_patients"
               name="Patients"
               parent="hospital_main_menu"
               action="action_hospital_patients"
-              sequence="3"/>
+              sequence="3"
+              groups="base.group_system"/>
 
     <menuitem
             id="menu_appointment_report"
@@ -84,14 +86,15 @@
             parent="hospital_main_menu"
             action="action_appointment_report_wizard"
             sequence="4"
-    />
+            groups="hospital_management.group_hospital_doctor,base.group_system"/>
 
     <!-- ================= SCHEDULE MENU ================= -->
   
     <menuitem id="menu_hospital_configuration"
           name="Configuration"
           parent="hospital_main_menu"
-          sequence="5"/>
+          sequence="5"
+          groups="group_hospital_admin,base.group_system"/>
 
     <menuitem id="menu_hospital_settings"
           name="Settings"
@@ -106,7 +109,9 @@
           sequence="2"/>
 
     <menuitem id="menu_hospital_schedule"
-          name="Schedules"
-          parent="menu_hospital_configuration"
-          action="action_hospital_schedule"
-          git 
+        name="Schedules"
+        parent="menu_hospital_configuration"
+        action="action_hospital_schedule"
+        sequence="3" />
+
+</odoo>
