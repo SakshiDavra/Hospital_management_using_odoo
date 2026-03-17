@@ -55,7 +55,11 @@
     'assets': {
         'web.assets_backend': [
             'hospital_management/static/src/js/calendar_reload.js',
-            'hospital_management/static/src/css/kanban.css'
+            'hospital_management/static/src/css/kanban.css',
+        ],
+
+        'web.assets_frontend': [
+            'hospital_management/static/src/css/style.css',
         ],
     },
 

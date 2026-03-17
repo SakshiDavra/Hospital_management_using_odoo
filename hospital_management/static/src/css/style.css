@@ -1,0 +1,32 @@
+.o_portal_docs_entry {
+    display: flex;
+    align-items: center;
+}
+
+.o_portal_docs_entry img {
+    width: 64px !important;
+    height: 64px !important;
+    object-fit: contain;
+}
+
+/* SVG fix */
+.o_portal_docs_entry img[src$=".svg"] {
+    width: 64px !important;
+    height: 64px !important;
+}
+
+
+#appointment_top {
+    scroll-margin-top: 120px;
+}
+
+#appointment_communication {
+    scroll-margin-top: 120px;
+}
+#medical_info{
+    scroll-margin-top: 120px;
+
+}
+html {
+    scroll-behavior: smooth;
+}

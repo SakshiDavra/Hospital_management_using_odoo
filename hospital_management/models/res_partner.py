@@ -14,11 +14,11 @@ class ResPartner(models.Model):
         tracking=True
     )
 
-    user_id = fields.One2many(
-    'res.users',
-    'partner_id',
-    string="Portal User"
-    )
+    # user_id = fields.One2many(
+    # 'res.users',
+    # 'partner_id',
+    # string="Portal User"
+    # )
 
     # ================= COMMON HOSPITAL CODE =================
     hospital_code = fields.Char(
