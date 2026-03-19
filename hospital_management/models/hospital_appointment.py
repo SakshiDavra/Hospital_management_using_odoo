@@ -1,8 +1,8 @@
 from odoo import models, fields, api
-from odoo.exceptions import ValidationError
-from odoo.exceptions import UserError
+from odoo.exceptions import ValidationError, UserError
 from datetime import timedelta
 import logging
+import base64
 
 _logger = logging.getLogger(__name__)
 
@@ -87,6 +87,9 @@ class HospitalAppointment(models.Model):
         compute="_compute_available_days"
     )
     cancel_reason = fields.Text(string="Cancel Reason")
+
+    invoice_id = fields.Many2one('account.move', string="Invoice")
+
     # ================= ONCHANGE =================4
     
 
@@ -177,8 +180,10 @@ class HospitalAppointment(models.Model):
                 duration = self._get_duration()
                 start = fields.Datetime.from_string(vals['start_date'])
                 vals['end_date'] = start + timedelta(minutes=duration)
-
+                
+        _logger.info("Appointment created: %s", vals_list)
         return super().create(vals_list)
+
 
     # ================= VALIDATION =================
 
@@ -266,18 +271,7 @@ class HospitalAppointment(models.Model):
                     'recipient_ids': [],
                 }
 
-            # Send email
             template.send_mail(rec.id, force_send=True, email_values=email_values)
-
-            # Render template body
-            body = template._render_field("body_html", rec.ids)[rec.id]
-
-            # Post same content in chatter
-            rec.message_post(
-                body=body,
-                message_type='comment',
-                subtype_xmlid="mail.mt_comment"
-            )
 
     def action_request(self):
 
@@ -305,14 +299,71 @@ class HospitalAppointment(models.Model):
         ):
             raise UserError("Only doctor or admin can confirm appointment.")
 
+        for rec in self:
 
-        self.write({'state': 'confirmed'})
+            # ================= STATE =================
+            rec.write({'state': 'confirmed'})
 
-        for rec in self.filtered(lambda r: r.patient_id.email):
-            rec._send_email(
-                'hospital_management.email_template_appointment_confirmed',
-                rec.patient_id.email
+            # ================= INVOICE CREATE =================
+            if not rec.invoice_id:
+
+                invoice = self.env['account.move'].create({
+                    'move_type': 'out_invoice',
+                    'partner_id': rec.patient_id.id,
+                    'invoice_origin': rec.name,
+                    'invoice_line_ids': [(0, 0, {
+                        'name': f"Consultation - {rec.doctor_id.name}",
+                        'quantity': 1,
+                        'price_unit': rec.fees,
+                    })],
+                })
+
+                invoice.action_post()
+                rec.invoice_id = invoice.id
+
+            else:
+                invoice = rec.invoice_id
+
+            # ================= PDF GENERATE =================
+            pdf, _ = self.env['ir.actions.report']._render_qweb_pdf(
+                'hospital_management.action_hospital_invoice_report',
+                [invoice.id]
             )
+
+            attachment = self.env['ir.attachment'].create({
+                'name': f"Invoice_{invoice.name}.pdf",
+                'type': 'binary',
+                'datas': base64.b64encode(pdf), 
+                'res_model': 'hospital.appointment',
+                'res_id': rec.id,
+                'mimetype': 'application/pdf',
+            })
+
+            # ================= SINGLE MAIL (CONFIRM + PDF) =================
+            if rec.patient_id.email:
+
+                template = self.env.ref('hospital_management.email_template_appointment_confirmed')
+
+                # attach PDF
+                template.attachment_ids = [(4, attachment.id)]
+
+                template.send_mail(
+                    rec.id,
+                    force_send=True,
+                    email_values={'email_to': rec.patient_id.email}
+                )
+
+                # ================= CHATTER =================
+                body = template._render_field("body_html", rec.ids)[rec.id]
+
+                rec.message_post(
+                    body=body,
+                    message_type='comment',
+                    subtype_xmlid="mail.mt_comment"
+                )
+
+                # ❗ CLEANUP
+                template.attachment_ids = [(5, 0, 0)]
 
         return True
 
@@ -323,6 +374,17 @@ class HospitalAppointment(models.Model):
                     'hospital_management.email_template_appointment_cancelled',
                     rec.patient_id.email
                 )
+
+            # CHATTER CONTENT
+            template = self.env.ref('hospital_management.email_template_appointment_cancelled')
+
+            body = template._render_field("body_html", rec.ids)[rec.id]
+
+            rec.message_post(
+                body=body,
+                message_type='comment',
+                subtype_xmlid="mail.mt_note"
+            )
 
     def action_open_cancel_wizard(self):
         self.ensure_one()
@@ -339,6 +401,18 @@ class HospitalAppointment(models.Model):
                 'default_appointment_id': self.id,
             }
         }
+
+    def action_cancel_from_portal(self, reason=None):
+        for rec in self:
+
+            # reason set
+            rec.cancel_reason = reason or "Cancelled from portal"
+
+            # state change
+            rec._set_state('cancel')
+
+            # mail send (already existing method use)
+            rec.action_cancel_with_mail()
 
     #state change helper
  
@@ -440,8 +514,3 @@ class HospitalAppointment(models.Model):
         return self.env.ref(
             "hospital_management.action_appointment_summary_report"
         ).report_action(appointments)
-
-
-
-
-        

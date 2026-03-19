@@ -1,0 +1,120 @@
+<odoo>
+
+    <!-- REPORT ACTION -->
+    <record id="action_hospital_invoice_report" model="ir.actions.report">
+        <field name="name">Hospital Invoice</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hospital_management.hospital_invoice_template</field>
+        <field name="report_file">hospital_management.hospital_invoice_template</field>
+    </record>
+
+    <!-- TEMPLATE -->
+    <template id="hospital_invoice_template">
+        <t t-call="web.html_container">
+
+            <t t-foreach="docs" t-as="o">
+
+                <t t-call="web.external_layout">
+
+                    <main class="page">
+
+                        <!-- HEADER -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <h2>🧾 Hospital Invoice</h2>
+                                <strong>Reference:</strong> <span t-esc="o.invoice_origin"/>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong>Invoice No:</strong> <span t-esc="o.name"/><br/>
+                                <strong>Date:</strong>
+                                <span t-esc="o.invoice_date and o.invoice_date.strftime('%d-%m-%Y')"/>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <!-- PATIENT + COMPANY -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <h5>Patient Details</h5>
+                                <strong>Name:</strong> <span t-esc="o.partner_id.name"/><br/>
+                                <strong>Email:</strong> <span t-esc="o.partner_id.email or ''"/><br/>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <!-- APPOINTMENT INFO -->
+                        <t t-if="o.invoice_origin">
+                            <div class="mb-3">
+                                <h5>Appointment Details</h5>
+
+                                <t t-set="appointment"
+                                   t-value="o.env['hospital.appointment'].search([('name','=',o.invoice_origin)], limit=1)"/>
+
+                                <t t-if="appointment">
+                                    <strong>Doctor:</strong>
+                                    <span t-esc="appointment.doctor_id.name"/><br/>
+
+                                    <strong>Start Time:</strong>
+                                    <span t-esc="appointment.start_date and appointment.start_date.strftime('%d-%m-%Y %I:%M %p')"/><br/>
+
+                                    <strong>End Time:</strong>
+                                    <span t-esc="appointment.end_date and appointment.end_date.strftime('%d-%m-%Y %I:%M %p')"/>
+                                </t>
+                            </div>
+                        </t>
+
+                        <hr/>
+
+                        <!-- TABLE -->
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.invoice_line_ids" t-as="line">
+                                    <td><span t-esc="line.name"/></td>
+                                    <td class="text-center"><span t-esc="line.quantity"/></td>
+                                    <td class="text-end">
+                                        ₹ <span t-esc="line.price_unit"/>
+                                    </td>
+                                    <td class="text-end">
+                                        ₹ <span t-esc="line.price_subtotal"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- TOTAL -->
+                        <div class="row mt-3">
+                            <div class="col-6"/>
+                            <div class="col-6 text-end">
+                                <h4>
+                                    Total: ₹ <span t-esc="o.amount_total"/>
+                                </h4>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <!-- FOOTER -->
+                        <div class="mt-4">
+                            <p><strong>Note:</strong> Please arrive 10 minutes before appointment.</p>
+                            <p>Thank you for choosing our hospital 🙏</p>
+                        </div>
+
+                    </main>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

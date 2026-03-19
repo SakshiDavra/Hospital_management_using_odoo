@@ -15,6 +15,7 @@
         'base',
         'website',
         'portal', 
+        'account',
         'contacts',
         'mail',   # ADD THIS
     ],
@@ -32,6 +33,7 @@
         'reports/report_hospital_appointment.xml',
         'reports/appointment_summary_report.xml',
         'reports/appointment_summary_template.xml',
+        'reports/invoice_report.xml',
 
         # Data
         'data/hospital_role_data.xml',

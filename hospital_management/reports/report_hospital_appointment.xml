@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
-    <!-- Report Action -->
+    <!-- REPORT ACTION -->
     <record id="action_report_hospital_appointment" model="ir.actions.report">
         <field name="name">Appointment Report</field>
         <field name="model">hospital.appointment</field>
@@ -11,10 +11,8 @@
         <field name="print_report_name">'Appointment - %s' % (object.name)</field>
     </record>
 
-
     <!-- REPORT TEMPLATE -->
     <template id="report_hospital_appointment">
-
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
 
@@ -22,109 +20,111 @@
 
                     <div class="page">
 
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <div style="width:100%; margin-bottom:20px; overflow:hidden;">
 
-                            <h2 style="color:#2a7f62;margin:0;">
-                                Hospital Appointment Report
+                        <!-- LEFT -->
+                        <div style="float:left; width:75%;">
+                            <h2 style="color:#2a7f62; margin:0;">
+                                Appointment - <t t-esc="doc.name"/>
                             </h2>
+                        </div>
 
-                            <div style="font-size:18px;">
-                                <strong>Generated On :</strong>
-                                <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y %I:%M %p')"/>
+                        <!-- RIGHT BADGE -->
+                        <div style="float:right; width:25%; text-align:right; margin-top:5px;">
+                            
+                            <t t-set="color" t-value="
+                                'background-color:#5cb85c;' if doc.state == 'confirmed'
+                                else 'background-color:#f0ad4e;' if doc.state == 'draft'
+                                else 'background-color:#d9534f;' if doc.state == 'cancel'
+                                else 'background-color:#777;'
+                            "/>
+
+                            <span t-att-style="color + ' color:white; padding:6px 14px; border-radius:14px; font-size:12px; text-transform:capitalize;'">
+                                <t t-esc="doc.state"/>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                        <hr/>
+
+                        <!-- MAIN SECTION -->
+                        <div style="width:100%; margin-top:20px; margin-bottom:30px; overflow:hidden;">
+
+                            <!-- LEFT -->
+                            <div style="width:48%; float:left;">
+                                <h3>Appointment Info</h3>
+
+                                <p><strong>Patient:</strong> <t t-esc="doc.patient_id.name"/></p>
+                                <p><strong>Doctor:</strong> <t t-esc="doc.doctor_id.name"/></p>
+                                <p><strong>Specialization:</strong> <t t-esc="doc.specialization_id.name"/></p>
+                                <p><strong>Company:</strong> <t t-esc="doc.company_id.name"/></p>
+
+                                <p><strong>Fees:</strong> 
+                                    <t t-esc="doc.fees" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                </p>
+                            </div>
+                            <!-- RIGHT -->
+                            <div style="width:48%; float:right;">
+                                <h3>Schedule</h3>
+
+                                <p><strong>Start:</strong> 
+                                    <t t-esc="context_timestamp(doc.start_date).strftime('%b %d, %I:%M %p') if doc.start_date else ''"/>
+                                </p>
+
+                                <p><strong>End:</strong> 
+                                    <t t-esc="context_timestamp(doc.end_date).strftime('%b %d, %I:%M %p') if doc.end_date else ''"/>
+                                </p>
                             </div>
 
                         </div>
 
-                        <!-- APPOINTMENT DETAILS -->
-                        <h4 style="margin-top:40px;">Appointment Details</h4>
+                        <hr style="width:100%; clear:both; border:1px solid #444;"/>
 
-                        <table class="table table-bordered" style="width:100%;font-size:18px;">
+                        <div>
+                            <!-- MEDICAL INFO -->
+                            <t t-if="doc.symptoms or doc.notes">
 
-                            <tr>
-                                <th width="30%">Appointment No</th>
-                                <td>
-                                    <t t-esc="doc.name"/>
-                                </td>
-                            </tr>
+                                <h2 style="margin-top:20px;">Medical Information</h2>
 
-                            <tr>
-                                <th>Company</th>
-                                <td>
-                                    <t t-esc="doc.company_id.name"/>
-                                </td>
-                            </tr>
+                                <t t-if="doc.symptoms">
+                                    <p style="margin-top:10px;">
+                                        <strong>Symptoms:</strong><br/>
+                                        <t t-esc="doc.symptoms"/>
+                                    </p>
+                                </t>
 
-                            <tr>
-                                <th>Patient</th>
-                                <td>
-                                    <t t-esc="doc.patient_id.name"/>
-                                </td>
-                            </tr>
+                                <t t-if="doc.notes">
+                                    <p style="margin-top:10px;">
+                                        <strong>Doctor Notes:</strong><br/>
+                                        <t t-esc="doc.notes"/>
+                                    </p>
+                                </t>
 
-                            <tr>
-                                <th>Specialization</th>
-                                <td>
-                                    <t t-esc="doc.specialization_id.name"/>
-                                </td>
-                            </tr>
+                            </t>
+                        </div>
+                        <hr/>
+                        <!-- CANCELLATION DETAILS -->
+                        <t t-if="doc.state == 'cancel' and doc.cancel_reason">
 
-                            <tr>
-                                <th>Doctor</th>
-                                <td>
-                                    <t t-esc="doc.doctor_id.name"/>
-                                </td>
-                            </tr>
+                            <h2 style="margin-top:20px;">Cancellation Details</h2>
 
-                            <tr>
-                                <th>Appointment Start</th>
-                                <td>
-                                    <t t-esc="doc.start_date"/>
-                                </td>
-                            </tr>
+                            <p style="margin-top:10px;">
+                                <strong>Reason:</strong><br/>
+                                <t t-esc="doc.cancel_reason"/>
+                            </p>
 
-                            <tr>
-                                <th>Appointment End</th>
-                                <td>
-                                    <t t-esc="doc.end_date"/>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <th>Consultation Fees</th>
-                                <td>
-                                    ₹ <t t-esc="doc.fees"/>
-                                </td>
-                            </tr>
-
-                        </table>
-
-
-                        <!-- MEDICAL INFO -->
-                        <h4 style="margin-top:30px;">Medical Information</h4>
-
-                        <table class="table table-bordered">
-
-                            <tr>
-                                <th width="30%">Symptoms</th>
-                                <td>
-                                    <t t-esc="doc.symptoms or 'N/A'"/>
-                                </td>
-                            </tr>
-
-        
-
-                        </table>
-
+                        </t>
+                 
 
                         
-
                     </div>
 
                 </t>
 
             </t>
         </t>
-
     </template>
 
 </odoo>

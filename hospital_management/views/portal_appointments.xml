@@ -10,27 +10,30 @@
               name="Add Appointments Card">
 
         <xpath expr="//div[@id='portal_common_category']" position="inside">
+            <t t-if="request.env.user.has_group('hospital_management.group_hospital_doctor') 
+                    or request.env.user.has_group('hospital_management.group_hospital_patient') 
+                    or request.env.user.has_group('base.group_system')">
 
-            <t t-call="portal.portal_docs_entry">
+                <t t-call="portal.portal_docs_entry">
 
-                <t t-set="icon"
-                   t-value="'/portal/static/src/img/portal-addresses.svg'"/>
+                    <t t-set="icon"
+                    t-value="'/portal/static/src/img/portal-addresses.svg'"/>
 
-                <t t-set="title">
-                    Appointments
+                    <t t-set="title">
+                        Appointments
+                    </t>
+
+                    <t t-set="text">
+                        View your hospital appointments
+                    </t>
+
+                    <t t-set="url"
+                    t-value="'/my/appointments'"/>
+
+                    <t t-set="config_card" t-value="True"/>
+
                 </t>
-
-                <t t-set="text">
-                    View your hospital appointments
-                </t>
-
-                <t t-set="url"
-                   t-value="'/my/appointments'"/>
-
-                <t t-set="config_card" t-value="True"/>
-
             </t>
-
         </xpath>
 
     </template>
@@ -58,6 +61,12 @@
                 <t t-esc="appointment.name"/>
             </li>
 
+            <!-- CREATE PAGE -->
+            <li t-if="page_name == 'create_appointment'"
+                class="breadcrumb-item active">
+                Create Appointment
+            </li>
+
         </xpath>
 
     </template>
@@ -65,308 +74,803 @@
     <!-- =====================================
          Portal Appointment List Page
     ====================================== -->
-
-    <template id="portal_my_appointments_page"
-              name="My Appointments">
+       <template id="portal_my_appointments" name="My Appointments">
 
         <t t-call="portal.portal_layout">
-            <t t-set="page_name" t-value="'appointments'"/>
 
-            <div class="container mt-4">
+            <!-- Enable searchbar -->
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
-                <table class="table table-hover">
+            <!-- Searchbar -->
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Appointments</t>
+            </t>
+           <div class="d-flex justify-content-end mb-3">
+                <a href="/my/appointment/new" class="btn btn-primary">
+                    + New Appointment
+                </a>
+            </div>
 
-                    <thead>
-                        <tr>
-                            <th>Appointment No</th>
-                            <th>Patient</th>
-                            <th>Doctor</th>
-                            <th>Specialization</th>
-                            <th>Date</th>
-                            <th>Fees</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
+            <!-- No Data -->
+            <t t-if="not appointments">
+                <div class="alert alert-warning mt-3">
+                    No appointments found.
+                </div>
+            </t>
 
-                    <tbody>
+            <!-- ================= TABLE ================= -->
+            <t t-if="appointments">
+                <div class="table-responsive mt-3">
 
-                        <t t-if="appointments">
+                    <table class="table table-hover">
 
-                            <t t-foreach="appointments" t-as="app">
+                        <thead>
+                            <tr>
+                                <th>Appointment No</th>
+                                <th t-if="groupby != 'patient_id'">Patient</th>
 
-                                <tr>
+                                <th t-if="groupby != 'doctor_id'">Doctor</th>
 
-                                    <td>
-                                        <a t-att-href="'/my/appointment/%s' % app.id">
-                                        <t t-esc="app.name"/>
-                                        </a>
+                                <th t-if="groupby != 'specialization_id'">Specialization</th>
+
+                                <th t-if="groupby not in ['date_day']">Date</th>
+
+                                <th>Fees</th>
+                                <th t-if="groupby != 'state'">Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- GROUP LOOP -->
+                            <t t-foreach="grouped_appointments" t-as="group">
+
+                                <!-- ===== GROUP HEADER ===== -->
+                                <tr class="table-light" t-if="group[0]">
+                                    <td colspan="7" class="fw-bold">
+
+                                        <!-- Doctor -->
+                                        <t t-if="groupby == 'doctor_id'">
+                                            <t t-esc="'[' + (group[0].hospital_code or '') + '] ' + (group[0].name or '')"/>
+                                        </t>
+
+                                        <!-- Patient -->
+                                        <t t-if="groupby == 'patient_id'">
+                                            <t t-esc="'[' + (group[0].hospital_code or '') + '] ' + (group[0].name or '')"/>
+                                        </t>
+
+                                        <!-- Specialization -->
+                                        <t t-if="groupby == 'specialization_id'">
+                                            <t t-esc="group[0].name"/>
+                                        </t>
+
+                                        <!-- Status -->
+                                        <t t-if="groupby == 'state'">
+                                            <t t-esc="group[0].capitalize()"/>
+                                        </t>
+                                        <!-- Year -->
+                                        <t t-if="groupby == 'date_year'">
+                                            <t t-esc="group[0]"/>
+                                        </t>
+
+                                        <!-- Month -->
+                                        <t t-if="groupby == 'date_month'">
+                                            <t t-esc="group[0][1]"/> /
+                                            <t t-esc="group[0][0]"/>
+                                        </t>
+
+                                        <!-- Week -->
+                                        <t t-if="groupby == 'date_week'">
+                                            Week <t t-esc="group[0]"/>
+                                        </t>
+
+                                        <!-- Day -->
+                                        <t t-if="groupby == 'date_day'">
+                                            <t t-esc="group[0]"/>
+                                        </t>
+
                                     </td>
-
-                                    <td><t t-esc="app.patient_id.name"/></td>
-                                    <td><t t-esc="app.doctor_id.name"/></td>
-                                    <td><t t-esc="app.specialization_id.name"/></td>
-
-                                    <td>
-                                        <span t-field="app.start_date"/>
-                                    </td>
-
-                                    <td>
-                                        <span t-field="app.fees"
-                                            t-options='{"widget": "monetary", "display_currency": app.currency_id}'/>
-                                    </td>
-
-                                    <td>
-
-                                        <span class="badge bg-success"
-                                              t-if="app.state == 'done'">Done</span>
-
-                                        <span class="badge bg-info"
-                                              t-if="app.state == 'confirmed'">Confirmed</span>
-
-                                        <span class="badge bg-warning"
-                                              t-if="app.state == 'requested'">Requested</span>
-
-                                        <span class="badge bg-danger"
-                                              t-if="app.state == 'cancel'">Cancelled</span>
-
-                                        <span class="badge bg-secondary"
-                                              t-if="app.state == 'draft'">Draft</span>
-
-                                    </td>
-
                                 </tr>
+
+                                <!-- ===== RECORDS ===== -->
+                                <t t-foreach="group[1]" t-as="appointment">
+                                    <tr>
+
+                                        <!-- Appointment No -->
+                                        <td>
+                                            <a t-attf-href="/my/appointment/#{appointment.id}">
+                                                <span t-esc="appointment.name"/>
+                                            </a>
+                                        </td>
+
+                                        <!-- Patient -->
+                                        <td t-if="groupby != 'patient_id'">
+                                            <span t-esc="'[' + (appointment.patient_id.hospital_code or '') + '] ' + (appointment.patient_id.name or '')"/>
+                                        </td>
+
+                                        <!-- Doctor -->
+                                        <td t-if="groupby != 'doctor_id'">
+                                            <span t-esc="'[' + (appointment.doctor_id.hospital_code or '') + '] ' + (appointment.doctor_id.name or '')"/>
+                                        </td>
+
+                                        <!-- Specialization -->
+                                        <td t-if="groupby != 'specialization_id'">
+                                            <span t-esc="appointment.specialization_id.name"/>
+                                        </td>
+
+                                            <!-- Date -->
+                                        <td t-if="groupby not in ['date_day']">
+                                            <span t-field="appointment.start_date"
+                                                t-options='{"widget": "datetime"}'/>
+                                        </td>
+
+                                            <!-- Fees -->
+                                        <td>
+                                            <span t-field="appointment.fees"
+                                                t-options='{"widget": "monetary", "display_currency": appointment.currency_id}'/>
+                                        </td>
+
+                                         <!-- Status -->
+                                        <td t-if="groupby != 'state'">
+                                            <span t-attf-class="badge 
+                                                #{'bg-secondary' if appointment.state == 'draft'
+                                                else 'bg-warning' if appointment.state == 'requested'
+                                                else 'bg-info' if appointment.state == 'confirmed'
+                                                else 'bg-success' if appointment.state == 'done'
+                                                else 'bg-danger'}">
+
+                                                <t t-esc="dict(appointment._fields['state'].selection).get(appointment.state)"/>
+
+                                            </span>
+                                        </td>
+
+                                    </tr>
+                                </t>
 
                             </t>
 
-                        </t>
+                        </tbody>
 
-                        <t t-if="not appointments">
+                    </table>
 
-                            <tr>
-                                <td colspan="7" class="text-center text-muted">
-                                    No appointments found
-                                </td>
-                            </tr>
+                    <!-- Pager -->
+                    <t t-if="pager">
+                        <div class="mt-3 d-flex justify-content-center">
+                            <t t-call="portal.pager"/>
+                        </div>
+                    </t>
 
-                        </t>
-
-                    </tbody>
-
-                </table>
-                <t t-if="pager">
-                    <div class="mt-3 d-flex justify-content-center">
-                        <t t-call="portal.pager"/>
-                    </div>
-                </t>
-
-            </div>
+                </div>
+            </t>
 
         </t>
 
     </template>
 
 
+    <template id="portal_appointment_page"
+            name="Appointment Portal"
+            inherit_id="portal.portal_sidebar"
+            primary="True">
 
-<template id="portal_appointment_page"
-          name="Appointment Portal"
-          inherit_id="portal.portal_sidebar"
-          primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
 
-    <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row">
 
-        <div class="row">
+                <!-- =======================
+                    SIDEBAR (LEFT)
+                ======================== -->
+                <t t-call="portal.portal_record_sidebar">
 
-            <!-- =======================
-                 SIDEBAR (LEFT)
-            ======================== -->
-<t t-call="portal.portal_record_sidebar">
+                    <!-- Sidebar width -->
+                    <t t-set="classes" t-value="'col-lg-4 col-xxl-3 d-print-none'"/>
 
-    <!-- Sidebar width -->
-    <t t-set="classes" t-value="'col-lg-4 col-xxl-3 d-print-none'"/>
+                    <!-- ================= TITLE ================= -->
+                    <t t-set="title">
+                        <h2 class="mb-0 text-break">
+                            <span t-field="appointment.fees"
+                                t-options='{"widget": "monetary", "display_currency": appointment.currency_id}'/>
+                        </h2>
+                    </t>
 
-    <!-- ================= TITLE ================= -->
-    <t t-set="title">
-        <h2 class="mb-0 text-break">
-            <span t-field="appointment.fees"
-                t-options='{"widget": "monetary", "display_currency": appointment.currency_id}'/>
-        </h2>
-    </t>
+                    <!-- ================= ENTRIES ================= -->
+                    <t t-set="entries">
+                        <!-- ================= BUTTONS ================= -->
+                        <div class="d-flex flex-column gap-4 mt-3">
+                            <div class="d-flex flex-column gap-2">
 
-    <!-- ================= ENTRIES ================= -->
-    <t t-set="entries">
-        <!-- ================= BUTTONS ================= -->
-        <div class="d-flex flex-column gap-4 mt-3">
+                                <a class="btn btn-light"
+                                    t-att-href="'/my/appointment/%s?report_type=pdf' % appointment.id"
+                                    target="_blank">
+                                        <i class="fa fa-print me-1"/> View Details
+                                </a>
 
-            <div class="d-flex flex-column gap-2">
+                                <a class="btn btn-light"
+                                t-att-href="'/my/appointment/%s?report_type=pdf&amp;download=true' % appointment.id">
+                                    Download PDF
+                                </a>
 
-                <!-- Download -->
-                <a class="btn btn-light"
-                   t-att-href="'/my/appointment/%s?report_type=pdf' % appointment.id"
-                   target="_blank">
-                    <i class="fa fa-print me-1"/> View Details
-                </a>
+                            </div>
 
-            </div>
+                            <!-- ================= NAV LINKS ================= -->
+                            <div class="navspy flex-grow-1 ps-0">
 
-            <!-- ================= NAV LINKS ================= -->
-            <div class="navspy flex-grow-1 ps-0">
+                                <ul class="nav flex-column bs-sidenav">
 
-                <ul class="nav flex-column bs-sidenav">
+                                    <li class="nav-item">
+                                        <a class="nav-link"
+                                        href="#appointment_top">
+                                            Appointment
+                                        </a>
+                                    </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="#appointment_top">
-                            Appointment
-                        </a>
-                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link"
+                                        href="#medical_info">
+                                            Medical Info
+                                        </a>
+                                    </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="#medical_info">
-                            Medical Info
-                        </a>
-                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link"
+                                        href="#appointment_communication">
+                                            Communication History
+                                        </a>
+                                    </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="#appointment_communication">
-                            Communication History
-                        </a>
-                    </li>
+                                </ul>
 
-                </ul>
+                            </div>
 
-            </div>
+                            <!-- Company -->
+                            <div t-if="appointment.company_id">
 
-            <!-- Company -->
-            <div t-if="appointment.company_id">
+                                <h6><small class="text-muted">Your Connect</small></h6>
 
-                <h6><small class="text-muted">Your Connect</small></h6>
+                                <t t-call="portal.portal_my_contact">
 
-                <t t-call="portal.portal_my_contact">
+                                    <t t-set="_contactAvatar"
+                                    t-value="appointment.company_id.logo and image_data_uri(appointment.company_id.logo) or '/web/static/img/user_placeholder.png'"/>
 
-                    <t t-set="_contactAvatar"
-                    t-value="appointment.company_id.logo and image_data_uri(appointment.company_id.logo) or '/web/static/img/user_placeholder.png'"/>
+                                    <t t-set="_contactName"
+                                    t-value="appointment.company_id.name or 'Company'"/>
 
-                    <t t-set="_contactName"
-                    t-value="appointment.company_id.name or 'Company'"/>
+                                    <t t-set="_contactLink"
+                                    t-value="True"/>
 
-                    <t t-set="_contactLink"
-                    t-value="True"/>
+                                </t>
+
+                            </div>
+                        </div>
+
+                    </t>
 
                 </t>
 
-            </div>
-        </div>
+                <!-- =======================
+                    RIGHT CONTENT
+                ======================== -->
+                <div class="col-12 col-lg-8 col-xxl-9 o_portal_content">
 
-    </t>
+                    <!-- HEADER -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
 
-</t>
+                        <!-- TOP TARGET -->
+                        <h2 id="appointment_top">
+                            Appointment -
+                            <em t-esc="appointment.name"/>
+                        </h2>
 
-            <!-- =======================
-                 RIGHT CONTENT
-            ======================== -->
-            <div class="col-12 col-lg-8 col-xxl-9 o_portal_content">
+                        <!-- STATUS -->
+                        <div class="d-flex justify-content-between align-items-center my-2">
 
-                <!-- HEADER -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                            <!-- LEFT: BUTTONS -->
+                            <div class="d-flex gap-2">
 
-                    <!-- TOP TARGET -->
-                    <h2 id="appointment_top">
-                        Appointment -
-                        <em t-esc="appointment.name"/>
-                    </h2>
+                                <!-- PATIENT -->
+                                <t t-if="request.env.user.partner_id.id == appointment.patient_id.id">
+                                    <t t-if="appointment.state == 'draft'">
+                                        <a t-att-href="'/appointment/request/%s' % appointment.id"
+                                        class="btn btn-primary">
+                                            Request
+                                        </a>
+                                    </t>
+                                </t>
 
-                    <!-- STATUS -->
-                    <div class="my-2 text-center">
-                        <span class="badge bg-success" t-if="appointment.state == 'done'">Done</span>
-                        <span class="badge bg-info" t-if="appointment.state == 'confirmed'">Confirmed</span>
-                        <span class="badge bg-warning" t-if="appointment.state == 'requested'">Requested</span>
-                        <span class="badge bg-danger" t-if="appointment.state == 'cancel'">Cancelled</span>
-                        <span class="badge bg-secondary" t-if="appointment.state == 'draft'">Draft</span>
+                                <!-- DOCTOR -->
+                                <t t-if="request.env.user.partner_id.id == appointment.doctor_id.id">
+                                    <t t-if="appointment.state == 'requested'">
+                                        <a t-att-href="'/appointment/confirm/%s' % appointment.id"
+                                        class="btn btn-success">
+                                            Confirm
+                                        </a>
+                                    </t>
+
+                                    <t t-if="appointment.state == 'confirmed'">
+                                        <a t-att-href="'/appointment/done/%s' % appointment.id"
+                                        class="btn btn-info">
+                                            Done
+                                        </a>
+                                    </t>
+                                </t>
+
+                                <!-- CANCEL -->
+                                <t t-if="appointment.state not in ('done','cancel')">
+                                    <a class="btn btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#cancelModal">
+                                        Cancel
+                                    </a>
+                                </t>
+
+                            </div>
+
+                            <!-- RIGHT: STATUS -->
+                            <div>
+                                <span class="badge bg-success" t-if="appointment.state == 'done'">Done</span>
+                                <span class="badge bg-info" t-if="appointment.state == 'confirmed'">Confirmed</span>
+                                <span class="badge bg-warning" t-if="appointment.state == 'requested'">Requested</span>
+                                <span class="badge bg-danger" t-if="appointment.state == 'cancel'">Cancelled</span>
+                                <span class="badge bg-secondary" t-if="appointment.state == 'draft'">Draft</span>
+                            </div>
+
+                        </div>
+
                     </div>
+                    <!-- CANCEL MODAL -->
+                    <div class="modal fade" id="cancelModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
 
-                </div>
+                                <form t-att-action="'/appointment/cancel/%s' % appointment.id" method="post">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Cancel Appointment</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"/>
+                                    </div>
 
-                <hr/>
+                                    <div class="modal-body">
+                                        <label>Reason</label>
+                                        <textarea name="reason"
+                                                class="form-control"
+                                                required="1"
+                                                placeholder="Enter cancel reason..."/>
+                                    </div>
 
-                <!-- DETAILS -->
-                <div class="row">
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            Close
+                                        </button>
 
-                    <div class="col-md-6">
-                        <h5>Appointment Info</h5>
-                        <hr/>
+                                        <button type="submit" class="btn btn-danger">
+                                            Confirm Cancel
+                                        </button>
+                                    </div>
 
-                        <p><strong>Patient:</strong>
-                            <t t-esc="appointment.patient_id.name"/>
-                        </p>
+                                </form>
 
-                        <p><strong>Doctor:</strong>
-                            <t t-esc="appointment.doctor_id.name"/>
-                        </p>
-
-                        <p><strong>Specialization:</strong>
-                            <t t-esc="appointment.specialization_id.name"/>
-                        </p>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="col-md-6">
-                        <h5>Schedule</h5>
-                        <hr/>
-
-                        <p><strong>Start:</strong>
-                            <span t-field="appointment.start_date"/>
-                        </p>
-
-                        <p><strong>End:</strong>
-                            <span t-field="appointment.end_date"/>
-                        </p>
-                    </div>
-
-                </div>
-
-                <hr/>
-
-                <!-- MEDICAL INFO -->
-                <h3 id="medical_info">Medical Information</h3>
-
-                <p>
-                    <strong>Symptoms:</strong><br/>
-                    <t t-esc="appointment.symptoms"/>
-                </p>
-
-                <p>
-                    <strong>Doctor Notes:</strong><br/>
-                    <t t-esc="appointment.notes"/>
-                </p>
-
-                <!-- ADD THIS -->
-                <t t-if="appointment.state == 'cancel' and appointment.cancel_reason">
                     <hr/>
-                    <h5>Cancellation Reason</h5>
-                    <p class="text-danger">
-                        <t t-esc="appointment.cancel_reason"/>
+
+                    <!-- DETAILS -->
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <h5>Appointment Info</h5>
+                            <hr/>
+
+                            <p><strong>Patient:</strong>
+                                <t t-esc="appointment.patient_id.name"/>
+                            </p>
+
+                            <p><strong>Doctor:</strong>
+                                <t t-esc="appointment.doctor_id.name"/>
+                            </p>
+
+                            <p><strong>Specialization:</strong>
+                                <t t-esc="appointment.specialization_id.name"/>
+                            </p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>Schedule</h5>
+                            <hr/>
+
+                            <p><strong>Start:</strong>
+                                <span t-field="appointment.start_date"/>
+                            </p>
+
+                            <p><strong>End:</strong>
+                                <span t-field="appointment.end_date"/>
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <hr/>
+
+                    <!-- MEDICAL INFO -->
+                    <h3 id="medical_info">Medical Information</h3>
+
+                    <p>
+                        <strong>Symptoms:</strong><br/>
+                        <t t-esc="appointment.symptoms"/>
                     </p>
-                </t>
 
-                <hr/>
+                    <p>
+                        <strong>Doctor Notes:</strong><br/>
+                        <t t-esc="appointment.notes"/>
+                    </p>
 
-                <!-- CHATTER -->
-                <h3 id="appointment_communication">Communication history</h3>
+                    <!-- ADD THIS -->
+                    <t t-if="appointment.state == 'cancel' and appointment.cancel_reason">
+                        <hr/>
+                        <h5>Cancellation Reason</h5>
+                        <p class="text-danger">
+                            <t t-esc="appointment.cancel_reason"/>
+                        </p>
+                    </t>
 
-                <div>
-                    <t t-set="object" t-value="appointment"/>
-                    <t t-call="portal.message_thread"/>
+                    <hr/>
+
+                    <!-- CHATTER -->
+                    <h3 id="appointment_communication">Communication history</h3>
+
+                    <div>
+                        <t t-set="object" t-value="appointment"/>
+                        <t t-call="portal.message_thread"/>
+                    </div>
+
                 </div>
 
             </div>
 
+        </xpath>
+
+    </template>
+
+   <template id="portal_create_appointment" name="Create Appointment Page">
+
+    <t t-call="portal.portal_layout">
+
+        <div class="container mt-4">
+
+            <div class="card shadow-sm p-4">
+
+                <h2 class="mb-4">Create Appointment</h2>
+
+                <form action="/my/appointment/create" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <div class="row">
+
+                        <!-- ================= LEFT ================= -->
+                        <div class="col-md-6">
+                            <h5 class="fw-bold">Appointment Details</h5>
+                            <hr/>
+                            <!-- Patient (AUTO - SECURE) -->
+                            <!-- ================= PATIENT ================= -->
+
+                            <t t-if="is_patient and not is_doctor">
+                                <!-- Patient login -->
+                                <div class="mb-3">
+                                    <label class="form-label">Patient</label>
+                                    <input type="text"
+                                        class="form-control"
+                                        t-att-value="request.env.user.partner_id.name"
+                                        readonly="1"/>
+
+                                    <input type="hidden"
+                                        name="patient_id"
+                                        t-att-value="request.env.user.partner_id.id"/>
+                                </div>
+                            </t>
+
+                            <t t-else="">
+                                <!-- Doctor / Admin / Both -->
+                                <div class="mb-3">
+                                    <label class="form-label">Patient</label>
+                                    <select name="patient_id" class="form-control" required="1">
+                                        <option value="">Select Patient</option>
+                                        <t t-foreach="patients" t-as="p">
+                                            <option t-att-value="p.id">
+                                                <t t-esc="p.name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </t>
+
+                            <!-- ================= SPECIALIZATION ================= -->
+
+                            <t t-if="is_doctor">
+                                <!-- Doctor login → auto -->
+                                <div class="mb-3">
+                                    <label class="form-label">Specialization</label>
+
+                                    <input type="text"
+                                        class="form-control"
+                                        t-att-value="user_specialization.name"
+                                        readonly="1"/>
+
+                                    <input type="hidden"
+                                        name="specialization_id"
+                                        t-att-value="user_specialization.id"/>
+                                </div>
+                            </t>
+
+                            <t t-else="">
+                                <!-- Patient / Admin -->
+                                <div class="mb-3">
+                                    <label class="form-label">Specialization</label>
+                                    <select name="specialization_id" id="specialization_id" class="form-control" required="1">
+                                        <option value="">Select Specialization</option>
+                                        <t t-foreach="specializations" t-as="s">
+                                            <option t-att-value="s.id">
+                                                <t t-esc="s.name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </t>
+
+                            <!-- Doctor -->
+                            <!-- ================= DOCTOR ================= -->
+
+                            <t t-if="is_doctor">
+                                <!-- Doctor login -->
+                                <div class="mb-3">
+                                    <label class="form-label">Doctor</label>
+                                    <input type="text"
+                                        class="form-control"
+                                        t-att-value="request.env.user.partner_id.name"
+                                        readonly="1"/>
+
+                                    <input type="hidden"
+                                        name="doctor_id"
+                                        t-att-value="request.env.user.partner_id.id"/>
+                                </div>
+                            </t>
+
+                            <t t-else="">
+                                <!-- Patient / Admin -->
+                                <div class="mb-3">
+                                    <label class="form-label">Doctor</label>
+                                    <select name="doctor_id" class="form-control" required="1">
+                                        <option value="">Select Doctor</option>
+                                        <t t-foreach="doctors" t-as="d">
+                                            <option t-att-value="d.id"
+                                                    t-att-data-spec="d.specialization_id.id"
+                                                    t-att-data-fees="d.consultation_fees">
+                                                <t t-esc="d.name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </t>
+
+                            <!-- Fees (AUTO) -->
+                            <t t-if="is_doctor">
+                                <div class="mb-3">
+                                    <label class="form-label">Consultation Fees</label>
+                                    <input type="text"
+                                        class="form-control"
+                                        t-att-value="doctor_fees"
+                                        readonly="1"/>
+                                </div>
+                            </t>
+
+                        </div>
+
+
+                        <!-- ================= RIGHT ================= -->
+                        <div class="col-md-6">
+                            <h5 class="fw-bold">Schedule</h5>
+                            <hr/>
+
+                            <!-- Start Date -->
+                            <div class="mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="datetime-local"
+                                    id="start_date"
+                                    name="start_date"
+                                    class="form-control"
+                                    required="1"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">End Date</label>
+                                <input type="datetime-local"
+                                    id="end_date"
+                                    name="end_date"
+                                    class="form-control"/>
+                            </div>
+                            <!-- Symptoms -->
+                            <div class="mb-3">
+                                <label class="form-label">Symptoms</label>
+                                <input name="symptoms"
+                                          class="form-control"
+                                          rows="4"/>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ================= BUTTONS ================= -->
+                    <div class="mt-4 text-end">
+                        <a href="/my/appointments" class="btn btn-secondary">
+                            Cancel
+                        </a>
+
+                        <button type="submit" class="btn btn-success">
+                            Create Appointment
+                        </button>
+                    </div>
+
+                </form>
+                <t t-if="error">
+                    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+                        <div id="errorToast" class="toast align-items-center text-bg-danger border-0 show">
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    <t t-esc="error"/>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                        data-bs-dismiss="toast"></button>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
         </div>
 
-    </xpath>
+        <script type="text/javascript">
+            <![CDATA[
+            document.addEventListener("DOMContentLoaded", function () {
+
+                const spec = document.querySelector("[name='specialization_id']");
+                const doctor = document.querySelector("[name='doctor_id']");
+                const start = document.getElementById("start_date");
+                const end = document.getElementById("end_date");
+                const form = document.querySelector("form");
+
+                // ================= DOCTOR FILTER =================
+                if (spec && doctor) {
+                    spec.addEventListener("change", function () {
+
+                        const selected = this.value;
+
+                        for (let opt of doctor.options) {
+
+                            const docSpec = opt.getAttribute("data-spec");
+
+                            if (!docSpec) continue;
+
+                            // ✅ disable instead of hide
+                            if (selected === "" || docSpec === selected) {
+                                opt.disabled = false;
+                                opt.hidden = false;
+                            } else {
+                                opt.disabled = true;
+                                opt.hidden = true;
+                            }
+                        }
+
+                        doctor.value = "";
+                    });
+                }
+                // ================= AUTO SPECIALIZATION FROM DOCTOR =================
+                if (doctor && spec) {
+
+                    doctor.addEventListener("change", function () {
+
+                        const selected = doctor.options[doctor.selectedIndex];
+                        const specId = selected.getAttribute("data-spec");
+
+                        if (specId) {
+                            spec.value = specId;
+                        }
+                    });
+                }
+                // ================= AUTO END DATE =================
+                if (start && end) {
+                    start.addEventListener("change", function () {
+
+                        if (!start.value) return;
+
+                        let startDate = new Date(start.value);
+
+                        // ⏱️ 30 minutes add
+                        startDate.setMinutes(startDate.getMinutes() + 30);
+
+                        // ✅ LOCAL format (NO UTC issue)
+                        const year = startDate.getFullYear();
+                        const month = String(startDate.getMonth() + 1).padStart(2, '0');
+                        const day = String(startDate.getDate()).padStart(2, '0');
+                        const hours = String(startDate.getHours()).padStart(2, '0');
+                        const minutes = String(startDate.getMinutes()).padStart(2, '0');
+
+                        end.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    });
+                }
+
+                // ================= ERROR TOAST =================
+                const toastEl = document.getElementById('errorToast');
+
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+                    toast.show();
+                }
+
+                // ================= AUTO FEES =================
+                if (doctor) {
+                    doctor.addEventListener("change", function () {
+
+                        const selected = doctor.options[doctor.selectedIndex];
+                        const fees = selected.getAttribute("data-fees");
+
+                        const feesInput = document.getElementById("fees");
+
+                        if (feesInput) {
+                            feesInput.value = fees ? fees : "";
+                        }
+                    });
+                }
+
+
+                // ================= FORM VALIDATION =================
+                if (form && start) {
+
+                    form.addEventListener("submit", function(e) {
+
+                        const startDate = new Date(start.value);
+                        const now = new Date();
+
+                        // Start required
+                        if (!start.value) {
+                            alert("Start date required!");
+                            e.preventDefault();
+                            return;
+                        }
+
+                        // Past check
+                        if (startDate < now) {
+                            alert("You cannot create appointment in past!");
+                            e.preventDefault();
+                            return;
+                        }
+
+                        // ✅ End validation
+                        if (end && end.value) {
+
+                            const endDate = new Date(end.value);
+
+                            // End > Start
+                            if (endDate <= startDate) {
+                                alert("End time must be after start time!");
+                                e.preventDefault();
+                                return;
+                            }
+
+                            // Same day
+                            if (startDate.toDateString() !== endDate.toDateString()) {
+                                alert("Start and End must be same day!");
+                                e.preventDefault();
+                                return;
+                            }
+                        }
+
+                    });
+                }
+
+            });
+            ]]>
+            </script>
+
+    </t>
 
 </template>
-
-
-
 </odoo>

@@ -1,0 +1,129 @@
+    <template id="portal_breadcrumbs_appointments"
+            inherit_id="portal.portal_breadcrumbs"
+            name="Appointments Breadcrumb">
+
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+
+            <!-- LIST PAGE -->
+            <li t-if="page_name == 'appointments'"
+                class="breadcrumb-item active">
+                Appointments
+            </li>
+
+            <!-- DETAIL PAGE -->
+            <li t-if="page_name == 'appointment'"
+                class="breadcrumb-item">
+                <a href="/my/appointments">Appointments</a>
+            </li>
+
+            <li t-if="page_name == 'appointment'"
+                class="breadcrumb-item active">
+                <t t-esc="appointment.name"/>
+            </li>
+
+        </xpath>
+
+    </template>
+
+    <!-- =====================================
+         Portal Appointment List Page
+    ====================================== -->
+    <!-- ================= SEARCHBAR ================= -->
+    <template id="portal_my_appointments" name="My Appointments">
+
+        <t t-call="portal.portal_layout">
+
+            <!-- Enable searchbar -->
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <!-- Search + Filter + Sort -->
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Appointments</t>
+            </t>
+
+            <!-- No Data -->
+            <t t-if="not appointments">
+                <div class="alert alert-warning mt-3">
+                    No appointments found.
+                </div>
+            </t>
+
+            <!-- ================= TABLE ================= -->
+            <t t-if="appointments">
+                <div class="table-responsive mt-3">
+
+                    <table class="table table-hover">
+
+                        <thead>
+                            <tr>
+                                <th>Appointment No</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Specialization</th>
+                                <th>Date</th>
+                                <th>Fees</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <t t-foreach="appointments" t-as="appointment">
+                                <tr>
+
+                                    <!-- Appointment No -->
+                                    <td>
+                                        <a t-attf-href="/my/appointment/#{appointment.id}">
+                                            <span t-esc="appointment.name"/>
+                                        </a>
+                                    </td>
+
+                                    <!-- Patient -->
+                                    <td>
+                                        <span t-esc="appointment.patient_id.name"/>
+                                    </td>
+
+                                    <!-- Doctor -->
+                                    <td>
+                                        <span t-esc="appointment.doctor_id.name"/>
+                                    </td>
+
+                                    <!-- Specialization -->
+                                    <td>
+                                        <span t-esc="appointment.specialization_id.name"/>
+                                    </td>
+
+                                    <!-- Date -->
+                                    <td>
+                                        <span t-field="appointment.start_date"
+                                              t-options='{"widget": "datetime"}'/>
+                                    </td>
+
+                                    <!-- Fees -->
+                                    <td>
+                                        ₹ <span t-esc="appointment.fees"/>
+                                    </td>
+
+                                    <!-- Status Badge -->
+                                    <td>
+                                        <span t-attf-class="badge 
+                                            #{'bg-secondary' if appointment.state == 'draft'
+                                            else 'bg-warning' if appointment.state == 'requested'
+                                            else 'bg-info' if appointment.state == 'confirmed'
+                                            else 'bg-success' if appointment.state == 'done'
+                                            else 'bg-danger'}">
+
+                                            <t t-esc="appointment.state"/>
+                                        </span>
+                                    </td>
+
+                                </tr>
+                            </t>
+                        </tbody>
+
+                    </table>
+                </div>
+            </t>
+
+        </t>
+    </template>
+

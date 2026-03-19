@@ -2,9 +2,10 @@ from odoo import models, fields, api
 from odoo.fields import Domain
 from odoo.models import Constraint
 import secrets
+from odoo.exceptions import ValidationError, UserError
 
 class ResPartner(models.Model):
-    _name = "res.partner"
+    # _name = "res.partner"
     _inherit = ["res.partner", "mail.thread", "mail.activity.mixin"]
     
     # ================= ROLES =================
@@ -14,12 +15,11 @@ class ResPartner(models.Model):
         tracking=True
     )
 
-    # user_id = fields.One2many(
-    # 'res.users',
-    # 'partner_id',
-    # string="Portal User"
-    # )
-
+    user_id = fields.Many2one(
+        'res.users',
+        string="User",
+        readonly=True
+    )
     # ================= COMMON HOSPITAL CODE =================
     hospital_code = fields.Char(
         string="Code",
@@ -113,48 +113,19 @@ class ResPartner(models.Model):
 
         return result
 
-    # ================= CREATE METHOD sequence auto jenrate dr patient id =================
-
-    # @api.model_create_multi
-    # def create(self, vals_list):
-
-    #     doctor_role = self.env.ref('hospital_management.role_doctor')
-    #     patient_role = self.env.ref('hospital_management.role_patient')
-
-    #     for vals in vals_list:
-
-    #         roles = vals.get('role_ids', [])
-    #         role_ids = []
-
-    #         for command in roles:
-    #             if command[0] == 6:
-    #                 role_ids.extend(command[2])
-    #             elif command[0] == 4:
-    #                 role_ids.append(command[1])
-
-    #         if doctor_role.id in role_ids:
-    #             vals['hospital_code'] = self.env['ir.sequence'].next_by_code('hospital.doctor')
-
-    #         elif patient_role.id in role_ids:
-    #             vals['hospital_code'] = self.env['ir.sequence'].next_by_code('hospital.patient')
-
-    #     return super().create(vals_list)
-
-
-
     @api.model_create_multi
     def create(self, vals_list):
 
         doctor_role = self.env.ref('hospital_management.role_doctor')
         patient_role = self.env.ref('hospital_management.role_patient')
 
-        # ---------- SEQUENCE GENERATION ----------
+        doctor_group = self.env.ref('hospital_management.group_hospital_doctor')
+        patient_group = self.env.ref('hospital_management.group_hospital_patient')
+
+        # ---------- SEQUENCE ----------
         for vals in vals_list:
-
-            roles = vals.get('role_ids', [])
             role_ids = []
-
-            for command in roles:
+            for command in vals.get('role_ids', []):
                 if command[0] == 6:
                     role_ids.extend(command[2])
                 elif command[0] == 4:
@@ -162,43 +133,49 @@ class ResPartner(models.Model):
 
             if doctor_role.id in role_ids:
                 vals['hospital_code'] = self.env['ir.sequence'].next_by_code('hospital.doctor')
-
             elif patient_role.id in role_ids:
                 vals['hospital_code'] = self.env['ir.sequence'].next_by_code('hospital.patient')
 
         # ---------- CREATE PARTNER ----------
         records = super().create(vals_list)
 
-        users_to_create = []
-
-        # ---------- USER CREATION ----------
+        # ---------- USER + GROUP ----------
         for rec in records:
 
-            if doctor_role in rec.role_ids or patient_role in rec.role_ids:
+            if doctor_role not in rec.role_ids and patient_role not in rec.role_ids:
+                continue
 
-                if not rec.email:
-                    raise UserError("Email required to create user.")
+            if not rec.email:
+                raise UserError("Email required to create user.")
 
-                password = secrets.token_urlsafe(8)
+            # check existing user
+            user = self.env['res.users'].sudo().search([
+                ('login', '=', rec.email)
+            ], limit=1)
 
-                user_vals = {
+            # create if not exist
+            if not user:
+                user = self.env['res.users'].sudo().create({
                     'name': rec.name,
                     'login': rec.email,
                     'partner_id': rec.id,
                     'email': rec.email,
-                    'password': password,
-                }
-
-                users_to_create.append(user_vals)
-
-        if users_to_create:
-            users = self.env['res.users'].sudo().create(users_to_create)
-
-            for user in users:
+                    'password': secrets.token_urlsafe(8),
+                })
                 user.action_reset_password()
 
+            # link user
+            rec.user_id = user.id
+
+            # assign groups
+            if doctor_role in rec.role_ids and doctor_group.id not in user.group_ids.ids:
+                user.write({'group_ids': [(4, doctor_group.id)]})
+
+            if patient_role in rec.role_ids and patient_group.id not in user.group_ids.ids:
+                user.write({'group_ids': [(4, patient_group.id)]})
+
         return records
-        
+            
     # ================= NAME SEARCH =================
     def name_search(self, name='', args=None, operator='ilike', limit=100):
 
