@@ -91,18 +91,25 @@ class HospitalAppointment(models.Model):
     invoice_id = fields.Many2one('account.move', string="Invoice")
 
     # ================= ONCHANGE =================4
-    
+    # ================= COMMON METHODS =================
+
+    def _sync_specialization_with_doctor(self, doctor):
+        return doctor.specialization_id if doctor else False
+
+
+    def _is_doctor_valid_for_specialization(self, doctor, specialization):
+        if doctor and specialization:
+            return doctor.specialization_id == specialization
+        return True
 
     @api.onchange('specialization_id')
     def _onchange_specialization(self):
-        if self.doctor_id and self.specialization_id:
-            if self.doctor_id.specialization_id != self.specialization_id:
-                self.doctor_id = False
+        if not self._is_doctor_valid_for_specialization(self.doctor_id, self.specialization_id):
+            self.doctor_id = False
 
     @api.onchange('doctor_id')
     def _onchange_doctor(self):
-        if self.doctor_id:
-            self.specialization_id = self.doctor_id.specialization_id
+        self.specialization_id = self._sync_specialization_with_doctor(self.doctor_id)
 
     # ================= HELPER METHOD =================
 
@@ -185,6 +192,31 @@ class HospitalAppointment(models.Model):
         return super().create(vals_list)
 
 
+    def write(self, vals):
+        if 'state' in vals:
+            for rec in self:
+                old_state = rec.state
+                new_state = vals.get('state')
+
+                # DONE is fully locked
+                if old_state == 'done' and new_state != 'done':
+                    raise ValidationError("Done appointment cannot be modified!")
+
+                # Allowed transitions
+                allowed = {
+                    'draft': ['requested'],
+                    'requested': ['confirmed', 'cancel'],
+                    'confirmed': ['done', 'cancel'],
+                    'done': [],  # no movement
+                    'cancel': ['draft'],  # optional
+                }
+
+                if new_state not in allowed.get(old_state, []):
+                    raise ValidationError(
+                        f"Invalid move: {old_state} → {new_state} not allowed!"
+                    )
+
+        return super().write(vals)
     # ================= VALIDATION =================
 
     @api.constrains('doctor_id', 'patient_id', 'start_date', 'end_date')
@@ -307,6 +339,8 @@ class HospitalAppointment(models.Model):
             # ================= INVOICE CREATE =================
             if not rec.invoice_id:
 
+                AccountMove = self.env['account.move'].sudo() 
+
                 invoice = self.env['account.move'].create({
                     'move_type': 'out_invoice',
                     'partner_id': rec.patient_id.id,
@@ -325,12 +359,12 @@ class HospitalAppointment(models.Model):
                 invoice = rec.invoice_id
 
             # ================= PDF GENERATE =================
-            pdf, _ = self.env['ir.actions.report']._render_qweb_pdf(
+            pdf, _ = self.env['ir.actions.report'].sudo()._render_qweb_pdf(
                 'hospital_management.action_hospital_invoice_report',
                 [invoice.id]
             )
 
-            attachment = self.env['ir.attachment'].create({
+            attachment = self.env['ir.attachment'].sudo().create({
                 'name': f"Invoice_{invoice.name}.pdf",
                 'type': 'binary',
                 'datas': base64.b64encode(pdf), 
@@ -356,7 +390,7 @@ class HospitalAppointment(models.Model):
                 # ================= CHATTER =================
                 body = template._render_field("body_html", rec.ids)[rec.id]
 
-                rec.message_post(
+                rec.with_context(mail_notify_force_send=False).message_post(
                     body=body,
                     message_type='comment',
                     subtype_xmlid="mail.mt_comment"

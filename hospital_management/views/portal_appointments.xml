@@ -376,6 +376,14 @@
                                         </a>
                                     </t>
                                 </t>
+                                
+                                 <!-- ================= EDIT (FOR ALL USERS BUT ONLY DRAFT) ================= -->
+                                <t t-if="appointment.state == 'draft'">
+                                    <a t-att-href="'/my/appointment/new?appointment_id=%s' % appointment.id"
+                                    class="btn btn-warning">
+                                        Edit
+                                    </a>
+                                </t>
 
                                 <!-- DOCTOR -->
                                 <t t-if="request.env.user.partner_id.id == appointment.doctor_id.id">
@@ -406,7 +414,7 @@
                             </div>
 
                             <!-- RIGHT: STATUS -->
-                            <div>
+                            <div class="ms-3">
                                 <span class="badge bg-success" t-if="appointment.state == 'done'">Done</span>
                                 <span class="badge bg-info" t-if="appointment.state == 'confirmed'">Confirmed</span>
                                 <span class="badge bg-warning" t-if="appointment.state == 'requested'">Requested</span>
@@ -541,7 +549,8 @@
 
                 <h2 class="mb-4">Create Appointment</h2>
 
-                <form action="/my/appointment/create" method="post">
+                <form t-att-action="is_edit and ('/my/appointment/create?appointment_id=%s' % appointment.id) or '/my/appointment/create'"
+                    method="post">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
                     <div class="row">
@@ -575,7 +584,8 @@
                                     <select name="patient_id" class="form-control" required="1">
                                         <option value="">Select Patient</option>
                                         <t t-foreach="patients" t-as="p">
-                                            <option t-att-value="p.id">
+                                            <option t-att-value="p.id"
+                                                t-att-selected="appointment and appointment.patient_id.id == p.id">
                                                 <t t-esc="p.name"/>
                                             </option>
                                         </t>
@@ -600,7 +610,6 @@
                                         t-att-value="user_specialization.id"/>
                                 </div>
                             </t>
-
                             <t t-else="">
                                 <!-- Patient / Admin -->
                                 <div class="mb-3">
@@ -608,14 +617,14 @@
                                     <select name="specialization_id" id="specialization_id" class="form-control" required="1">
                                         <option value="">Select Specialization</option>
                                         <t t-foreach="specializations" t-as="s">
-                                            <option t-att-value="s.id">
+                                            <option t-att-value="s.id"
+                                                    t-att-selected="appointment and appointment.specialization_id.id == s.id">
                                                 <t t-esc="s.name"/>
                                             </option>
                                         </t>
                                     </select>
                                 </div>
                             </t>
-
                             <!-- Doctor -->
                             <!-- ================= DOCTOR ================= -->
 
@@ -643,7 +652,8 @@
                                         <t t-foreach="doctors" t-as="d">
                                             <option t-att-value="d.id"
                                                     t-att-data-spec="d.specialization_id.id"
-                                                    t-att-data-fees="d.consultation_fees">
+                                                    t-att-data-fees="d.consultation_fees"
+                                                    t-att-selected="appointment and appointment.doctor_id.id == d.id">
                                                 <t t-esc="d.name"/>
                                             </option>
                                         </t>
@@ -663,8 +673,7 @@
                             </t>
 
                         </div>
-
-
+                        
                         <!-- ================= RIGHT ================= -->
                         <div class="col-md-6">
                             <h5 class="fw-bold">Schedule</h5>
@@ -674,24 +683,26 @@
                             <div class="mb-3">
                                 <label class="form-label">Start Date</label>
                                 <input type="datetime-local"
-                                    id="start_date"
-                                    name="start_date"
-                                    class="form-control"
-                                    required="1"/>
+                                        id="start_date"
+                                        name="start_date"
+                                        class="form-control"
+                                        t-att-value="start_date_local or ''"
+                                        required="1"/>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">End Date</label>
                                 <input type="datetime-local"
-                                    id="end_date"
-                                    name="end_date"
-                                    class="form-control"/>
+                                        id="end_date"
+                                        name="end_date"
+                                        class="form-control"
+                                        t-att-value="end_date_local or ''"/>
                             </div>
                             <!-- Symptoms -->
                             <div class="mb-3">
                                 <label class="form-label">Symptoms</label>
                                 <input name="symptoms"
-                                          class="form-control"
-                                          rows="4"/>
+                                        class="form-control"
+                                        t-att-value="appointment and appointment.symptoms or ''"/>
                             </div>
 
                         </div>
@@ -705,7 +716,8 @@
                         </a>
 
                         <button type="submit" class="btn btn-success">
-                            Create Appointment
+                            <t t-if="is_edit">Update Appointment</t>
+                            <t t-else="">Create Appointment</t>
                         </button>
                     </div>
 
@@ -727,148 +739,123 @@
 
         </div>
 
-        <script type="text/javascript">
-            <![CDATA[
-            document.addEventListener("DOMContentLoaded", function () {
+      <script type="text/javascript">
+        <![CDATA[
+        document.addEventListener("DOMContentLoaded", function () {
 
-                const spec = document.querySelector("[name='specialization_id']");
-                const doctor = document.querySelector("[name='doctor_id']");
-                const start = document.getElementById("start_date");
-                const end = document.getElementById("end_date");
-                const form = document.querySelector("form");
+            let isAutoChange = false;
 
-                // ================= DOCTOR FILTER =================
-                if (spec && doctor) {
-                    spec.addEventListener("change", function () {
+            const spec = document.querySelector("[name='specialization_id']");
+            const doctor = document.querySelector("[name='doctor_id']");
+            const start = document.getElementById("start_date");
+            const end = document.getElementById("end_date");
+            const form = document.querySelector("form");
 
-                        const selected = this.value;
+            // ================= SPECIALIZATION CHANGE =================
+            if (spec && doctor) {
+                spec.addEventListener("change", function () {
 
-                        for (let opt of doctor.options) {
+                    const selected = this.value;
 
-                            const docSpec = opt.getAttribute("data-spec");
+                    for (let opt of doctor.options) {
 
-                            if (!docSpec) continue;
+                        const docSpec = opt.getAttribute("data-spec");
+                        if (!docSpec) continue;
 
-                            // ✅ disable instead of hide
-                            if (selected === "" || docSpec === selected) {
-                                opt.disabled = false;
-                                opt.hidden = false;
-                            } else {
-                                opt.disabled = true;
-                                opt.hidden = true;
-                            }
+                        if (selected === "" || docSpec === selected) {
+                            opt.disabled = false;
+                            opt.hidden = false;
+                        } else {
+                            opt.disabled = true;
+                            opt.hidden = true;
                         }
+                    }
 
+                    if (!isAutoChange) {
                         doctor.value = "";
-                    });
-                }
-                // ================= AUTO SPECIALIZATION FROM DOCTOR =================
-                if (doctor && spec) {
+                    }
 
-                    doctor.addEventListener("change", function () {
+                    isAutoChange = false;
+                });
+            }
 
-                        const selected = doctor.options[doctor.selectedIndex];
-                        const specId = selected.getAttribute("data-spec");
+            // ================= DOCTOR CHANGE =================
+            if (doctor && spec) {
+                doctor.addEventListener("change", function () {
 
-                        if (specId) {
-                            spec.value = specId;
-                        }
-                    });
-                }
-                // ================= AUTO END DATE =================
-                if (start && end) {
-                    start.addEventListener("change", function () {
+                    const selected = doctor.options[doctor.selectedIndex];
+                    const specId = selected.getAttribute("data-spec");
 
-                        if (!start.value) return;
+                    if (specId) {
+                        isAutoChange = true;
+                        spec.value = specId;
 
-                        let startDate = new Date(start.value);
+                        spec.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
 
-                        // ⏱️ 30 minutes add
-                        startDate.setMinutes(startDate.getMinutes() + 30);
+            // ================= AUTO END DATE =================
+            if (start && end) {
+                start.addEventListener("change", function () {
 
-                        // ✅ LOCAL format (NO UTC issue)
-                        const year = startDate.getFullYear();
-                        const month = String(startDate.getMonth() + 1).padStart(2, '0');
-                        const day = String(startDate.getDate()).padStart(2, '0');
-                        const hours = String(startDate.getHours()).padStart(2, '0');
-                        const minutes = String(startDate.getMinutes()).padStart(2, '0');
+                    if (!start.value) return;
 
-                        end.value = `${year}-${month}-${day}T${hours}:${minutes}`;
-                    });
-                }
+                    let startDate = new Date(start.value);
+                    startDate.setMinutes(startDate.getMinutes() + 30);
 
-                // ================= ERROR TOAST =================
-                const toastEl = document.getElementById('errorToast');
+                    const year = startDate.getFullYear();
+                    const month = String(startDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(startDate.getDate()).padStart(2, '0');
+                    const hours = String(startDate.getHours()).padStart(2, '0');
+                    const minutes = String(startDate.getMinutes()).padStart(2, '0');
 
-                if (toastEl) {
-                    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-                    toast.show();
-                }
+                    end.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                });
+            }
 
-                // ================= AUTO FEES =================
-                if (doctor) {
-                    doctor.addEventListener("change", function () {
+            // ================= FORM VALIDATION =================
+            if (form && start) {
+                form.addEventListener("submit", function(e) {
 
-                        const selected = doctor.options[doctor.selectedIndex];
-                        const fees = selected.getAttribute("data-fees");
+                    const startDate = new Date(start.value);
+                    const now = new Date();
 
-                        const feesInput = document.getElementById("fees");
+                    if (!start.value) {
+                        alert("Start date required!");
+                        e.preventDefault();
+                        return;
+                    }
 
-                        if (feesInput) {
-                            feesInput.value = fees ? fees : "";
-                        }
-                    });
-                }
+                    if (startDate < now) {
+                        alert("You cannot create appointment in past!");
+                        e.preventDefault();
+                        return;
+                    }
 
+                    if (end && end.value) {
 
-                // ================= FORM VALIDATION =================
-                if (form && start) {
+                        const endDate = new Date(end.value);
 
-                    form.addEventListener("submit", function(e) {
-
-                        const startDate = new Date(start.value);
-                        const now = new Date();
-
-                        // Start required
-                        if (!start.value) {
-                            alert("Start date required!");
+                        if (endDate <= startDate) {
+                            alert("End time must be after start time!");
                             e.preventDefault();
                             return;
                         }
 
-                        // Past check
-                        if (startDate < now) {
-                            alert("You cannot create appointment in past!");
+                        if (startDate.toDateString() !== endDate.toDateString()) {
+                            alert("Start and End must be same day!");
                             e.preventDefault();
                             return;
                         }
+                    }
 
-                        // ✅ End validation
-                        if (end && end.value) {
+                });
+            }
 
-                            const endDate = new Date(end.value);
-
-                            // End > Start
-                            if (endDate <= startDate) {
-                                alert("End time must be after start time!");
-                                e.preventDefault();
-                                return;
-                            }
-
-                            // Same day
-                            if (startDate.toDateString() !== endDate.toDateString()) {
-                                alert("Start and End must be same day!");
-                                e.preventDefault();
-                                return;
-                            }
-                        }
-
-                    });
-                }
-
-            });
-            ]]>
-            </script>
+        });
+        ]]>
+        </script>
 
     </t>
 

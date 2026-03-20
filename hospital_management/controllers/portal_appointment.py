@@ -7,6 +7,8 @@ from odoo.fields import Datetime
 from itertools import groupby as groupby_func
 from odoo.exceptions import ValidationError
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
+import pytz
+
 
 
 class PortalAppointment(CustomerPortal):
@@ -293,22 +295,47 @@ class PortalAppointment(CustomerPortal):
 
         return request.render("hospital_management.portal_my_appointments", values)
 
+    # ================= FORM PAGE =================
     @http.route(['/my/appointment/new'], type='http', auth="user", website=True)
     def portal_create_appointment_form(self, **kw):
 
+        appointment_id = kw.get('appointment_id')
+        appointment = False
+
+        start_date_local = False
+        end_date_local = False
+
+        if appointment_id:
+            appointment = request.env['hospital.appointment'].sudo().browse(int(appointment_id))
+
+            # 🔥 TIMEZONE CONVERSION (SAFE WAY)
+            if appointment.start_date:
+                start_local = Datetime.context_timestamp(request.env.user, appointment.start_date)
+                start_date_local = start_local.strftime('%Y-%m-%dT%H:%M')
+
+            if appointment.end_date:
+                end_local = Datetime.context_timestamp(request.env.user, appointment.end_date)
+                end_date_local = end_local.strftime('%Y-%m-%dT%H:%M')
+
         user_partner = request.env.user.partner_id
         roles = user_partner.role_ids.mapped('name')
-        
+
         doctor_fees = 0
         if 'Doctor' in roles:
             doctor_fees = user_partner.consultation_fees
 
         values = {
-            'patients': request.env['res.partner'].sudo().search([('role_ids.name','=','Patient')]),
-            'doctors': request.env['res.partner'].sudo().search([('role_ids.name','=','Doctor')]),
+            'appointment': appointment,
+            'is_edit': bool(appointment),
+
+            # 🔥 IMPORTANT
+            'start_date_local': start_date_local,
+            'end_date_local': end_date_local,
+
+            'patients': request.env['res.partner'].sudo().search([('role_ids.name', '=', 'Patient')]),
+            'doctors': request.env['res.partner'].sudo().search([('role_ids.name', '=', 'Doctor')]),
             'specializations': request.env['hospital.specialization'].sudo().search([]),
 
-            # ROLE FLAGS
             'is_patient': 'Patient' in roles,
             'is_doctor': 'Doctor' in roles,
 
@@ -316,12 +343,12 @@ class PortalAppointment(CustomerPortal):
             'doctor_fees': doctor_fees,
 
             'page_name': 'create_appointment'
-
         }
 
         return request.render("hospital_management.portal_create_appointment", values)
 
 
+    # ================= CREATE / UPDATE =================
     @http.route(['/my/appointment/create'], type='http', auth="user", website=True, methods=['POST'])
     def portal_create_appointment(self, **post):
 
@@ -330,25 +357,22 @@ class PortalAppointment(CustomerPortal):
         roles = user_partner.role_ids.mapped('name')
 
         try:
-            # ================= DATE PARSE =================
-            # ================= DATE PARSE =================
-            start_str = post.get('start_date')
-            end_raw = post.get('end_date')   # ADD THIS LINE
+            user_tz = pytz.timezone(request.env.user.tz or 'UTC')
 
-            if not start_str:
-                raise ValidationError("Start date required!")
+            # ================= START =================
+            start = post.get('start_date')
+            start = datetime.strptime(start, '%Y-%m-%dT%H:%M')
+            start = user_tz.localize(start).astimezone(pytz.UTC)
+            start = start.replace(tzinfo=None)
 
-            # START
-            start = fields.Datetime.from_string(start_str.replace('T', ' '))
-
-            # END
-            end = False
-            if end_raw:
-                end = fields.Datetime.from_string(end_raw.replace('T', ' '))
-
-            # ================= BASIC VALIDATION =================
-            if start < fields.Datetime.now():
-                raise ValidationError("You cannot create appointment in the past!")
+            # ================= END =================
+            end = post.get('end_date')
+            if end:
+                end = datetime.strptime(end, '%Y-%m-%dT%H:%M')
+                end = user_tz.localize(end).astimezone(pytz.UTC)
+                end = end.replace(tzinfo=None)
+            else:
+                end = False
 
             # ================= PATIENT =================
             if 'Patient' in roles and 'Doctor' not in roles:
@@ -362,22 +386,8 @@ class PortalAppointment(CustomerPortal):
             else:
                 doctor_id = int(post.get('doctor_id'))
 
-            # ================= EXTRA VALIDATION =================
-
-            if end:
-                duration = (end - start).total_seconds() / 60  # minutes
-
-                if duration <= 0:
-                    raise ValidationError("End time must be after start time!")
-
-                if duration > 90:
-                    raise ValidationError("Appointment duration cannot exceed 90 minutes!")
-
-                if start.date() != end.date():
-                    raise ValidationError("Start and End must be same day!")
-
-            # ================= CREATE =================
-            appointment = Appointment.create({
+            # ================= VALUES =================
+            vals = {
                 'patient_id': patient_id,
                 'doctor_id': doctor_id,
                 'fees': float(post.get('fees') or 0),
@@ -385,31 +395,38 @@ class PortalAppointment(CustomerPortal):
                 'start_date': start,
                 'end_date': end,
                 'symptoms': post.get('symptoms'),
-            })
+            }
+
+            appointment_id = request.httprequest.args.get('appointment_id')
+
+            if appointment_id:
+                appointment = Appointment.browse(int(appointment_id))
+
+                if appointment.state != 'draft':
+                    return request.redirect('/my/appointment/%s' % appointment.id)
+
+                appointment.write(vals)
+            else:
+                appointment = Appointment.create(vals)
 
             return request.redirect('/my/appointment/%s' % appointment.id)
 
         except ValidationError as e:
 
-            # FORM RELOAD WITH ERROR
-            values = {
-                'error': str(e),
+            appointment_id = request.httprequest.args.get('appointment_id')
 
-                # dropdown data
+            return request.render("hospital_management.portal_create_appointment", {
+                'error': str(e),
+                'old': post,
+                'is_edit': bool(appointment_id),
+                'appointment': Appointment.browse(int(appointment_id)) if appointment_id else False,
+
                 'patients': request.env['res.partner'].sudo().search([('role_ids.name','=','Patient')]),
                 'doctors': request.env['res.partner'].sudo().search([('role_ids.name','=','Doctor')]),
                 'specializations': request.env['hospital.specialization'].sudo().search([]),
 
-                # roles
                 'is_patient': 'Patient' in roles,
                 'is_doctor': 'Doctor' in roles,
-
                 'user_specialization': user_partner.specialization_id,
-
-                # 🔥 keep old form values
-                'old': post,
-
-                'page_name': 'create_appointment'
-            }
-
-            return request.render("hospital_management.portal_create_appointment", values)
+                'doctor_fees': user_partner.consultation_fees if 'Doctor' in roles else 0,
+            })
