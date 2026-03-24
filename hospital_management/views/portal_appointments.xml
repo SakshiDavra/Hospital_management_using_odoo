@@ -71,34 +71,34 @@
 
     </template>
 
+
+
     <!-- =====================================
          Portal Appointment List Page
     ====================================== -->
-       <template id="portal_my_appointments" name="My Appointments">
+    <template id="portal_my_appointments" name="My Appointments">
 
         <t t-call="portal.portal_layout">
 
-            <!-- Enable searchbar -->
             <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
             <!-- Searchbar -->
             <t t-call="portal.portal_searchbar">
                 <t t-set="title">Appointments</t>
             </t>
-           <div class="d-flex justify-content-end mb-3">
+
+            <div class="d-flex justify-content-end mb-3">
                 <a href="/my/appointment/new" class="btn btn-primary">
                     + New Appointment
                 </a>
             </div>
 
-            <!-- No Data -->
             <t t-if="not appointments">
                 <div class="alert alert-warning mt-3">
                     No appointments found.
                 </div>
             </t>
 
-            <!-- ================= TABLE ================= -->
             <t t-if="appointments">
                 <div class="table-responsive mt-3">
 
@@ -107,15 +107,17 @@
                         <thead>
                             <tr>
                                 <th>Appointment No</th>
-                                <th t-if="groupby != 'patient_id'">Patient</th>
 
-                                <th t-if="groupby != 'doctor_id'">Doctor</th>
+                                <th t-if="groupby != 'patient_id' and not is_patient">Patient</th>
+
+                                <th t-if="groupby != 'doctor_id' and not is_doctor">Doctor</th>
 
                                 <th t-if="groupby != 'specialization_id'">Specialization</th>
 
                                 <th t-if="groupby not in ['date_day']">Date</th>
 
                                 <th>Fees</th>
+
                                 <th t-if="groupby != 'state'">Status</th>
                             </tr>
                         </thead>
@@ -123,94 +125,85 @@
                         <tbody>
 
                             <!-- GROUP LOOP -->
-                            <t t-foreach="grouped_appointments" t-as="group">
+                            <t t-foreach="grouped_appointments" t-as="group" t-foreach-index="g_index">
 
-                                <!-- ===== GROUP HEADER ===== -->
-                                <tr class="table-light" t-if="group[0]">
-                                    <td colspan="7" class="fw-bold">
+                                <!-- GROUP HEADER -->
+                                <tr class="table-light fw-bold" t-if="group['key']">
 
-                                        <!-- Doctor -->
-                                        <t t-if="groupby == 'doctor_id'">
-                                            <t t-esc="'[' + (group[0].hospital_code or '') + '] ' + (group[0].name or '')"/>
-                                        </t>
+                                    <!-- LEFT SIDE -->
+                                    <td t-att-colspan="
+                                        1
+                                        + (1 if groupby != 'patient_id' and not is_patient else 0)
+                                        + (1 if groupby != 'doctor_id' and not is_doctor else 0)
+                                        + (1 if groupby != 'specialization_id' else 0)
+                                        + (1 if groupby not in ['date_day'] else 0)
+                                    ">
 
-                                        <!-- Patient -->
-                                        <t t-if="groupby == 'patient_id'">
-                                            <t t-esc="'[' + (group[0].hospital_code or '') + '] ' + (group[0].name or '')"/>
-                                        </t>
-
-                                        <!-- Specialization -->
+                                        <!-- GROUP NAME -->
                                         <t t-if="groupby == 'specialization_id'">
-                                            <t t-esc="group[0].name"/>
+                                            <t t-esc="group['key'].name"/>
                                         </t>
 
-                                        <!-- Status -->
-                                        <t t-if="groupby == 'state'">
-                                            <t t-esc="group[0].capitalize()"/>
-                                        </t>
-                                        <!-- Year -->
-                                        <t t-if="groupby == 'date_year'">
-                                            <t t-esc="group[0]"/>
+                                        <t t-elif="groupby in ['doctor_id','patient_id']">
+                                            <t t-esc="'[' + (group['key'].hospital_code or '') + '] ' + (group['key'].name or '')"/>
+
+                                            <!-- 🔥 CONTINUED LABEL -->
+                                            <t t-if="g_index == 0 and page &gt; 1">
+                                                <span class="text-muted">(continued)</span>
+                                            </t>
                                         </t>
 
-                                        <!-- Month -->
-                                        <t t-if="groupby == 'date_month'">
-                                            <t t-esc="group[0][1]"/> /
-                                            <t t-esc="group[0][0]"/>
+                                        <t t-else="">
+                                            <t t-esc="group['key']"/>
                                         </t>
 
-                                        <!-- Week -->
-                                        <t t-if="groupby == 'date_week'">
-                                            Week <t t-esc="group[0]"/>
-                                        </t>
-
-                                        <!-- Day -->
-                                        <t t-if="groupby == 'date_day'">
-                                            <t t-esc="group[0]"/>
-                                        </t>
+                                        <!-- COUNT -->
+                                        (<t t-esc="group.get('total_count', len(group['records']))"/>)
 
                                     </td>
+
+                                    <td class="text-start align-middle">
+                                        <strong>
+                                            ₹ <t t-esc="('%.2f' % group['total_fees'])"/>
+                                        </strong>
+                                    </td>
+
+                                    <!-- STATUS -->
+                                    <td t-if="groupby != 'state'"></td>
+
                                 </tr>
 
-                                <!-- ===== RECORDS ===== -->
-                                <t t-foreach="group[1]" t-as="appointment">
+                                <!-- RECORDS -->
+                                <t t-foreach="group['records']" t-as="appointment">
                                     <tr>
-
-                                        <!-- Appointment No -->
                                         <td>
                                             <a t-attf-href="/my/appointment/#{appointment.id}">
                                                 <span t-esc="appointment.name"/>
                                             </a>
                                         </td>
 
-                                        <!-- Patient -->
-                                        <td t-if="groupby != 'patient_id'">
+                                        <td t-if="groupby != 'patient_id' and not is_patient">
                                             <span t-esc="'[' + (appointment.patient_id.hospital_code or '') + '] ' + (appointment.patient_id.name or '')"/>
                                         </td>
 
-                                        <!-- Doctor -->
-                                        <td t-if="groupby != 'doctor_id'">
+                                        <td t-if="groupby != 'doctor_id' and not is_doctor">
                                             <span t-esc="'[' + (appointment.doctor_id.hospital_code or '') + '] ' + (appointment.doctor_id.name or '')"/>
                                         </td>
 
-                                        <!-- Specialization -->
                                         <td t-if="groupby != 'specialization_id'">
                                             <span t-esc="appointment.specialization_id.name"/>
                                         </td>
 
-                                            <!-- Date -->
                                         <td t-if="groupby not in ['date_day']">
                                             <span t-field="appointment.start_date"
                                                 t-options='{"widget": "datetime"}'/>
                                         </td>
 
-                                            <!-- Fees -->
                                         <td>
                                             <span t-field="appointment.fees"
                                                 t-options='{"widget": "monetary", "display_currency": appointment.currency_id}'/>
                                         </td>
 
-                                         <!-- Status -->
                                         <td t-if="groupby != 'state'">
                                             <span t-attf-class="badge 
                                                 #{'bg-secondary' if appointment.state == 'draft'
@@ -220,7 +213,6 @@
                                                 else 'bg-danger'}">
 
                                                 <t t-esc="dict(appointment._fields['state'].selection).get(appointment.state)"/>
-
                                             </span>
                                         </td>
 
@@ -228,7 +220,6 @@
                                 </t>
 
                             </t>
-
                         </tbody>
 
                     </table>
@@ -246,7 +237,13 @@
         </t>
 
     </template>
+    <!-- ==================================
+                  List End
+    ======================================= -->
 
+    <!-- ==================================
+                View Portal Form
+    ======================================= -->
 
     <template id="portal_appointment_page"
             name="Appointment Portal"
@@ -367,6 +364,14 @@
                             <!-- LEFT: BUTTONS -->
                             <div class="d-flex gap-2">
 
+                             <!-- ================= EDIT (FOR ALL USERS BUT ONLY DRAFT) ================= -->
+                                <t t-if="appointment.state == 'draft'">
+                                    <a t-att-href="'/my/appointment/new?appointment_id=%s' % appointment.id"
+                                    class="btn btn-warning">
+                                        <i class="fa fa-pencil"></i>
+                                    </a>
+                                </t>
+
                                 <!-- PATIENT -->
                                 <t t-if="request.env.user.partner_id.id == appointment.patient_id.id">
                                     <t t-if="appointment.state == 'draft'">
@@ -377,14 +382,6 @@
                                     </t>
                                 </t>
                                 
-                                 <!-- ================= EDIT (FOR ALL USERS BUT ONLY DRAFT) ================= -->
-                                <t t-if="appointment.state == 'draft'">
-                                    <a t-att-href="'/my/appointment/new?appointment_id=%s' % appointment.id"
-                                    class="btn btn-warning">
-                                        Edit
-                                    </a>
-                                </t>
-
                                 <!-- DOCTOR -->
                                 <t t-if="request.env.user.partner_id.id == appointment.doctor_id.id">
                                     <t t-if="appointment.state == 'requested'">
@@ -402,15 +399,17 @@
                                     </t>
                                 </t>
 
-                                <!-- CANCEL -->
-                                <t t-if="appointment.state not in ('done','cancel')">
+                                <!-- CANCEL (ONLY DOCTOR / ADMIN) -->
+                                <t t-if="appointment.state not in ('done','cancel') 
+                                        and (request.env.user.partner_id.id == appointment.doctor_id.id 
+                                            or request.env.user.has_group('base.group_system'))">
+
                                     <a class="btn btn-danger"
                                     data-bs-toggle="modal"
                                     data-bs-target="#cancelModal">
                                         Cancel
                                     </a>
                                 </t>
-
                             </div>
 
                             <!-- RIGHT: STATUS -->
@@ -500,25 +499,36 @@
                     <hr/>
 
                     <!-- MEDICAL INFO -->
-                    <h3 id="medical_info">Medical Information</h3>
+                    <!-- ================= MEDICAL INFO ================= -->
+                    <t t-if="appointment.symptoms or appointment.notes or (appointment.state == 'cancel' and appointment.cancel_reason)">
 
-                    <p>
-                        <strong>Symptoms:</strong><br/>
-                        <t t-esc="appointment.symptoms"/>
-                    </p>
+                        <h3 id="medical_info">Medical Information</h3>
 
-                    <p>
-                        <strong>Doctor Notes:</strong><br/>
-                        <t t-esc="appointment.notes"/>
-                    </p>
+                        <!-- Symptoms -->
+                        <t t-if="appointment.symptoms">
+                            <p>
+                                <strong>Symptoms:</strong><br/>
+                                <t t-esc="appointment.symptoms"/>
+                            </p>
+                        </t>
 
-                    <!-- ADD THIS -->
-                    <t t-if="appointment.state == 'cancel' and appointment.cancel_reason">
-                        <hr/>
-                        <h5>Cancellation Reason</h5>
-                        <p class="text-danger">
-                            <t t-esc="appointment.cancel_reason"/>
-                        </p>
+                        <!-- Doctor Notes -->
+                        <t t-if="appointment.notes">
+                            <p>
+                                <strong>Doctor Notes:</strong><br/>
+                                <t t-esc="appointment.notes"/>
+                            </p>
+                        </t>
+
+                        <!-- Cancellation Reason -->
+                        <t t-if="appointment.state == 'cancel' and appointment.cancel_reason">
+                            <hr/>
+                            <h5>Cancellation Reason</h5>
+                            <p class="text-danger">
+                                <t t-esc="appointment.cancel_reason"/>
+                            </p>
+                        </t>
+
                     </t>
 
                     <hr/>
@@ -538,8 +548,15 @@
         </xpath>
 
     </template>
+    <!-- ==========================================
+                End Portal Form
+    =========================================== -->
 
-   <template id="portal_create_appointment" name="Create Appointment Page">
+    <!-- ==========================================
+                Start Create/Edit Page
+    =========================================== -->
+
+    <template id="portal_create_appointment" name="Create Appointment Page">
 
     <t t-call="portal.portal_layout">
 
@@ -547,7 +564,10 @@
 
             <div class="card shadow-sm p-4">
 
-                <h2 class="mb-4">Create Appointment</h2>
+                <h2 class="mb-4">
+                    <t t-if="is_edit">Update Appointment</t>
+                    <t t-else="">Create Appointment</t>
+                </h2>
 
                 <form t-att-action="is_edit and ('/my/appointment/create?appointment_id=%s' % appointment.id) or '/my/appointment/create'"
                     method="post">
@@ -771,13 +791,29 @@
                         }
                     }
 
+                    // 🔥 FINAL FIX
                     if (!isAutoChange) {
-                        doctor.value = "";
+
+                        const selectedDoctor = doctor.options[doctor.selectedIndex];
+                        const docSpec = selectedDoctor ? selectedDoctor.getAttribute("data-spec") : null;
+
+                        if (selected && docSpec && docSpec !== selected) {
+                            doctor.value = "";
+                        }
                     }
 
                     isAutoChange = false;
                 });
             }
+
+            // ================= INIT FILTER ON EDIT =================
+            if (spec && doctor && spec.value) {
+
+                isAutoChange = true;   // 🔥 important
+                spec.dispatchEvent(new Event('change'));
+
+            }
+
 
             // ================= DOCTOR CHANGE =================
             if (doctor && spec) {
@@ -794,6 +830,8 @@
                     }
                 });
             }
+
+
 
             // ================= AUTO END DATE =================
             if (start && end) {
@@ -860,4 +898,5 @@
     </t>
 
 </template>
+<!-- End Create Edit page  -->
 </odoo>

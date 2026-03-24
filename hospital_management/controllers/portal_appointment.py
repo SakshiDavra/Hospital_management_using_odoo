@@ -176,9 +176,9 @@ class PortalAppointment(CustomerPortal):
     # ================= ROUTE =================
 
     @http.route(['/my/appointments', '/my/appointments/page/<int:page>'],
-                type='http', auth="user", website=True)
+        type='http', auth="user", website=True)
     def portal_my_appointments(self, page=1, sortby='date', filterby='all',
-                              groupby='none', search=None, search_in='all', **kw):
+                            groupby='none', search=None, search_in='all', **kw):
 
         Appointment = request.env['hospital.appointment']
 
@@ -187,16 +187,146 @@ class PortalAppointment(CustomerPortal):
         searchbar_groupby = self._get_searchbar_groupby()
         searchbar_inputs = self._get_searchbar_inputs()
 
-        domain = searchbar_filters[filterby]['domain']
+        user_partner = request.env.user.partner_id
+        roles = user_partner.role_ids.mapped('name')
 
-        # search
+        domain = list(searchbar_filters.get(filterby, {}).get('domain', []))
+
+        if 'Doctor' in roles and 'Patient' not in roles:
+            domain += [('doctor_id', '=', user_partner.id)]
+        elif 'Patient' in roles and 'Doctor' not in roles:
+            domain += [('patient_id', '=', user_partner.id)]
+
         if search:
             domain += self._get_search_domain(search_in, search)
 
-        order = searchbar_sortings[sortby]['order']
+        order = searchbar_sortings.get(sortby, {}).get('order', 'start_date desc')
 
-        # pager
-        total = Appointment.search_count(domain)
+        # 🔥 STEP 1: FETCH ALL DATA
+        all_appointments = Appointment.search(domain, order=order)
+
+        # 🔥 STEP 2: GROUPING
+        grouped_appointments = []
+
+        def prepare_group(key, records):
+            recs = list(records)
+
+            group_field_map = {
+                'doctor_id': 'doctor_id',
+                'patient_id': 'patient_id',
+                'specialization_id': 'specialization_id',
+                'state': 'state',
+            }
+
+            # 🔥 TOTAL COUNT FIX
+            if groupby in group_field_map and key:
+                field = group_field_map[groupby]
+
+                if groupby == 'state':
+                    total_count = request.env['hospital.appointment'].search_count(
+                        domain + [(field, '=', key)]
+                    )
+                else:
+                    total_count = request.env['hospital.appointment'].search_count(
+                        domain + [(field, '=', key.id)]
+                    )
+            else:
+                total_count = len(recs)
+
+            return {
+                'key': key,
+                'records': recs,
+                'total_fees': sum(r.fees for r in recs),
+                'total_count': total_count
+            }
+
+        # ================= GROUP LOGIC =================
+
+        if groupby == 'doctor_id':
+            all_appointments = all_appointments.sorted(key=lambda x: x.doctor_id.id or 0)
+            for key, group in groupby_func(all_appointments, key=lambda x: x.doctor_id):
+                grouped_appointments.append(prepare_group(key, group))
+
+        elif groupby == 'patient_id':
+            all_appointments = all_appointments.sorted(key=lambda x: x.patient_id.id or 0)
+            for key, group in groupby_func(all_appointments, key=lambda x: x.patient_id):
+                grouped_appointments.append(prepare_group(key, group))
+
+        elif groupby == 'specialization_id':
+            all_appointments = all_appointments.sorted(key=lambda x: x.specialization_id.id or 0)
+            for key, group in groupby_func(all_appointments, key=lambda x: x.specialization_id):
+                grouped_appointments.append(prepare_group(key, group))
+
+        elif groupby == 'state':
+            all_appointments = all_appointments.sorted(key=lambda x: x.state or '')
+            for key, group in groupby_func(all_appointments, key=lambda x: x.state):
+                grouped_appointments.append(prepare_group(key, group))
+
+        # 🔥 DATE GROUPING (IMPORTANT)
+        elif groupby == 'date_year':
+            all_appointments = all_appointments.sorted(key=lambda x: x.start_date or datetime.min)
+            for key, group in groupby_func(all_appointments, key=lambda x: x.start_date.year if x.start_date else 0):
+                grouped_appointments.append(prepare_group(key, group))
+
+        elif groupby == 'date_month':
+            all_appointments = all_appointments.sorted(key=lambda x: x.start_date or datetime.min)
+            for key, group in groupby_func(
+                all_appointments,
+                key=lambda x: (x.start_date.year, x.start_date.month) if x.start_date else (0, 0)
+            ):
+                grouped_appointments.append(prepare_group(key, group))
+
+        elif groupby == 'date_week':
+            all_appointments = all_appointments.sorted(key=lambda x: x.start_date or datetime.min)
+            for key, group in groupby_func(
+                all_appointments,
+                key=lambda x: x.start_date.isocalendar()[1] if x.start_date else 0
+            ):
+                grouped_appointments.append(prepare_group(key, group))
+
+        elif groupby == 'date_day':
+            all_appointments = all_appointments.sorted(key=lambda x: x.start_date or datetime.min)
+            for key, group in groupby_func(
+                all_appointments,
+                key=lambda x: x.start_date.date() if x.start_date else ''
+            ):
+                grouped_appointments.append(prepare_group(key, group))
+
+        # DEFAULT
+        else:
+            grouped_appointments = [{
+                'key': False,
+                'records': all_appointments,
+                'total_fees': sum(r.fees for r in all_appointments),
+                'total_count': len(all_appointments)
+            }]
+
+        # 🔥 STEP 3: PAGINATION (RECORD LEVEL BUT GROUP SAFE)
+        page_size = 10
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        final_groups = []
+        count = 0
+
+        for group in grouped_appointments:
+            new_records = []
+
+            for rec in group['records']:
+                if count >= start and count < end:
+                    new_records.append(rec)
+                count += 1
+
+            if new_records:
+                final_groups.append({
+                    'key': group['key'],
+                    'records': new_records,
+                    'total_fees': sum(r.fees for r in new_records),
+                    'total_count': group.get('total_count')   # 🔥 IMPORTANT
+                })
+
+        total = len(all_appointments)
+
         pager = portal_pager(
             url="/my/appointments",
             url_args={
@@ -211,87 +341,28 @@ class PortalAppointment(CustomerPortal):
             step=10
         )
 
-        appointments = Appointment.search(domain,
-                                          order=order,
-                                          limit=10,
-                                          offset=pager['offset'])
-
-        # ================= GROUPING =================
-
-        grouped_appointments = []
-
-        if groupby == 'doctor_id':
-            appointments = appointments.sorted(key=lambda x: x.doctor_id.id or 0)
-            for key, group in groupby_func(appointments, key=lambda x: x.doctor_id):
-                grouped_appointments.append((key, list(group)))
-
-        elif groupby == 'specialization_id':
-            appointments = appointments.sorted(key=lambda x: x.specialization_id.id or 0)
-            for key, group in groupby_func(appointments, key=lambda x: x.specialization_id):
-                grouped_appointments.append((key, list(group)))
-
-        elif groupby == 'patient_id':
-            appointments = appointments.sorted(key=lambda x: x.patient_id.id or 0)
-            for key, group in groupby_func(appointments, key=lambda x: x.patient_id):
-                grouped_appointments.append((key, list(group)))
-
-        elif groupby == 'state':
-            appointments = appointments.sorted(key=lambda x: x.state or '')
-            for key, group in groupby_func(appointments, key=lambda x: x.state):
-                grouped_appointments.append((key, list(group)))
-        elif groupby == 'date_year':
-            appointments = appointments.sorted(key=lambda x: x.start_date or datetime.min)
-
-            for key, group in groupby_func(appointments, key=lambda x: x.start_date.year if x.start_date else 0):
-                grouped_appointments.append((key, list(group)))
-
-        elif groupby == 'date_month':
-            appointments = appointments.sorted(key=lambda x: x.start_date or datetime.min)
-
-            for key, group in groupby_func(
-                    appointments,
-                    key=lambda x: (x.start_date.year, x.start_date.month) if x.start_date else (0, 0)):
-                grouped_appointments.append((key, list(group)))
-
-        elif groupby == 'date_week':
-            appointments = appointments.sorted(key=lambda x: x.start_date or datetime.min)
-
-            for key, group in groupby_func(
-                    appointments,
-                    key=lambda x: x.start_date.isocalendar()[1] if x.start_date else 0):
-                grouped_appointments.append((key, list(group)))
-
-        elif groupby == 'date_day':
-            appointments = appointments.sorted(key=lambda x: x.start_date or datetime.min)
-
-            for key, group in groupby_func(
-                    appointments,
-                    key=lambda x: x.start_date.date() if x.start_date else ''):
-                grouped_appointments.append((key, list(group)))
-
-        else:
-            grouped_appointments = [(False, appointments)]
-
-
         values = {
-            'appointments': appointments,
-            'grouped_appointments': grouped_appointments,  
-            'pager': pager,
-            'page_name': 'appointments',
+        'appointments': all_appointments,
+        'grouped_appointments': final_groups,
+        'pager': pager,
+        'page_name': 'appointments',
 
-            'default_url': '/my/appointments', 
+        'default_url': '/my/appointments',  # 🔥 ADD THIS
 
-            'searchbar_sortings': searchbar_sortings,
-            'searchbar_filters': searchbar_filters,
-            'searchbar_groupby': searchbar_groupby,
-            'searchbar_inputs': searchbar_inputs,
+        'searchbar_sortings': searchbar_sortings,
+        'searchbar_filters': searchbar_filters,
+        'searchbar_groupby': searchbar_groupby,
+        'searchbar_inputs': searchbar_inputs,
 
-            'sortby': sortby,
-            'filterby': filterby,
-            'groupby': groupby,
-            'search': search,
-            'search_in': search_in,
-        }
+        'sortby': sortby,
+        'filterby': filterby,
+        'groupby': groupby,
+        'search': search,
+        'search_in': search_in,
+
+        'is_patient': 'Patient' in roles,
+        'is_doctor': 'Doctor' in roles,
+    }
 
         return request.render("hospital_management.portal_my_appointments", values)
 

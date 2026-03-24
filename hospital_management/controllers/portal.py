@@ -39,11 +39,15 @@ class PortalAppointment(CustomerPortal):
         # 👇 All appointments for current user
         user_partner = request.env.user.partner_id
 
-        appointments = appointment_obj.sudo().search([
-            '|',
-            ('patient_id', '=', user_partner.id),
-            ('doctor_id', '=', user_partner.id),
-        ])
+        if request.env.user.has_group('base.group_system'):
+            appointments = appointment_obj.sudo().search([])
+        else:
+            appointments = appointment_obj.sudo().search([
+                '|',
+                ('patient_id', '=', user_partner.id),
+                ('doctor_id', '=', user_partner.id),
+            ])
+            
         appointment_ids = appointments.ids
 
         # 👇 Current index

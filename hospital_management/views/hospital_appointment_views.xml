@@ -39,6 +39,7 @@
         <form string="Appointment">
             <header>
 
+                <!-- ================= REQUEST (PATIENT + ADMIN) ================= -->
                 <button name="action_request"
                         string="Request"
                         type="object"
@@ -46,6 +47,7 @@
                         groups="hospital_management.group_hospital_patient,base.group_system"
                         invisible="state != 'draft'"/>
 
+                <!-- ================= CONFIRM (DOCTOR + ADMIN) ================= -->
                 <button name="action_confirm"
                         string="Confirm"
                         type="object"
@@ -53,6 +55,7 @@
                         groups="hospital_management.group_hospital_doctor,base.group_system"
                         invisible="state != 'requested'"/>
 
+                <!-- ================= DONE (DOCTOR + ADMIN) ================= -->
                 <button name="action_done"
                         string="Mark as Done"
                         type="object"
@@ -60,6 +63,7 @@
                         groups="hospital_management.group_hospital_doctor,base.group_system"
                         invisible="state != 'confirmed'"/>
 
+                <!-- ================= CANCEL (ONLY DOCTOR + ADMIN) ================= -->
                 <button name="action_open_cancel_wizard"
                         string="Cancel"
                         type="object"
@@ -67,10 +71,13 @@
                         groups="hospital_management.group_hospital_doctor,base.group_system"
                         invisible="state in ('done','cancel')"/>
 
+                <!-- ================= RESET TO DRAFT ================= -->
                 <button name="action_draft"
                         string="Reset to Draft"
                         type="object"
+                        groups="hospital_management.group_hospital_patient,base.group_system"
                         invisible="state != 'cancel'"/>
+
 
                 <field name="state"
                        widget="statusbar"
