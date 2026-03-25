@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
     <data noupdate="0">
 
         <!-- ================= DOCTOR MAIL Request================= -->
@@ -140,6 +141,29 @@
                     style="background:#27ae60;color:#ffffff;padding:12px 22px;text-decoration:none;border-radius:6px;font-size:14px;display:inline-block;">
                     View Appointment
                     </a>
+                </div>
+                <!-- PAY NOW BUTTON -->
+                <div style="text-align:center;margin-top:15px;">
+
+                    <t t-if="object.invoice_id">
+                        
+                        <t t-set="base_url" t-value="object.get_base_url()"/>
+
+                        <a t-att-href="base_url + '/my/invoices/%s?access_token=%s' % (object.invoice_id.id, object.invoice_id.access_token)"
+                        style="background:#e67e22;
+                                color:#ffffff;
+                                padding:12px 22px;
+                                text-decoration:none;
+                                border-radius:6px;
+                                font-size:14px;
+                                display:inline-block;
+                                margin-top:10px;">
+
+                            Pay ₹<t t-out="object.invoice_id.amount_total"/>
+                        </a>
+
+                    </t>
+
                 </div>
 
                 <!-- Footer -->

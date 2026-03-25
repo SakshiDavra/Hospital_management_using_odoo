@@ -71,7 +71,7 @@ class PortalAppointment(CustomerPortal):
             'done': {'label': 'Done', 'domain': [('state', '=', 'done')]},
             'cancel': {'label': 'Cancelled', 'domain': [('state', '=', 'cancel')]},
 
-            # 🔥 NEW DATE FILTERS
+            # NEW DATE FILTERS
 
             'this_week': {
                 'label': 'This Week',
@@ -117,19 +117,30 @@ class PortalAppointment(CustomerPortal):
         }
 
     def _get_searchbar_groupby(self):
-        return {
+        user_partner = request.env.user.partner_id
+        roles = user_partner.role_ids.mapped('name')
+
+        groupby = {
             'none': {'label': 'None'},
             'doctor_id': {'label': 'Doctor'},
             'specialization_id': {'label': 'Specialization'},
             'patient_id': {'label': 'Patient'},
             'state': {'label': 'Status'},
 
-            # NEW DATE GROUPING
             'date_year': {'label': 'Year'},
             'date_month': {'label': 'Month'},
             'date_week': {'label': 'Week'},
             'date_day': {'label': 'Day'},
         }
+
+        #  ROLE BASED REMOVE
+        if 'Doctor' in roles and 'Patient' not in roles:
+            groupby.pop('doctor_id', None)
+
+        if 'Patient' in roles and 'Doctor' not in roles:
+            groupby.pop('patient_id', None)
+
+        return groupby
 
     def _get_searchbar_inputs(self):
         return {
@@ -160,7 +171,7 @@ class PortalAppointment(CustomerPortal):
 
     
         else:
-            # SEARCH ALL (MOST POWERFUL)
+            # SEARCH ALL
             return ['|','|','|','|','|','|',
                 ('name', 'ilike', search),
 
@@ -202,10 +213,10 @@ class PortalAppointment(CustomerPortal):
 
         order = searchbar_sortings.get(sortby, {}).get('order', 'start_date desc')
 
-        # 🔥 STEP 1: FETCH ALL DATA
+        #  STEP FETCH ALL DATA
         all_appointments = Appointment.search(domain, order=order)
 
-        # 🔥 STEP 2: GROUPING
+        # GROUPING
         grouped_appointments = []
 
         def prepare_group(key, records):
@@ -218,7 +229,7 @@ class PortalAppointment(CustomerPortal):
                 'state': 'state',
             }
 
-            # 🔥 TOTAL COUNT FIX
+            # TOTAL COUNT FIX
             if groupby in group_field_map and key:
                 field = group_field_map[groupby]
 
@@ -262,7 +273,7 @@ class PortalAppointment(CustomerPortal):
             for key, group in groupby_func(all_appointments, key=lambda x: x.state):
                 grouped_appointments.append(prepare_group(key, group))
 
-        # 🔥 DATE GROUPING (IMPORTANT)
+        #  DATE GROUPING 
         elif groupby == 'date_year':
             all_appointments = all_appointments.sorted(key=lambda x: x.start_date or datetime.min)
             for key, group in groupby_func(all_appointments, key=lambda x: x.start_date.year if x.start_date else 0):
@@ -301,7 +312,7 @@ class PortalAppointment(CustomerPortal):
                 'total_count': len(all_appointments)
             }]
 
-        # 🔥 STEP 3: PAGINATION (RECORD LEVEL BUT GROUP SAFE)
+        # PAGINATION (RECORD LEVEL BUT GROUP SAFE)
         page_size = 10
         start = (page - 1) * page_size
         end = start + page_size
@@ -322,7 +333,7 @@ class PortalAppointment(CustomerPortal):
                     'key': group['key'],
                     'records': new_records,
                     'total_fees': sum(r.fees for r in new_records),
-                    'total_count': group.get('total_count')   # 🔥 IMPORTANT
+                    'total_count': group.get('total_count')   
                 })
 
         total = len(all_appointments)
@@ -347,7 +358,7 @@ class PortalAppointment(CustomerPortal):
         'pager': pager,
         'page_name': 'appointments',
 
-        'default_url': '/my/appointments',  # 🔥 ADD THIS
+        'default_url': '/my/appointments', 
 
         'searchbar_sortings': searchbar_sortings,
         'searchbar_filters': searchbar_filters,
@@ -379,7 +390,7 @@ class PortalAppointment(CustomerPortal):
         if appointment_id:
             appointment = request.env['hospital.appointment'].sudo().browse(int(appointment_id))
 
-            # 🔥 TIMEZONE CONVERSION (SAFE WAY)
+            # TIMEZONE CONVERSION (SAFE WAY)
             if appointment.start_date:
                 start_local = Datetime.context_timestamp(request.env.user, appointment.start_date)
                 start_date_local = start_local.strftime('%Y-%m-%dT%H:%M')
@@ -399,7 +410,7 @@ class PortalAppointment(CustomerPortal):
             'appointment': appointment,
             'is_edit': bool(appointment),
 
-            # 🔥 IMPORTANT
+            # IMPORTANT
             'start_date_local': start_date_local,
             'end_date_local': end_date_local,
 

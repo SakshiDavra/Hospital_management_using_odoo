@@ -11,7 +11,7 @@ class PortalAppointment(CustomerPortal):
         appointment_obj = request.env['hospital.appointment']
         appointment = appointment_obj.sudo().browse(appointment_id)
 
-        # 🔥 PDF condition (IMPORTANT FIX)
+        # PDF condition (IMPORTANT FIX)
         if kw.get('report_type') == 'pdf':
 
             pdf, _ = request.env['ir.actions.report']._render_qweb_pdf(
@@ -21,11 +21,11 @@ class PortalAppointment(CustomerPortal):
 
             filename = f"Appointment - {appointment.name}.pdf"
 
-            # 🔥 DIFFERENCE HERE
+            #  DIFFERENCE HERE
             if kw.get('download'):
-                disposition = content_disposition(filename)   # ✅ download
+                disposition = content_disposition(filename)  
             else:
-                disposition = f'inline; filename="{filename}"'  # ✅ preview
+                disposition = f'inline; filename="{filename}"' 
 
             return request.make_response(
                 pdf,
@@ -36,7 +36,7 @@ class PortalAppointment(CustomerPortal):
                 ]
             )
 
-        # 👇 All appointments for current user
+        # All appointments for current user
         user_partner = request.env.user.partner_id
 
         if request.env.user.has_group('base.group_system'):
@@ -50,13 +50,13 @@ class PortalAppointment(CustomerPortal):
             
         appointment_ids = appointments.ids
 
-        # 👇 Current index
+        # Current index
         try:
             index = appointment_ids.index(appointment_id)
         except ValueError:
             index = 0
 
-        # 👇 Prev / Next IDs
+        # Prev / Next IDs
         prev_id = appointment_ids[index - 1] if index > 0 else False
         next_id = appointment_ids[index + 1] if index < len(appointment_ids) - 1 else False
 
@@ -64,7 +64,7 @@ class PortalAppointment(CustomerPortal):
             'appointment': appointment,
             'page_name': 'appointment',
 
-            # ✅ Pager
+            # Pager
             'prev_record': prev_id,
             'next_record': next_id,
             'page_view': 'appointment',
@@ -106,7 +106,7 @@ class PortalAppointment(CustomerPortal):
     type='http',
     auth="user",
     website=True,
-    methods=['POST']   # 🔥 IMPORTANT
+    methods=['POST']  
     )
     def portal_cancel_appointment(self, appointment_id, **kw):
 
@@ -117,3 +117,5 @@ class PortalAppointment(CustomerPortal):
         appointment.action_cancel_from_portal(reason)
 
         return request.redirect('/my/appointment/%s' % appointment_id)
+
+    

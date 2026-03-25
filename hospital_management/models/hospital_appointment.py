@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 class HospitalAppointment(models.Model):
     _name = "hospital.appointment"
     _description = "Hospital Appointment"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
     # ================= BASIC FIELDS =================
 
     name = fields.Char(string="Appointment No", readonly=True, copy=False)
@@ -90,8 +90,16 @@ class HospitalAppointment(models.Model):
 
     invoice_id = fields.Many2one('account.move', string="Invoice")
 
-    # ================= ONCHANGE =================4
-    # ================= COMMON METHODS =================
+    is_paid = fields.Boolean(
+        string="Is Paid",
+        compute="_compute_payment_status",
+        store=True
+    )
+
+    @api.depends('invoice_id.payment_state')
+    def _compute_payment_status(self):
+        for rec in self:
+            rec.is_paid = rec.invoice_id.payment_state == 'paid'
 
     def _sync_specialization_with_doctor(self, doctor):
         return doctor.specialization_id if doctor else False
@@ -345,6 +353,8 @@ class HospitalAppointment(models.Model):
                     'move_type': 'out_invoice',
                     'partner_id': rec.patient_id.id,
                     'invoice_origin': rec.name,
+                    'ref': rec.name,
+
                     'invoice_line_ids': [(0, 0, {
                         'name': f"Consultation - {rec.doctor_id.name}",
                         'quantity': 1,
@@ -353,6 +363,8 @@ class HospitalAppointment(models.Model):
                 })
 
                 invoice.action_post()
+                invoice._portal_ensure_token()
+
                 rec.invoice_id = invoice.id
 
             else:
@@ -548,3 +560,29 @@ class HospitalAppointment(models.Model):
         return self.env.ref(
             "hospital_management.action_appointment_summary_report"
         ).report_action(appointments)
+
+    def action_view_invoice(self):
+        self.ensure_one()
+
+        if not self.invoice_id:
+            return
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Invoice',
+            'res_model': 'account.move',
+            'view_mode': 'form',
+            'res_id': self.invoice_id.id,
+            'target': 'current',
+        }
+
+    def action_preview_portal(self):
+        self.ensure_one()
+
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f"{base_url}/my/appointment/{self.id}?access_token={self._portal_ensure_token()}",
+            'target': 'new',
+        }

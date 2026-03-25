@@ -50,7 +50,7 @@
         'views/hospital_appointment_views.xml',
         'views/hospital_settings_views.xml',
         'views/appointment_cancel_wizard_views.xml',
-
+        
         'views/hospital_menus.xml',
     ],
 

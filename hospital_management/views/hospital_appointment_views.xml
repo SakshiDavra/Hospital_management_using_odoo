@@ -77,13 +77,32 @@
                         type="object"
                         groups="hospital_management.group_hospital_patient,base.group_system"
                         invisible="state != 'cancel'"/>
-
+                <button name="action_preview_portal"
+                        string="Preview"
+                        type="object"
+                        class="btn-secondary"/>
 
                 <field name="state"
                        widget="statusbar"
                        statusbar_visible="draft,requested,confirmed,done,cancel"/>
 
             </header>
+            <div class="oe_button_box" name="button_box">
+
+                <button name="action_view_invoice"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-invoice"
+                        invisible="invoice_id == False">
+
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Invoice</span>
+                        <span class="o_stat_value">1</span>
+                    </div>
+
+                </button>
+
+            </div>
 
             <sheet>
             
@@ -214,7 +233,7 @@
     <field name="arch" type="xml">
 
         <calendar
-             js_class="hospital_calendar"
+            js_class="hospital_calendar"
             string="Appointments"
             date_start="start_date"
             date_stop="end_date"
@@ -301,6 +320,14 @@
                 <filter name="group_year"
                         string="Appointment Date"
                         context="{'group_by': 'start_date:year'}"/>
+
+                <filter name="paid"
+                        string="Paid"
+                        domain="[('invoice_id','!=',False), ('is_paid','=',True)]"/>
+
+                <filter name="unpaid"
+                        string="Unpaid"
+                        domain="[('invoice_id','!=',False), ('is_paid','=',False)]"/>
             </group>
 
         </search>
