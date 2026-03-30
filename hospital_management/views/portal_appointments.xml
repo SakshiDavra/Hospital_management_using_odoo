@@ -250,6 +250,19 @@
             inherit_id="portal.portal_sidebar"
             primary="True">
 
+        <t t-call="portal.portal_layout" position="inside">
+
+            <t t-set="o_portal_fullwidth_alert">
+
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url"
+                    t-value="'/web#id=%s&amp;model=hospital.appointment&amp;view_type=form' % appointment.id"/>
+                </t>
+
+            </t>
+
+        </t>
+
         <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
 
             <div class="row">

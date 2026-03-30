@@ -584,5 +584,5 @@ class HospitalAppointment(models.Model):
         return {
             'type': 'ir.actions.act_url',
             'url': f"{base_url}/my/appointment/{self.id}?access_token={self._portal_ensure_token()}",
-            'target': 'new',
+            'target': 'self',
         }

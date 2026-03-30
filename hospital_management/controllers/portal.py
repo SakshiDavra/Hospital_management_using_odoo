@@ -10,6 +10,7 @@ class PortalAppointment(CustomerPortal):
 
         appointment_obj = request.env['hospital.appointment']
         appointment = appointment_obj.sudo().browse(appointment_id)
+        
 
         # PDF condition (IMPORTANT FIX)
         if kw.get('report_type') == 'pdf':
@@ -88,7 +89,7 @@ class PortalAppointment(CustomerPortal):
     # CONFIRM (Doctor)
     @http.route(['/appointment/confirm/<int:appointment_id>'], type='http', auth="user", website=True)
     def portal_confirm_appointment(self, appointment_id, **kw):
-        appointment = request.env['hospital.appointment'].sudo().browse(appointment_id)
+        appointment = request.env['hospital.appointment'].sudo().browse(appointment_id) 
         appointment.action_confirm()
         return request.redirect('/my/appointment/%s' % appointment_id)
 
