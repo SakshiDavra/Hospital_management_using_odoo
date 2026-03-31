@@ -1,0 +1,14 @@
+<odoo>
+    <template id="hide_backend_switch_patient_only" inherit_id="website.layout">
+
+        <!-- SAFE HIDE ONLY FOR PATIENT -->
+        <xpath expr="//div[hasclass('o_frontend_to_backend_nav')]" position="attributes">
+
+            <attribute name="t-attf-style">
+                #{ 'display:none !important;' if request.env.user.has_group('hospital_management.group_hospital_patient') else '' }
+            </attribute>
+
+        </xpath>
+
+    </template>
+</odoo>

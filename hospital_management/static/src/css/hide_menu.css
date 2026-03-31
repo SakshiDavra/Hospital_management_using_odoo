@@ -1,0 +1,13 @@
+/* ONLY patient mate hide */
+
+body.patient_user .o_frontend_to_backend_nav {
+    display: none !important;
+}
+
+body.patient_user .o_menu_toggle {
+    display: none !important;
+}
+
+body.patient_user .o_app_menu {
+    display: none !important;
+}

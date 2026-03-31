@@ -1,7 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
-
 class HospitalDoctorSchedule(models.Model):
     _name = 'hospital.doctor.schedule'
         # Reverse relation: Doctors using this slot

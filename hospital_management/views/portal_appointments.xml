@@ -252,11 +252,18 @@
 
         <t t-call="portal.portal_layout" position="inside">
 
-            <t t-set="o_portal_fullwidth_alert">
+            <!-- ❌ HIDE FULL ALERT FOR PATIENT -->
+            <t t-if="
+                request.env.user.has_group('hospital_management.group_hospital_doctor') 
+                or request.env.user.has_group('base.group_system')
+            ">
+                <t t-set="o_portal_fullwidth_alert">
 
-                <t t-call="portal.portal_back_in_edit_mode">
-                    <t t-set="backend_url"
-                    t-value="'/web#id=%s&amp;model=hospital.appointment&amp;view_type=form' % appointment.id"/>
+                    <t t-call="portal.portal_back_in_edit_mode">
+                        <t t-set="backend_url"
+                        t-value="'/web#id=%s&amp;model=hospital.appointment&amp;view_type=form' % appointment.id"/>
+                    </t>
+
                 </t>
 
             </t>

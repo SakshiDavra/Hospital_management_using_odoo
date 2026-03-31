@@ -5,7 +5,7 @@ import secrets
 from odoo.exceptions import ValidationError, UserError
 
 class ResPartner(models.Model):
-    # _name = "res.partner"
+    _name = "res.partner"
     _inherit = ["res.partner", "mail.thread", "mail.activity.mixin"]
     
     # ================= ROLES =================

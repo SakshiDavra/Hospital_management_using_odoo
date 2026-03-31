@@ -44,6 +44,7 @@
         'data/hospital_cron.xml',
 
         # Views
+        'views/templates.xml',
         'views/hospital_role_views.xml',
         'views/hospital_partner_views.xml',
         'views/portal_appointments.xml',
@@ -58,10 +59,14 @@
         'web.assets_backend': [
             'hospital_management/static/src/js/calendar_reload.js',
             'hospital_management/static/src/css/kanban.css',
+            # 'hospital_management/static/src/css/hide_menu.css',
         ],
 
         'web.assets_frontend': [
             'hospital_management/static/src/css/style.css',
+
+            # 'hospital_management/static/src/css/hide_menu.css',
+            #'hospital_management/static/src/js/hide_frontend_menu.js',
         ],
     },
 

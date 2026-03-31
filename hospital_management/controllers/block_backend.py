@@ -4,6 +4,10 @@ from odoo.http import request
 
 class BlockBackend(Home):
 
+    @http.route('/is_patient', type='jsonrpc', auth="user")
+    def is_patient(self):
+        return request.env.user.has_group('hospital_management.group_hospital_patient')
+    
     # /web
     @http.route('/web', type='http', auth="user")
     def web_client(self, s_action=None, **kw):
@@ -13,8 +17,7 @@ class BlockBackend(Home):
 
         return super().web_client(s_action=s_action, **kw)
 
-
-    # /odoo (IMPORTANT ADD)
+    # /odoo 
     @http.route('/odoo', type='http', auth="user")
     def block_odoo_root(self, **kw):
 
@@ -32,3 +35,4 @@ class BlockBackend(Home):
             return request.redirect('/')
 
         return request.redirect('/web')
+
