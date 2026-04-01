@@ -1,0 +1,26 @@
+<t t-name="hospital_dashboard_template">
+
+    <Layout display="{controlPanel: {}}">
+
+        <div class="container mt-4">
+            <h2>Hospital Dashboard </h2>
+
+            <div class="row mt-4">
+
+                <t t-foreach="state.cards" t-as="card" t-key="card.key">
+
+                    <CounterCard 
+                        title="card.title"
+                        value="state.data[card.key]"
+                        bg="card.bg"
+                        onClick="() => this.openList(card.action)"/>
+
+                </t>
+
+            </div>
+
+        </div>
+
+    </Layout>
+
+</t>

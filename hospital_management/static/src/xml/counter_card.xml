@@ -1,0 +1,22 @@
+<t t-name="counter_card_template">
+    <div class="col">
+
+        <div t-attf-class="card dashboard-card #{props.bg}"
+             t-on-click="props.onClick">
+
+            <div class="card-body text-center">
+
+                <h6 class="mb-1 text-muted">
+                    <t t-esc="props.title"/>
+                </h6>
+
+                <h2 class="fw-bold mb-0">
+                    <t t-esc="props.value"/>
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+</t>

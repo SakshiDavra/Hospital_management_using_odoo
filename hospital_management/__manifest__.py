@@ -60,6 +60,10 @@
             'hospital_management/static/src/js/calendar_reload.js',
             'hospital_management/static/src/css/kanban.css',
             # 'hospital_management/static/src/css/hide_menu.css',
+            'hospital_management/static/src/js/dashboard.js',
+            'hospital_management/static/src/js/components/counter_card.js',
+            'hospital_management/static/src/xml/dashboard.xml',
+            'hospital_management/static/src/xml/counter_card.xml',
         ],
 
         'web.assets_frontend': [
