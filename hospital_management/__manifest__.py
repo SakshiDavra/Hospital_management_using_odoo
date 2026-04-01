@@ -62,8 +62,13 @@
             # 'hospital_management/static/src/css/hide_menu.css',
             'hospital_management/static/src/js/dashboard.js',
             'hospital_management/static/src/js/components/counter_card.js',
+            'hospital_management/static/src/js/components/pie_chart.js',
             'hospital_management/static/src/xml/dashboard.xml',
             'hospital_management/static/src/xml/counter_card.xml',
+            'hospital_management/static/src/xml/pie_chart.xml',
+            'hospital_management/static/src/js/components/bar_chart.js',
+            'hospital_management/static/src/xml/bar_chart.xml',
+
         ],
 
         'web.assets_frontend': [

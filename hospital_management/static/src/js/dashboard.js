@@ -7,35 +7,79 @@ import { useService } from "@web/core/utils/hooks";
 
 import { Layout } from "@web/search/layout";
 import { CounterCard } from "./components/counter_card";
+import { PieChart } from "./components/pie_chart";
+import { BarChart } from "./components/bar_chart";
+
+
 
 export class HospitalDashboard extends Component {
 
-    static components = { Layout, CounterCard };
+    static components = { Layout, CounterCard, PieChart, BarChart };
 
     setup() {
         this.action = useService("action");
 
         this.state = useState({
-            cards: [
-                { title: "Total Patients", key: "patients", bg: "bg-primary-subtle text-primary", action: "patient" },
-                { title: "Total Doctors", key: "doctors", bg: "bg-success-subtle text-success", action: "doctor" },
-                { title: "Total Appointments", key: "appointments", bg: "bg-warning-subtle text-warning", action: "appointment" },
-
-                { title: "Today's Appointments", key: "today_appointments", bg: "bg-info-subtle text-info", action: "today" },
-
-                { title: "Next Week Appointments", key: "week_appointments", bg: "bg-secondary-subtle text-secondary", action: "week" },
-                { title: "Past Week Appointments", key: "past_week", bg: "bg-danger-subtle text-danger", action: "past_week" },
-            ],
+           cards: [
+                    {
+                        title: "Total Patients",
+                        key: "patients",
+                        bg: "bg-gradient-blue",
+                        icon: "fa fa-user",
+                        action: "patient"
+                    },
+                    {
+                        title: "Total Doctors",
+                        key: "doctors",
+                        bg: "bg-gradient-green",
+                        icon: "fa fa-user-md",
+                        action: "doctor"
+                    },
+                    {
+                        title: "Total Appointments",
+                        key: "appointments",
+                        bg: "bg-gradient-yellow",
+                        icon: "fa fa-calendar",
+                        action: "appointment"
+                    },
+                    {
+                        title: "Today's Appointments",
+                        key: "today_appointments",
+                        bg: "bg-gradient-purple",
+                        icon: "fa fa-calendar", 
+                        action: "today"
+                    },
+                    {
+                        title: "Next Week",
+                        key: "week_appointments",
+                        bg: "bg-gradient-blue",
+                        icon: "fa fa-calendar-check-o",  
+                        action: "week"
+                    },
+                    {
+                        title: "Past Week",
+                        key: "past_week",
+                        bg: "bg-gradient-red",
+                        icon: "fa fa-history",
+                        action: "past_week"
+                    },
+                ],
+            
             data: {
                 patients: 0,
                 doctors: 0,
                 appointments: 0,
             },
+            state_data: [], 
+            weekly_chart: {},
         });
 
         onWillStart(async () => {
             const res = await rpc("/hospital/dashboard/data");
             this.state.data = res;
+            this.state.state_data = res.state_data; 
+            this.state.weekly_chart = res.weekly_chart;
+
         });
     }
 

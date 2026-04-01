@@ -1,0 +1,5 @@
+<t t-name="pie_chart_template">
+    <div class="chart-container">
+        <canvas t-ref="canvas"></canvas>
+    </div>
+</t>

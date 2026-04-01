@@ -29,3 +29,71 @@
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
+
+.custom-card {
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    color: white !important;
+}
+.custom-card .text-muted {
+    color: rgba(255,255,255,0.8) !important;
+}
+
+/* GRADIENT COLORS */
+.bg-gradient-blue {
+    background: linear-gradient(45deg, #3888ce, #0b5054);
+    color: white;
+}
+
+.bg-gradient-green {
+    background: linear-gradient(45deg, #4ee27f, #2e8766);
+    color: white;
+}
+
+.bg-gradient-yellow {
+    background: linear-gradient(45deg, #af9029, #d8785e);
+    color: white;
+}
+
+.bg-gradient-purple {
+    background: linear-gradient(45deg, #5f3cb0, #e74abb);
+    color: white;
+}
+
+.bg-gradient-red {
+    background: linear-gradient(45deg, #a13446, #571732);
+    color: white;
+}
+.o_content,
+.o_action_manager {
+    overflow-y: auto !important;
+}
+
+/*  CHART FIX */
+.chart-container {
+    height: 220px;   /* adjust height */
+    position: relative;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+.card-body {
+    padding: 18px;
+}
+
+.stat-change {
+    font-size: 12px;
+    opacity: 0.9;
+}
+.stat-up {
+    color: #d4ffea;
+}
+.chart-container {
+    height: 260px;
+}
+canvas {
+    cursor: pointer;
+}
