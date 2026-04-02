@@ -2,74 +2,132 @@ from odoo import http
 from odoo.http import request
 from datetime import datetime, timedelta
 
+
 class HospitalDashboard(http.Controller):
 
     @http.route('/hospital/dashboard/data', type='json', auth='user')
-    def dashboard_data(self):
+    def dashboard_data(self, filter='week'):
 
         today = datetime.today().date()
         next_week = today + timedelta(days=7)
         last_week = today - timedelta(days=7)
 
+        # STATE DATA (PieChart)
         state_data = request.env['hospital.appointment'].read_group(
             [],
             ['state'],
             ['state']
         )
-        start_of_week = today - timedelta(days=today.weekday() + 1 if today.weekday() != 6 else 0)
 
+        #  COMMON DATASETS
+        states = ['draft', 'requested', 'confirmed', 'done', 'cancel']
+        datasets = {state: [] for state in states}
         labels = []
-        datasets = {
-            'draft': [],
-            'requested': [],
-            'confirmed': [],
-            'done': [],
-            'cancel': [],
+
+        # =========================
+        # WEEK (DAY-WISE)
+        # =========================
+        if filter == 'week':
+
+            start_of_week = today - timedelta(days=today.weekday() + 1 if today.weekday() != 6 else 0)
+
+            for i in range(7):
+                day = start_of_week + timedelta(days=i)
+                next_day = day + timedelta(days=1)
+
+                labels.append(day.strftime('%a'))
+
+                for state in states:
+                    count = request.env['hospital.appointment'].search_count([
+                        ('state', '=', state),
+                        ('start_date', '>=', datetime.combine(day, datetime.min.time())),
+                        ('start_date', '<', datetime.combine(next_day, datetime.min.time())),
+                    ])
+                    datasets[state].append(count)
+
+        # =========================
+        #  MONTH (WEEK-WISE)
+        # =========================
+        elif filter == 'month':
+
+            start_of_month = today.replace(day=1)
+
+            labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5']
+
+            for i in range(5):
+                start = start_of_month + timedelta(days=i * 7)
+                end = start + timedelta(days=7)
+
+                for state in states:
+                    count = request.env['hospital.appointment'].search_count([
+                        ('state', '=', state),
+                        ('start_date', '>=', start),
+                        ('start_date', '<', end),
+                    ])
+                    datasets[state].append(count)
+
+        # =========================
+        #  YEAR (MONTH-WISE)
+        # =========================
+        elif filter == 'year':
+
+            labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+            for month in range(1, 13):
+
+                start = datetime(today.year, month, 1)
+
+                if month == 12:
+                    end = datetime(today.year + 1, 1, 1)
+                else:
+                    end = datetime(today.year, month + 1, 1)
+
+                for state in states:
+                    count = request.env['hospital.appointment'].search_count([
+                        ('state', '=', state),
+                        ('start_date', '>=', start),
+                        ('start_date', '<', end),
+                    ])
+                    datasets[state].append(count)
+
+        # FINAL CHART
+        chart = {
+            'labels': labels,
+            'datasets': datasets
         }
 
-        for i in range(7):
-            day = start_of_week + timedelta(days=i)
-            next_day = day + timedelta(days=1)
-
-            labels.append(day.strftime('%a'))
-
-            for state in datasets.keys():
-                count = request.env['hospital.appointment'].search_count([
-                    ('state', '=', state),
-                    ('start_date', '>=', datetime.combine(day, datetime.min.time())),
-                    ('start_date', '<', datetime.combine(next_day, datetime.min.time())),
-                ])
-                datasets[state].append(count)
-
+        # FINAL RESPONSE
         return {
             'patients': request.env['res.partner'].search_count([
-                ('role_ids.name','=','Patient')
+                ('role_ids.name', '=', 'Patient')
             ]),
 
             'doctors': request.env['res.partner'].search_count([
-                ('role_ids.name','=','Doctor')
+                ('role_ids.name', '=', 'Doctor')
             ]),
 
             'appointments': request.env['hospital.appointment'].search_count([]),
 
-            # ✅ TODAY (FIXED)
+            #  TODAY
             'today_appointments': request.env['hospital.appointment'].search_count([
                 ('start_date', '>=', datetime.combine(today, datetime.min.time())),
                 ('start_date', '<=', datetime.combine(today, datetime.max.time())),
             ]),
 
-            # ✅ WEEK (FIXED)
+            # WEEK
             'week_appointments': request.env['hospital.appointment'].search_count([
                 ('start_date', '>=', datetime.combine(today, datetime.min.time())),
                 ('start_date', '<=', datetime.combine(next_week, datetime.max.time())),
             ]),
+
+            #  PAST WEEK
             'past_week': request.env['hospital.appointment'].search_count([
                 ('start_date', '>=', datetime.combine(last_week, datetime.min.time())),
                 ('start_date', '<=', datetime.combine(today, datetime.max.time())),
             ]),
+
             'state_data': state_data,
-            'weekly_chart': {
-            'labels': labels,
-            'datasets': datasets,
-        }
+
+            # ❗ IMPORTANT CHANGE
+            'chart': chart
         }

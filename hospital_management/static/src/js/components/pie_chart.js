@@ -74,11 +74,11 @@ export class PieChart extends Component {
                 ctx.fillStyle = "#222";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText(total, width / 2, height / 2 - 5);
+                ctx.fillText(total, width / 2, height / 2 + 10);
 
                 ctx.font = "12px sans-serif";
                 ctx.fillStyle = "#777";
-                ctx.fillText("Appointments", width / 2, height / 2 + 15);
+                ctx.fillText("Appointments", width / 2, height / 2 + 30);
 
                 ctx.restore();
             }

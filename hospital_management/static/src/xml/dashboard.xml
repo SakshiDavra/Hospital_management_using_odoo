@@ -2,61 +2,95 @@
 
     <Layout display="{controlPanel: {}}">
 
-        <div class="container mt-4">
-            <!-- <h2>Hospital Dashboard </h2> -->
-
-            <div class="row mt-4">
-
-                <t t-foreach="state.cards" t-as="card" t-key="card.key">
-
-                    <div class="col-lg-4 col-md-6 mb-3">
-                        <CounterCard
-                            title="card.title"
-                            value="state.data[card.key] || 0"
-                            bg="card.bg"
-                            icon="card.icon"
-                            onClick="() => this.openList(card.action)"
-                        />
-                    </div>
-
-                </t>
-
+        <!-- ✅ LOADER -->
+        <t t-if="state.loading">
+            <div class="text-center mt-5">
+                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                <p>Loading dashboard...</p>
             </div>
+        </t>
 
-        </div>
-        <div class="container mt-4">  
+        <!-- ✅ DASHBOARD CONTENT -->
+        <t t-else="">
 
-            <div class="row">
+            <!-- ================= CARDS ================= -->
+            <div class="container mt-4">
 
-                <!-- Chart 1 -->
-                <div class="col-lg-6 col-md-12 mb-3">
-                    <div class="card shadow-sm border-0 h-100">
+                <div class="row mt-4">
 
-                        <div class="card-body p-3">
-                            <h5 class="mb-3">Appointment Status</h5>
-                            <PieChart data="state.state_data"/>
+                    <t t-foreach="state.cards" t-as="card" t-key="card.key">
+
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <CounterCard
+                                title="card.title"
+                                value="state.data[card.key] || 0"
+                                bg="card.bg"
+                                icon="card.icon"
+                                onClick="() => this.openList(card.action)"
+                            />
                         </div>
 
-                    </div>
-                </div>
+                    </t>
 
-                <!-- Chart 2 -->
-                <div class="col-lg-6 col-md-12 mb-3">
-                    <div class="card shadow-sm border-0 h-100">
-
-                        <div class="card-body p-3">
-                            <h5 class="mb-3">Current Week Appointments</h5>
-
-                            <BarChart data="state.weekly_chart"/>
-
-                        </div>
-
-                    </div>
                 </div>
 
             </div>
 
-        </div>
+            <!-- ================= CHARTS ================= -->
+            <div class="container mt-4">  
+
+                <div class="row">
+
+                    <!-- PIE CHART -->
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <div class="card shadow-sm border-0 h-100">
+
+                            <div class="card-body p-3">
+                                <h5 class="mb-3">Appointment Status</h5>
+                                <PieChart data="state.state_data"/>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- BAR CHART -->
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <div class="card shadow-sm border-0 h-100">
+
+                            <div class="card-body p-3">
+
+                                <!-- HEADER + DROPDOWN -->
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                    <h5 class="mb-0">Appointments Analytics</h5>
+
+                                    <select class="form-select w-auto"
+                                            t-model="state.filter"
+                                            t-on-change="onFilterChange">
+
+                                        <option value="week">This Week</option>
+                                        <option value="month">This Month</option>
+                                        <option value="year">This Year</option>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- BAR CHART -->
+                                <t t-if="state.chart_data.labels">
+                                    <BarChart data="state.chart_data"/>
+                                </t>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </t>
 
     </Layout>
 

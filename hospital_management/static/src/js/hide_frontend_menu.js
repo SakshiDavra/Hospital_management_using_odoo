@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-console.log("JS LOADED ✅");
+console.log("JS LOADED ");
 
 document.addEventListener("DOMContentLoaded", () => {
     checkPatientAndHide();
@@ -27,7 +27,7 @@ function checkPatientAndHide() {
 }
 
 function startHiding() {
-    console.log("Hiding menu for patient ✅");
+    console.log("Hiding menu for patient ");
 
     // Continuous observer (better than blind interval)
     const observer = new MutationObserver(() => {
@@ -44,9 +44,9 @@ function startHiding() {
 }
 
 function removeMenuElements() {
-    // 🔴 Website → Backend switch button
+    // Website → Backend switch button
     document.querySelectorAll('.o_frontend_to_backend_nav').forEach(el => el.remove());
 
-    // 🔴 Dropdown menu (app list)
+    //  Dropdown menu (app list)
     document.querySelectorAll('.dropdown-menu').forEach(el => el.remove());
 }
