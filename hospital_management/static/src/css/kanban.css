@@ -42,27 +42,27 @@
 
 /* GRADIENT COLORS */
 .bg-gradient-blue {
-    background: linear-gradient(45deg, #3888ce, #0b5054);
+    background: linear-gradient(45deg, #184d7a, #0fc4cd);
     color: white;
 }
 
 .bg-gradient-green {
-    background: linear-gradient(45deg, #4ee27f, #2e8766);
+    background: linear-gradient(45deg, #2fa055, #0b3a29);
     color: white;
 }
 
 .bg-gradient-yellow {
-    background: linear-gradient(45deg, #af9029, #d8785e);
+    background: linear-gradient(45deg, #9d7f1a, #8f3d27);
     color: white;
 }
 
 .bg-gradient-purple {
-    background: linear-gradient(45deg, #5f3cb0, #e74abb);
+    background: linear-gradient(45deg, #442b7e, #8d1a6c);
     color: white;
 }
 
 .bg-gradient-red {
-    background: linear-gradient(45deg, #a13446, #571732);
+    background: linear-gradient(45deg, #78212f, #550d2b);
     color: white;
 }
 .o_content,
@@ -80,6 +80,7 @@
     width: 100% !important;
     height: 100% !important;
 }
+
 .card-body {
     padding: 18px;
 }

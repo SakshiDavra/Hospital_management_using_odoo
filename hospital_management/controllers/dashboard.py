@@ -19,19 +19,28 @@ class HospitalDashboard(http.Controller):
         start_of_week = today - timedelta(days=today.weekday() + 1 if today.weekday() != 6 else 0)
 
         labels = []
-        values = []
+        datasets = {
+            'draft': [],
+            'requested': [],
+            'confirmed': [],
+            'done': [],
+            'cancel': [],
+        }
 
         for i in range(7):
             day = start_of_week + timedelta(days=i)
             next_day = day + timedelta(days=1)
 
-            count = request.env['hospital.appointment'].search_count([
-                ('start_date', '>=', datetime.combine(day, datetime.min.time())),
-                ('start_date', '<', datetime.combine(next_day, datetime.min.time())),
-            ])
+            labels.append(day.strftime('%a'))
 
-            labels.append(day.strftime('%a'))  # Sun, Mon...
-            values.append(count)
+            for state in datasets.keys():
+                count = request.env['hospital.appointment'].search_count([
+                    ('state', '=', state),
+                    ('start_date', '>=', datetime.combine(day, datetime.min.time())),
+                    ('start_date', '<', datetime.combine(next_day, datetime.min.time())),
+                ])
+                datasets[state].append(count)
+
         return {
             'patients': request.env['res.partner'].search_count([
                 ('role_ids.name','=','Patient')
@@ -60,7 +69,7 @@ class HospitalDashboard(http.Controller):
             ]),
             'state_data': state_data,
             'weekly_chart': {
-                'labels': labels,
-                'values': values,
-            },
+            'labels': labels,
+            'datasets': datasets,
+        }
         }
