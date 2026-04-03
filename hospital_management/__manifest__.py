@@ -68,6 +68,11 @@
             'hospital_management/static/src/xml/pie_chart.xml',
             'hospital_management/static/src/js/components/bar_chart.js',
             'hospital_management/static/src/xml/bar_chart.xml',
+            # JS
+            'hospital_management/static/src/js/components/shape_canvas.js',
+
+            # XML
+            'hospital_management/static/src/xml/shape_canvas.xml',
 
         ],
 

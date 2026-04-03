@@ -1,0 +1,29 @@
+<t t-name="shape_canvas_template">
+    <div class="card p-3 shadow-sm">
+
+        <div class="d-flex gap-2 mb-3">
+
+            <select class="form-select w-auto"
+                    t-on-change="onShapeChange">
+                <option value="" selected="true">Select Shape</option>
+                <option value="square">Square</option>
+                <option value="circle">Circle</option>
+                <option value="triangle">Triangle</option>
+                <option value="pentagon">Pentagon</option>
+            </select>
+
+            <input type="color"
+                   t-on-change="onColorChange"
+                   value="#ff0000"/>
+
+        </div>
+
+        <canvas width="350"
+                height="100"
+                t-ref="canvas"
+                t-on-click="onCanvasClick"
+                style="border:1px solid #9b1414;">
+        </canvas>
+
+    </div>
+</t>

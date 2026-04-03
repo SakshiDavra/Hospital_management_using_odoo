@@ -9,10 +9,11 @@ import { Layout } from "@web/search/layout";
 import { CounterCard } from "./components/counter_card";
 import { PieChart } from "./components/pie_chart";
 import { BarChart } from "./components/bar_chart";
+import { ShapeCanvas } from "./components/shape_canvas";
 
 export class HospitalDashboard extends Component {
 
-    static components = { Layout, CounterCard, PieChart, BarChart };
+    static components = { Layout, CounterCard, PieChart, BarChart, ShapeCanvas,};
 
     setup() {
         this.action = useService("action");
