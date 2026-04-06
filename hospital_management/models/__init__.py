@@ -7,3 +7,4 @@ from . import res_company
 from . import res_config_settings
 from . import appointment_cancel_wizard
 from . import appointment_status
+from . import todo

@@ -19,7 +19,7 @@
         </div>
 
         <canvas width="350"
-                height="100"
+                height="150"
                 t-ref="canvas"
                 t-on-click="onCanvasClick"
                 style="border:1px solid #9b1414;">

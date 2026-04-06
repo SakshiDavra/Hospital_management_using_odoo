@@ -21,3 +21,4 @@ access_hospital_role_patient,hospital.role patient,model_hospital_role,hospital_
 access_appointment_cancel_wizard,appointment.cancel.wizard,model_appointment_cancel_wizard,base.group_user,1,1,1,0
 access_appointment_report_wizard,appointment.report.wizard,model_appointment_report_wizard,base.group_user,1,1,1,0
 access_hospital_appointment_status_user,hospital.appointment.status user,model_hospital_appointment_status,base.group_user,1,0,0,0
+access_hospital_todo,hospital.todo,model_hospital_todo,,1,1,1,1

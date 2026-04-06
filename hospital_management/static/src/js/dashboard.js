@@ -10,10 +10,11 @@ import { CounterCard } from "./components/counter_card";
 import { PieChart } from "./components/pie_chart";
 import { BarChart } from "./components/bar_chart";
 import { ShapeCanvas } from "./components/shape_canvas";
+import { TodoList } from "./components/todo_list";
 
 export class HospitalDashboard extends Component {
 
-    static components = { Layout, CounterCard, PieChart, BarChart, ShapeCanvas,};
+    static components = { Layout, CounterCard, PieChart, BarChart, ShapeCanvas, TodoList};
 
     setup() {
         this.action = useService("action");
@@ -69,6 +70,8 @@ export class HospitalDashboard extends Component {
             filter: "week",
             chart_data: {},
             loading: true,
+            top_doctors: [],
+            todos: [], 
         });
         // LAZY LOADING
         onMounted(async () => {
@@ -88,8 +91,10 @@ export class HospitalDashboard extends Component {
         });
 
         this.state.data = res;
-        this.state.state_data = res.state_data;
-        this.state.chart_data = res.chart;
+        this.state.state_data = res.state_data || [];
+        this.state.chart_data = res.chart || {};
+        this.state.top_doctors = res.top_doctors || [];
+        this.state.todos = res.todos || [];
 
         if (isInitial) {
             this.state.loading = false;

@@ -52,6 +52,7 @@
         'views/hospital_settings_views.xml',
         'views/appointment_cancel_wizard_views.xml',
         
+        
         'views/hospital_menus.xml',
     ],
 
@@ -73,11 +74,14 @@
 
             # XML
             'hospital_management/static/src/xml/shape_canvas.xml',
+            'hospital_management/static/src/js/components/todo_list.js',
+            'hospital_management/static/src/xml/todo_template.xml',
 
         ],
 
         'web.assets_frontend': [
             'hospital_management/static/src/css/style.css',
+
 
             # 'hospital_management/static/src/css/hide_menu.css',
             #'hospital_management/static/src/js/hide_frontend_menu.js',

@@ -24,6 +24,22 @@ class HospitalDashboard(http.Controller):
         datasets = {state: [] for state in states}
         labels = []
 
+        # ================= TOP 5 DOCTORS =================
+
+        top_doctors = request.env['hospital.appointment'].read_group(
+            domain=[('state', 'in', ['confirmed', 'done'])],
+            fields=['doctor_id'],
+            groupby=['doctor_id'],
+            limit=5,
+            orderby='doctor_id_count desc'
+        )
+
+        top_doctor_data = []
+        for rec in top_doctors:
+            top_doctor_data.append({
+                'doctor': rec['doctor_id'][1] if rec['doctor_id'] else 'Unknown',
+                'count': rec['doctor_id_count']
+            })
         # =========================
         # WEEK (DAY-WISE)
         # =========================
@@ -96,6 +112,16 @@ class HospitalDashboard(http.Controller):
             'datasets': datasets
         }
 
+        todos = request.env['hospital.todo'].search([], order="id desc", limit=5)
+
+        todo_data = []
+        for t in todos:
+            todo_data.append({
+                'id': t.id,
+                'name': t.name,
+                'is_done': t.is_done
+            })
+
         # FINAL RESPONSE
         return {
             'patients': request.env['res.partner'].search_count([
@@ -128,6 +154,40 @@ class HospitalDashboard(http.Controller):
 
             'state_data': state_data,
 
-            # ❗ IMPORTANT CHANGE
-            'chart': chart
+            # IMPORTANT CHANGE
+            'chart': chart,
+            'top_doctors': top_doctor_data,
+            'todos': todo_data,
         }
+
+
+    @http.route('/hospital/todo/create', type='json', auth='user')
+    def create_todo(self, name):
+
+        todo = request.env['hospital.todo'].create({
+            'name': name
+        })
+
+        return {
+            'id': todo.id,
+            'name': todo.name,
+            'is_done': todo.is_done
+        }
+
+    @http.route('/hospital/todo/toggle', type='json', auth='user')
+    def toggle_todo(self, id):
+
+        todo = request.env['hospital.todo'].browse(id)
+
+        todo.write({
+            'is_done': not todo.is_done
+        })
+
+        return {'success': True}
+
+    @http.route('/hospital/todo/delete', type='json', auth='user')
+    def delete_todo(self, id):
+
+        request.env['hospital.todo'].browse(id).unlink()
+
+        return {'success': True}
