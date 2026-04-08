@@ -1,5 +1,5 @@
-<t t-name="pie_chart_template">
-    <div class="chart-container">
+<t t-name="hospital.PieChart">
+    <div style="position: relative; height: 100%; min-height: 300px;">
         <canvas t-ref="canvas"></canvas>
     </div>
 </t>

@@ -1,5 +1,5 @@
-<t t-name="bar_chart_template">
-    <div class="chart-container">
+<t t-name="hospital.BarChart">
+    <div class="bar-chart-container">
         <canvas t-ref="canvas"></canvas>
     </div>
 </t>

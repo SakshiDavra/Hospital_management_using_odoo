@@ -1,6 +1,7 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError, UserError
-from datetime import timedelta
+from datetime import datetime, timedelta
+import calendar
 import logging
 import base64
 
@@ -585,4 +586,98 @@ class HospitalAppointment(models.Model):
             'type': 'ir.actions.act_url',
             'url': f"{base_url}/my/appointment/{self.id}?access_token={self._portal_ensure_token()}",
             'target': 'self',
+        }
+
+    # 1. Cards + Pie (only once load)
+    @api.model
+    def get_dashboard_cards_and_pie(self):
+        total_patients = self.env['res.partner'].search_count([('role_ids.name', '=', 'Patient')])
+        total_doctors = self.env['res.partner'].search_count([('role_ids.name', '=', 'Doctor')])
+        total_appointments = self.search_count([])
+
+        today = fields.Date.today()
+
+        today_appointments = self.search_count([
+            ('start_date', '>=', str(today) + ' 00:00:00'),
+            ('start_date', '<=', str(today) + ' 23:59:59')
+        ])
+
+        # Pie chart data
+        states = self.read_group(
+            [('state', '!=', False)],
+            ['state'],
+            ['state']
+        )
+
+        state_chart = {rec['state']: rec['state_count'] for rec in states}
+
+        return {
+            'patients': total_patients,
+            'doctors': total_doctors,
+            'appointments': total_appointments,
+            'today_appointments': today_appointments,
+            'state_chart': state_chart,
+        }
+
+
+    # 2. Only Bar Chart (filter wise)
+    @api.model
+    def get_bar_chart_data(self, filter_type):
+
+        today = fields.Date.today()
+
+        states = ['draft', 'requested', 'confirmed', 'done', 'cancel']
+
+        labels = []
+        datasets = {state: [] for state in states}
+
+        # ================= WEEK =================
+        if filter_type == 'week':
+            for i in range(7):
+                day = today + timedelta(days=i)
+                labels.append(day.strftime('%a'))
+
+                for state in states:
+                    count = self.search_count([
+                        ('state', '=', state),
+                        ('start_date', '>=', str(day) + ' 00:00:00'),
+                        ('start_date', '<=', str(day) + ' 23:59:59')
+                    ])
+                    datasets[state].append(count)
+
+        # ================= MONTH =================
+        elif filter_type == 'month':
+            for i in range(1, 31):
+                day = today.replace(day=1) + timedelta(days=i-1)
+                labels.append(str(i))
+
+                for state in states:
+                    count = self.search_count([
+                        ('state', '=', state),
+                        ('start_date', '>=', str(day) + ' 00:00:00'),
+                        ('start_date', '<=', str(day) + ' 23:59:59')
+                    ])
+                    datasets[state].append(count)
+
+        # ================= YEAR =================
+        elif filter_type == 'year':
+            for i in range(1, 13):
+                labels.append(str(i))
+
+                last_day = calendar.monthrange(today.year, i)[1]
+
+                for state in states:
+                    count = self.search_count([
+                        ('state', '=', state),
+                        ('start_date', '>=', f"{today.year}-{i:02d}-01 00:00:00"),
+                        ('start_date', '<=', f"{today.year}-{i:02d}-{last_day} 23:59:59")
+                    ])
+                    datasets[state].append(count)
+
+        return {
+            "labels": labels,
+            "datasets": [
+                {"label": state, "data": datasets[state]}
+                for state in states
+            ]
         }

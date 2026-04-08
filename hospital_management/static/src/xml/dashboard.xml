@@ -2,17 +2,9 @@
 
     <Layout display="{'controlPanel': {}}">
 
-        <!-- LOADER -->
-        <t t-if="state.loading">
-            <div class="text-center mt-5">
-                <i class="fa fa-spinner fa-spin fa-2x"></i>
-                <p>Loading dashboard...</p>
-            </div>
-        </t>
 
         <!-- DASHBOARD -->
-        <t t-else="">
-
+    
             <!-- CARDS -->
             <div class="container mt-4">
                 <div class="row mt-4">
@@ -21,7 +13,7 @@
                         <div class="col-lg-4 col-md-6 mb-3">
                             <CounterCard
                                 title="card.title"
-                                value="state.data[card.key] || 0"
+                                value="state.cardData[card.key] || 0"
                                 bg="card.bg"
                                 icon="card.icon"
                                 onClick="() => this.openList(card.action)"
@@ -31,142 +23,94 @@
 
                 </div>
             </div>
-
-            <!-- CHARTS -->
+            <!-- PIE CHART -->
             <div class="container mt-4">
                 <div class="row">
 
-                    <!-- PIE -->
-                    <div class="col-lg-6 col-md-12 mb-3">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-body p-3">
-                                <h5>Appointment Status</h5>
+                    <!-- LEFT SIDE (CHART) -->
+                    <div class="col-lg-6 col-md-6">
+                        <div class="card shadow p-3" style="height: 350px;">
+                            <h4 class="text-center">Appointment Status</h4>
 
-                                <t t-if="state.state_data and state.state_data.length">
-                                    <PieChart data="state.state_data"/>
-                                </t>
-                            </div>
+                            <PieChart 
+                                t-key="'pie_chart_static'"
+                                t-props="{
+                                    data: state.pieData,
+                                    showCenterTotal: true,
+                                    centerLabel: 'Total Appointments',
+                                    total: Object.values(state.pieData || {}).reduce((a,b)=>a+b,0),
+                                    onClick: (status) => this.openStatusList(status)
+                                }"
+                            />
                         </div>
                     </div>
 
-                    <!-- BAR -->
-                    <div class="col-lg-6 col-md-12 mb-3">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-body p-3">
+                    <!-- RIGHT SIDE -->
+                    <div class="col-lg-6 col-md-6">
+                        <div class="card shadow p-3" style="height: 350px;">
 
-                                <div class="d-flex justify-content-between mb-3">
-                                    <h5>Appointments Analytics</h5>
+                            <!-- HEADER WITH DROPDOWN -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h4 class="mb-0">Appointments</h4>
 
-                                    <select class="form-select w-auto"
-                                            t-model="state.filter"
-                                            t-on-change="onFilterChange">
-                                        <option value="week">This Week</option>
-                                        <option value="month">This Month</option>
-                                        <option value="year">This Year</option>
-                                    </select>
+                                <select class="form-select w-auto"
+                                    t-on-change="(ev) => this.onFilterChange(ev)">
+                                    <option value="week" t-att-selected="state.filter === 'week'">This Week</option>
+                                    <option value="month" t-att-selected="state.filter === 'month'">This Month</option>
+                                    <option value="year" t-att-selected="state.filter === 'year'">This Year</option>
+                                </select>
+                            </div>
+
+                            <!-- CHART -->
+                            <t t-if="state.chartData and Object.keys(state.chartData).length">
+                                <BarChart 
+                                    t-key="state.filter"
+                                    t-props="{
+                                        data: state.chartData || {},
+                                        label: 'Appointments',
+                                        onClick: (day, status) => this.openWeekDay(day, status)
+                                    }"
+                                />
+                            </t>
+
+                            <t t-else="">
+                                <div class="text-center mt-5">
+                                    <i class="fa fa-spinner fa-spin"></i>
                                 </div>
+                            </t>
 
-                                <t t-if="state.chart_data and state.chart_data.labels">
-                                    <BarChart data="state.chart_data"/>
-                                </t>
-
-                            </div>
                         </div>
                     </div>
 
                 </div>
             </div>
-
-            <!-- CANVAS + TOP DOCTORS (SIDE BY SIDE) -->
             <div class="container mt-4">
                 <div class="row">
 
-                    <!-- LEFT → CANVAS -->
-                    <div class="col-lg-6 col-md-12 mb-3">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-body p-3">
-                                <h5>Draw Shapes</h5>
-                                <ShapeCanvas/>
-                            </div>
+                    <!-- LEFT SIDE (Canvas) -->
+                    <div class="col-lg-6 col-md-6">
+                        <div class="card shadow p-3 h-100">
+                            <h4>Drawing Canvas</h4>
+
+                            <ShapeCanvas 
+                                t-props="{
+                                    shapes: state.shapes,
+                                    onUpdate: (shapes) => this.onShapesUpdate(shapes)
+                                }"
+                            />
                         </div>
                     </div>
 
-                    <!-- RIGHT → TABLE -->
-                    <div class="col-lg-6 col-md-12 mb-3">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-body p-3">
-
-                                <h5>Top 5 Doctors</h5>
-
-                                <table class="table table-hover">
-
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Doctor Name</th>
-                                            <th>Total Appointments</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-
-                                        <t t-if="state.top_doctors and state.top_doctors.length">
-
-                                            <t t-foreach="state.top_doctors"
-                                               t-as="doc"
-                                               t-key="doc.doctor">
-
-                                                <tr>
-                                                    <td><t t-esc="doc.doctor"/></td>
-
-                                                    <td>
-                                                        <span style="
-                                                            display:inline-block;
-                                                            padding:1px 8px;
-                                                            border:3px solid #ccc;
-                                                            border-radius:50px;
-                                                            text-align:center;">
-                                                            <t t-esc="doc.count"/>
-                                                        </span>
-                                                    </td>
-                                                </tr>
-
-                                            </t>
-
-                                        </t>
-
-                                        <t t-else="">
-                                            <tr>
-                                                <td colspan="2" class="text-center text-muted">
-                                                    No data found
-                                                </td>
-                                            </tr>
-                                        </t>
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
+                    <!-- RIGHT SIDE (Future use) -->
+                    <div class="col-lg-6 col-md-6">
+                        <div class="card shadow p-3 h-100 d-flex justify-content-center align-items-center">
+                            <h5 class="text-muted">Future Feature Area 🚀</h5>
                         </div>
                     </div>
 
                 </div>
             </div>
-
-            <!-- TODO SECTION -->
-            <div class="container mt-4">
-                <div class="row">
-
-                    <!-- LEFT → TODO -->
-                    <div class="col-lg-12 col-md-12 mb-3">
-                        <TodoList todos="state.todos"/>
-                    </div>
-
-
-                </div>
-            </div>
-
-        </t>
+       
 
     </Layout>
 

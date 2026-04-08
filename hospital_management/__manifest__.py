@@ -58,33 +58,26 @@
 
     'assets': {
         'web.assets_backend': [
+            'web/static/lib/Chart/Chart.js',
             'hospital_management/static/src/js/calendar_reload.js',
             'hospital_management/static/src/css/kanban.css',
-            # 'hospital_management/static/src/css/hide_menu.css',
             'hospital_management/static/src/js/dashboard.js',
             'hospital_management/static/src/js/components/counter_card.js',
             'hospital_management/static/src/js/components/pie_chart.js',
             'hospital_management/static/src/xml/dashboard.xml',
             'hospital_management/static/src/xml/counter_card.xml',
+            'hospital_management/static/src/js/components/pie_chart.js',
             'hospital_management/static/src/xml/pie_chart.xml',
             'hospital_management/static/src/js/components/bar_chart.js',
             'hospital_management/static/src/xml/bar_chart.xml',
-            # JS
             'hospital_management/static/src/js/components/shape_canvas.js',
-
-            # XML
             'hospital_management/static/src/xml/shape_canvas.xml',
-            'hospital_management/static/src/js/components/todo_list.js',
-            'hospital_management/static/src/xml/todo_template.xml',
 
         ],
 
         'web.assets_frontend': [
             'hospital_management/static/src/css/style.css',
 
-
-            # 'hospital_management/static/src/css/hide_menu.css',
-            #'hospital_management/static/src/js/hide_frontend_menu.js',
         ],
     },
 

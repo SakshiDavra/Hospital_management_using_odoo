@@ -70,31 +70,9 @@
     overflow-y: auto !important;
 }
 
-/*  CHART FIX */
-.chart-container {
-    height: 220px;   /* adjust height */
-    position: relative;
-}
-
-.chart-container canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-.card-body {
-    padding: 18px;
-}
-
-.stat-change {
-    font-size: 12px;
-    opacity: 0.9;
-}
-.stat-up {
-    color: #d4ffea;
-}
-.chart-container {
-    height: 260px;
-}
-canvas {
-    cursor: pointer;
+.bar-chart-container {
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

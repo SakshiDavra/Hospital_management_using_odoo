@@ -1,178 +1,120 @@
 /** @odoo-module **/
 
-import { Component, onMounted, onWillUpdateProps , onWillUnmount, useRef } from "@odoo/owl";
+import { Component, onMounted, onWillUnmount, onWillUpdateProps, useRef } from "@odoo/owl";
 
 export class BarChart extends Component {
-
     setup() {
         this.canvasRef = useRef("canvas");
         this.chart = null;
 
-        onMounted(() => {
-            this.renderChart();
-        });
+        onMounted(() => this.renderChart());
 
         onWillUpdateProps((nextProps) => {
-            if (this.chart) {
-                this.chart.destroy();
-            }
+            this.destroyChart();
 
-            this.props = nextProps;
-            this.renderChart();
+            // important delay
+            setTimeout(() => {
+                this.renderChart(nextProps);
+            });
         });
 
-        //  CLEANUP (IMPORTANT for re-render)
         onWillUnmount(() => {
-            if (this.chart) {
-                this.chart.destroy();
-            }
+            this.destroyChart();
         });
     }
 
-    renderChart() {
+    destroyChart() {
+        if (this.chart) {
+            this.chart.destroy();
+            this.chart = null;
+        }
+
+        // canvas reset (VERY IMPORTANT)
+        if (this.canvasRef.el) {
+            this.canvasRef.el.width = this.canvasRef.el.width;
+        }
+    }
+
+    renderChart(props = this.props) {
+        const data = props.data || {};
+
+        if (!data || Object.keys(data).length === 0) return;
+
         const ctx = this.canvasRef.el.getContext("2d");
 
-        const data = this.props.data || { labels: [], datasets: {} };
+        const labels = data.labels || [];
+        const datasets = data.datasets || [];
 
-        // COLORS MAP
-        const colors = {
-            draft: '#12b2b290',
-            requested: '#0e4b7d',
-            confirmed: '#61185c',
-            done: '#829113',
-            cancel: 'rgb(119, 9, 9)',
-        };
-
-        // DYNAMIC DATASETS
-        const datasets = Object.keys(data.datasets || {}).map((key) => ({
-            label: key.charAt(0).toUpperCase() + key.slice(1),
-            data: data.datasets[key],
-            backgroundColor: colors[key] || '#999999',
-            borderRadius: 10,
-        }));
+        console.log("Chart Labels:", labels); 
 
         this.chart = new Chart(ctx, {
-            type: 'bar',
+            type: "bar",
             data: {
-                labels: data.labels || [],
-                datasets: datasets,
+                labels: labels,
+                datasets: datasets.map(ds => ({
+                    label: ds.label,
+                    data: ds.data,
+                    backgroundColor: {
+                        draft: "#602577",
+                        requested: "#957701",
+                        confirmed: "#04568c",
+                        done: "#068039",
+                        cancel: "#93190c",
+                    }[ds.label] || "#999",
+                })),
             },
-
             options: {
+
                 responsive: true,
                 maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: true, 
+                    },
+                },
 
                 scales: {
                     x: {
                         stacked: true,
-                        grid: { display: false },
-                        ticks: { color: '#888' }
                     },
                     y: {
                         stacked: true,
                         beginAtZero: true,
-                        ticks: { stepSize: 1, color: '#888' },
-                        grid: { color: 'rgba(195, 16, 16, 0.05)' }
                     }
                 },
 
-                // CLICK HANDLER (FULL DYNAMIC)
-                onClick: (evt, elements) => {
-                    if (!elements.length) return;
+                onClick: (evt, elements, chart) => {
+                    const points = chart.getElementsAtEventForMode(
+                        evt,
+                        'nearest',
+                        { intersect: true },
+                        true
+                    );
 
-                    const el = elements[0];
-                    const index = el.index;
-                    const datasetIndex = el.datasetIndex;
+                    if (points.length > 0 && this.props.onClick) {
+                        const firstPoint = points[0];
 
-                    const labels = data.labels;
-                    const datasetKeys = Object.keys(data.datasets);
+                        const index = firstPoint.index;
+                        const datasetIndex = firstPoint.datasetIndex;
 
-                    const selectedLabel = labels[index];
-                    const selectedState = datasetKeys[datasetIndex];
+                        const label = labels[index];
+                        const dataset = datasets[datasetIndex];
 
-                    let start = null;
-                    let end = null;
+                        const status = dataset.label;
 
-                    const today = new Date();
+                        console.log("Clicked:", label, status);
 
-                    //  WEEK (Sun, Mon...)
-                    if (selectedLabel.length === 3) {
-                        const daysMap = {
-                            Sun: 0, Mon: 1, Tue: 2,
-                            Wed: 3, Thu: 4, Fri: 5, Sat: 6
-                        };
-
-                        const currentDay = today.getDay();
-                        const targetDay = daysMap[selectedLabel];
-                        const diff = targetDay - currentDay;
-
-                        const selectedDate = new Date(today);
-                        selectedDate.setDate(today.getDate() + diff);
-
-                        start = selectedDate.toISOString().split('T')[0];
-                        end = start;
+                        this.props.onClick(label, status);
                     }
-
-                    // MONTH (Week 1, Week 2...)
-                    else if (selectedLabel.includes("Week")) {
-
-                        const weekNumber = parseInt(selectedLabel.split(" ")[1]);
-                        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-                        const weekStart = new Date(startOfMonth);
-                        weekStart.setDate(startOfMonth.getDate() + (weekNumber - 1) * 7);
-
-                        const weekEnd = new Date(weekStart);
-                        weekEnd.setDate(weekStart.getDate() + 6);
-
-                        start = weekStart.toISOString().split('T')[0];
-                        end = weekEnd.toISOString().split('T')[0];
-                    }
-
-                    // YEAR (Jan, Feb...)
-                    else {
-                        const monthsMap = {
-                            Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5,
-                            Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11
-                        };
-
-                        const monthIndex = monthsMap[selectedLabel];
-
-                        const startDate = new Date(today.getFullYear(), monthIndex, 1);
-                        const endDate = new Date(today.getFullYear(), monthIndex + 1, 0);
-
-                        start = startDate.toISOString().split('T')[0];
-                        end = endDate.toISOString().split('T')[0];
-                    }
-
-                    //  ACTION
-                    this.env.services.action.doAction({
-                        type: "ir.actions.act_window",
-                        name: selectedLabel + " - " + selectedState,
-                        res_model: "hospital.appointment",
-                        views: [[false, "list"], [false, "form"]],
-                        domain: [
-                            ["state", "=", selectedState],
-                            ["start_date", ">=", start + " 00:00:00"],
-                            ["start_date", "<=", end + " 23:59:59"],
-                        ],
-                    });
                 },
 
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        backgroundColor: '#222',
-                        titleColor: '#fff',
-                        bodyColor: '#fff'
-                    }
-                }
-            }
+                onHover: (evt, elements) => {
+                    evt.native.target.style.cursor = elements.length ? "pointer" : "default";
+                },
+            },
         });
     }
 }
 
-BarChart.template = "bar_chart_template";
+BarChart.template = "hospital.BarChart";

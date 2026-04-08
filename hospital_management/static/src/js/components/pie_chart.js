@@ -1,150 +1,126 @@
 /** @odoo-module **/
 
-import { Component, onMounted, onWillStart, useRef } from "@odoo/owl";
-import { loadJS } from "@web/core/assets";
+import { Component, onMounted, onWillUnmount, onWillUpdateProps, useRef } from "@odoo/owl";
 
 export class PieChart extends Component {
-
     setup() {
         this.canvasRef = useRef("canvas");
-
-        onWillStart(async () => {
-            await loadJS("/web/static/lib/Chart/Chart.js");
-        });
+        this.chart = null;
 
         onMounted(() => {
             this.renderChart();
         });
+
+        // ✅ Proper re-render
+        onWillUpdateProps((nextProps) => {
+            if (JSON.stringify(nextProps.data) === JSON.stringify(this.props.data)) {
+                return; // 🔥 no re-render
+            }
+
+            if (this.chart) {
+                this.chart.destroy();
+                this.chart = null;
+            }
+
+            setTimeout(() => {
+                this.renderChart(nextProps);
+            });
+        });
+
+        onWillUnmount(() => {
+            if (this.chart) {
+                this.chart.destroy();
+                this.chart = null;
+            }
+        });
     }
 
-    renderChart() {
+    renderChart(props = this.props) {
+        const data = props.data || {};
 
-        const canvas = this.canvasRef.el;
-        if (!canvas) return;
+        // No data handling
+        if (!data || Object.keys(data).length === 0) {
+            return;
+        }
 
-        const ctx = canvas.getContext("2d");
+        // Canvas null check
+        if (!this.canvasRef.el) return;
 
-        const stateMap = {
-            draft: "Draft",
-            requested: "Requested",
-            confirmed: "Confirmed",
-            done: "Done",
-            cancel: "Cancelled"
-        };
+        const ctx = this.canvasRef.el.getContext("2d");
 
-        const labels = this.props.data.map(d => stateMap[d.state]);
-        const values = this.props.data.map(d => d.state_count);
+        const labels = Object.keys(data);
+        const values = Object.values(data);
 
         const total = values.reduce((a, b) => a + b, 0);
 
-        //  Gradient colors (same as cards)
-        const gradients = [
-            ctx.createLinearGradient(0, 0, 200, 200),
-            ctx.createLinearGradient(0, 0, 200, 200),
-            ctx.createLinearGradient(0, 0, 200, 200),
-            ctx.createLinearGradient(0, 0, 200, 200),
-            ctx.createLinearGradient(0, 0, 200, 200),
-        ];
-
-        gradients[0].addColorStop(0, "#3888ce");
-        gradients[0].addColorStop(1, "#0b5054");
-
-        gradients[1].addColorStop(0, "#4ee27f");
-        gradients[1].addColorStop(1, "#2e8766");
-
-        gradients[2].addColorStop(0, "#af9029");
-        gradients[2].addColorStop(1, "#d8785e");
-
-        gradients[3].addColorStop(0, "#5f3cb0");
-        gradients[3].addColorStop(1, "#e74abb");
-
-        gradients[4].addColorStop(0, "#a13446");
-        gradients[4].addColorStop(1, "#571732");
-
-        //  Center Text Plugin
+        // Responsive Center Text
         const centerText = {
-            id: 'centerText',
-            beforeDraw(chart) {
+            id: "centerText",
+            beforeDraw: (chart) => {
+                if (!props.showCenterTotal) return;
+
                 const { width, height } = chart;
                 const ctx = chart.ctx;
 
                 ctx.save();
 
-                ctx.font = "bold 22px sans-serif";
-                ctx.fillStyle = "#222";
+                const fontSize = Math.min(width, height) / 10;
+
+                // TOTAL
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.fillStyle = "#333";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText(total, width / 2, height / 2 + 10);
+                ctx.fillText(total, width / 2, height / 2 - fontSize / 3);
 
-                ctx.font = "12px sans-serif";
-                ctx.fillStyle = "#777";
-                ctx.fillText("Appointments", width / 2, height / 2 + 30);
+                // LABEL
+                ctx.font = `${fontSize / 2.5}px sans-serif`;
+                ctx.fillStyle = "#888";
+
+                const title = props.centerLabel || "Total";
+                ctx.fillText(title, width / 2, height / 2 + fontSize / 2);
 
                 ctx.restore();
-            }
+            },
         };
 
-        new Chart(ctx, {
-            type: 'doughnut',
+        this.chart = new Chart(ctx, {
+            type: props.type || "doughnut",
             data: {
                 labels: labels,
                 datasets: [{
                     data: values,
-                    backgroundColor: gradients,
-                    borderColor: '#fff',
-                    borderWidth: 2,
-                    hoverOffset: 12
-                }]
+                    backgroundColor: props.colors || [
+                        "#04568c",
+                        "#957701",
+                        "#068039",
+                        "#93190c",
+                        "#602577"
+                    ],
+                }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '60%',
-
-                onClick: (evt, elements) => {
-                    if (elements.length > 0) {
-
-                        const index = elements[0].index;
-
-                        // state key direct data mathi
-                        const selectedState = this.props.data[index].state;
-
-                        // open filtered records
-                        this.env.services.action.doAction({
-                            type: "ir.actions.act_window",
-                            name: "Appointments",
-                            res_model: "hospital.appointment",
-                            views: [[false, "list"], [false, "form"]],
-                            domain: [["state", "=", selectedState]],
-                        });
-                    }
-                },
+                cutout: props.cutout || "60%",
 
                 plugins: {
                     legend: {
-                        position: 'top',
-                        labels: {
-                            boxWidth: 12,
-                            padding: 15,
-                            color: '#555'
-                        }
+                        position: props.legendPosition || "bottom",
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.label + ": " + context.raw;
-                            }
-                        }
-                    }
                 },
 
-                animation: {
-                    duration: 1000
-                }
+                onClick: (evt, elements) => {
+                    if (elements.length > 0 && props.onClick) {
+                        const index = elements[0].index;
+                        const label = labels[index];
+                        props.onClick(label);
+                    }
+                },
             },
-            plugins: [centerText]
+            plugins: [centerText],
         });
     }
 }
 
-PieChart.template = "pie_chart_template";
+PieChart.template = "hospital.PieChart";
