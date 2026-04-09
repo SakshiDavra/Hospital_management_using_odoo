@@ -2,7 +2,18 @@
 
     <Layout display="{'controlPanel': {}}">
 
+        <t t-if="state.isLoading">
+            <div class="d-flex justify-content-center align-items-center"
+                style="height: 80vh;">
+                
+                <div class="text-center">
+                    <i class="fa fa-spinner fa-spin fa-3x mb-3"></i>
+                    <h5>Loading Dashboard...</h5>
+                </div>
 
+            </div>
+        </t>
+        <t t-else="">
         <!-- DASHBOARD -->
     
             <!-- CARDS -->
@@ -92,25 +103,56 @@
                         <div class="card shadow p-3 h-100">
                             <h4>Drawing Canvas</h4>
 
-                            <ShapeCanvas 
-                                t-props="{
-                                    shapes: state.shapes,
-                                    onUpdate: (shapes) => this.onShapesUpdate(shapes)
-                                }"
-                            />
+                            <ShapeCanvas />
                         </div>
                     </div>
 
                     <!-- RIGHT SIDE (Future use) -->
                     <div class="col-lg-6 col-md-6">
+                        <div class="card shadow p-3 h-100">
+                            
+                            <h4 class="mb-3">Todo List</h4>
+
+                            <TodoList/>
+
+                        </div>
+                    </div>
+                    
+
+                </div>
+            </div>
+
+            <!-- NEW ROW -->
+            <div class="container mt-4">
+                <div class="row g-3">
+
+                    <!-- LEFT: TOP DOCTORS -->
+                    <div class="col-lg-6 col-md-6">
+                        <div class="card shadow p-3 h-100">
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h3 class="mb-0 fw-bold">Top 5 Doctors</h3>
+                                <!-- <span class="badge bg-primary">Top</span> -->
+                            </div>
+
+                            <TopDoctors/>
+
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: FUTURE -->
+                    <div class="col-lg-6 col-md-6">
                         <div class="card shadow p-3 h-100 d-flex justify-content-center align-items-center">
+
                             <h5 class="text-muted">Future Feature Area 🚀</h5>
+
                         </div>
                     </div>
 
                 </div>
             </div>
-       
+                    
+       </t>
 
     </Layout>
 

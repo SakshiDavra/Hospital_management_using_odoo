@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="hospital_management.ConsultationTimer">
+        <div class="alert alert-info text-center">
+
+            ⏱️ Live Consultation Time:
+
+            <strong>
+                <t t-if="component && component.state">
+                    <t t-esc="component.state.timer"/>
+                </t>
+                <t t-else="">
+                    00:00:00
+                </t>
+            </strong>
+
+        </div>
+    </t>
+
+</templates>

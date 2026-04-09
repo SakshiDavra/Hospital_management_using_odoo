@@ -1,0 +1,41 @@
+<t t-name="hospital.TopDoctors">
+
+    <div>
+
+        <!-- LOADER -->
+        <t t-if="state.loading">
+            <div class="text-center p-3">
+                <i class="fa fa-spinner fa-spin"></i>
+            </div>
+        </t>
+
+        <!-- EMPTY -->
+        <t t-elif="state.doctors.length === 0">
+            <div class="text-center text-muted p-3">
+                No data
+            </div>
+        </t>
+
+        <!-- DATA -->
+        <t t-else="">
+            <table class="table table-sm">
+                <tbody>
+                    <t t-foreach="state.doctors" t-as="doc" t-key="doc.doctor_name">
+                        <tr>
+                            <td>
+                                <t t-esc="doc.doctor_name"/>
+                            </td>
+                            <td class="text-end">
+                                <span class="circle-count">
+                                    <t t-esc="doc.total"/>
+                                </span>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </t>
+
+    </div>
+
+</t>

@@ -1,0 +1,63 @@
+<t t-name="hospital.TodoList">
+
+    <div class="todo-container">
+
+        <!-- INPUT -->
+        <div class="d-flex mb-3">
+            <input type="text"
+                   class="form-control me-2"
+                   placeholder="Enter task..."
+                   t-model="state.newTask"/>
+
+            <button class="btn btn-primary"
+                    t-on-click="addTodo">
+                Add
+            </button>
+        </div>
+
+        <!-- LIST -->
+        <ul class="list-group todo-scroll">
+
+            <!-- EMPTY STATE -->
+            <t t-if="state.todos.length === 0">
+                <li class="list-group-item text-center text-muted">
+                    No tasks yet
+                </li>
+            </t>
+
+            <!-- TODOS -->
+            <t t-foreach="state.todos" t-as="todo" t-key="todo.id">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <!-- LEFT SIDE -->
+                    <div class="d-flex align-items-center">
+
+                        <!-- CHECKBOX -->
+                        <input type="checkbox"
+                               class="form-check-input me-2"
+                               t-att-checked="todo.is_done"
+                               t-on-change="() => this.toggleTodo(todo)"/>
+
+                        <!-- TASK TEXT -->
+                        <span t-att-class="todo.is_done 
+                            ? 'text-decoration-line-through text-muted fw-light' 
+                            : 'fw-semibold'">
+                            <t t-esc="todo.name"/>
+                        </span>
+
+                    </div>
+
+                    <!-- DELETE BUTTON -->
+                    <button class="btn btn-sm btn-danger"
+                            t-on-click="() => this.deleteTodo(todo)">
+                        ✖
+                    </button>
+
+                </li>
+            </t>
+
+        </ul>
+
+    </div>
+
+</t>

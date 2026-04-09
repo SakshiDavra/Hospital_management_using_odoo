@@ -59,19 +59,33 @@
     'assets': {
         'web.assets_backend': [
             'web/static/lib/Chart/Chart.js',
+
+            # JS
             'hospital_management/static/src/js/calendar_reload.js',
-            'hospital_management/static/src/css/kanban.css',
             'hospital_management/static/src/js/dashboard.js',
+            'hospital_management/static/src/js/live_timer.js',
+            'hospital_management/static/src/js/form_view_patch.js',
+            
+
+            # COMPONENTS
             'hospital_management/static/src/js/components/counter_card.js',
-            'hospital_management/static/src/js/components/pie_chart.js',
+            'hospital_management/static/src/js/components/pie_chart.js',  
+            'hospital_management/static/src/js/components/bar_chart.js',
+            'hospital_management/static/src/js/components/shape_canvas.js',
+            'hospital_management/static/src/js/components/todo_list.js',
+            'hospital_management/static/src/js/components/top_doctors.js',
+
+            # CSS
+            'hospital_management/static/src/css/kanban.css',
+
+            # XML
             'hospital_management/static/src/xml/dashboard.xml',
             'hospital_management/static/src/xml/counter_card.xml',
-            'hospital_management/static/src/js/components/pie_chart.js',
             'hospital_management/static/src/xml/pie_chart.xml',
-            'hospital_management/static/src/js/components/bar_chart.js',
             'hospital_management/static/src/xml/bar_chart.xml',
-            'hospital_management/static/src/js/components/shape_canvas.js',
             'hospital_management/static/src/xml/shape_canvas.xml',
+            'hospital_management/static/src/xml/todo_list.xml',
+            'hospital_management/static/src/xml/top_doctors.xml',
 
         ],
 

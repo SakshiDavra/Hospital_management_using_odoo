@@ -19,8 +19,6 @@
                 <field name="start_date"/>
                 <field name="currency_id" column_invisible="1"/>
                 <field name="fees" widget="monetary"/>
-
-
                 <field name="state"
                     decoration-success="state == 'done'"
                     decoration-info="state == 'confirmed'"
@@ -31,7 +29,7 @@
             </list>
         </field>
     </record>
-    <!-- ================= FORM VIEW ================= -->
+    <!-- ================= FORM VIEW ================= -->3
     <record id="view_hospital_appointment_form" model="ir.ui.view">
     <field name="name">hospital.appointment.form</field>
     <field name="model">hospital.appointment</field>
@@ -62,6 +60,26 @@
                         class="btn-success"
                         groups="hospital_management.group_hospital_doctor,base.group_system"
                         invisible="state != 'confirmed'"/>
+
+                <!-- START TIMER -->
+                <field name="is_timer_running" invisible="1"/>
+
+                <!-- START -->
+                <button string="Start Timer"
+                        type="button"
+                        class="btn-primary"
+                        id="start_btn"
+                        onclick="startTimer()"
+                        invisible="state != 'confirmed'"/>
+
+                <!-- STOP -->
+                <button string="Stop Timer"
+                        type="button"
+                        class="btn-danger"
+                        id="stop_btn"
+                        onclick="stopTimer()"
+                        invisible="state != 'confirmed'"
+                        style="display: none;"/>
 
                 <!-- ================= CANCEL (ONLY DOCTOR + ADMIN) ================= -->
                 <button name="action_open_cancel_wizard"
@@ -112,8 +130,19 @@
                     </h1>
                 </div>
 
+                <!-- FULL WIDTH TIMER -->
+                <div style="display:flex; justify-content:flex-end; width:100%; margin-top:-30px;">
+                    
+                    <span id="live_timer"
+                        style="color:green; font-size:26px; font-weight:bold;">
+                        00:00:00
+                    </span>
+
+                </div>
+
                 <group>
                     <group string="Appointment Details">
+                    
                         <field name="company_id"/>
                         <field name="patient_id"
                             context="{'default_patient': True}"
@@ -144,7 +173,7 @@
                                readonly="state != 'draft'"/>
 
                     </group>
-
+            
                     <group string="Billing">
                         <field name="currency_id" invisible="1"/>
                         <field name="fees"
@@ -335,7 +364,6 @@
     </field>
 </record>
 
-
 <!-- ================= KANBAN VIEW ================= -->
 <record id="view_hospital_appointment_kanban" model="ir.ui.view">
     <field name="name">hospital.appointment.kanban</field>
@@ -378,15 +406,15 @@
                         </div>
 
                         <div>
-                            👤 <field name="patient_id"/>
+                            <field name="patient_id"/>
                         </div>
 
                         <div>
-                            🩺 <field name="doctor_id"/>
+                            <field name="doctor_id"/>
                         </div>
 
                         <div>
-                            📅 <field name="start_date"/>
+                            <field name="start_date"/>
                         </div>
                         
 
@@ -426,7 +454,6 @@
     <field name="name">hospital.appointment.graph</field>
     <field name="model">hospital.appointment</field>
     <field name="arch" type="xml">
-
         <graph string="Appointments Analysis" type="bar" stacked="False">
 
                 <field name="start_date" interval="month"/>
@@ -434,18 +461,16 @@
 
                 <field name="id" type="measure"/>
         </graph>
-
     </field>
 </record>
 
-<!-- # ================= ACTIONS ================= -->
+<!-- ================= ACTIONS ================= -->
 <record id="action_hospital_appointment" model="ir.actions.act_window">
     <field name="name">Appointments</field>
     <field name="res_model">hospital.appointment</field>
     <field name="view_mode">calendar,kanban,list,form,pivot,graph</field>
     <field name="target">current</field>
     <field name="search_view_id" ref="view_hospital_appointment_search"/>
-
 </record>
 
-</odoo>
+</odoo> 

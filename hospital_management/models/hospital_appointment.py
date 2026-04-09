@@ -97,6 +97,20 @@ class HospitalAppointment(models.Model):
         store=True
     )
 
+    # ================ TIMER =================
+
+    # timer_duration = fields.Float("Duration (minutes)")
+    is_timer_running = fields.Boolean("Timer Running", default=False)
+
+    def action_start_timer(self):
+        for rec in self:
+            rec.is_timer_running = True
+
+
+    def action_stop_timer(self):
+        for rec in self:
+            rec.is_timer_running = False
+
     @api.depends('invoice_id.payment_state')
     def _compute_payment_status(self):
         for rec in self:
@@ -681,3 +695,26 @@ class HospitalAppointment(models.Model):
                 for state in states
             ]
         }
+
+    @api.model
+    def get_top_doctors(self):
+
+        data = self._read_group(
+            [('state', 'in', ['done', 'confirmed'])],
+            ['doctor_id'],
+            ['doctor_id:count']
+        )
+
+        # sort + limit
+        data = sorted(data, key=lambda x: x[1], reverse=True)[:5]
+
+        result = []
+
+        for doctor, count in data: 
+
+            result.append({
+                "doctor_name": doctor.name if doctor else "Unknown",
+                "total": count
+            })
+
+        return result

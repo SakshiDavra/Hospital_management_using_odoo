@@ -1,64 +1,73 @@
 /** @odoo-module **/
 
-import { Component, useState } from "@odoo/owl";
-import { rpc } from "@web/core/network/rpc";
+import { Component, useState, onMounted } from "@odoo/owl";
+import { useService } from "@web/core/utils/hooks";
 
 export class TodoList extends Component {
 
-    static template = "hospital_todo_list_template";
     setup() {
+        this.orm = useService("orm");
+
         this.state = useState({
-            filter: "all",
+            todos: [],
+            newTask: "",
+            loading: false,
+        });
+
+        onMounted(() => {
+            this.loadTodos();
         });
     }
-    // FILTER LOGIC
-    get filteredTodos() {
-        if (this.state.filter === "done") {
-            return this.props.todos.filter(t => t.is_done);
-        }
-        if (this.state.filter === "pending") {
-            return this.props.todos.filter(t => !t.is_done);
-        }
-        return this.props.todos;
+
+    // ================= LOAD =================
+    async loadTodos() {
+        this.state.loading = true;
+
+        const res = await this.orm.call(
+            "hospital.todo",
+            "get_todos",
+            []
+        );
+
+        this.state.todos = res || [];
+        this.state.loading = false;
     }
 
-    // COUNTER LOGIC
-    get total() {
-        return this.props.todos.length;
+    // ================= ADD =================
+    async addTodo() {
+        if (!this.state.newTask.trim()) return;
+
+        const newTodo = await this.orm.call(
+            "hospital.todo",
+            "add_todo",
+            [this.state.newTask]
+        );
+
+        this.state.todos.push(newTodo);
+        this.state.newTask = "";
     }
 
-    get doneCount() {
-        return this.props.todos.filter(t => t.is_done).length;
-    }
-
-    get pendingCount() {
-        return this.total - this.doneCount;
-    }
+    // ================= TOGGLE =================
     async toggleTodo(todo) {
-        await rpc("/hospital/todo/toggle", { id: todo.id });
+        await this.orm.call(
+            "hospital.todo",
+            "toggle_todo",
+            [todo.id]
+        );
 
-        // UI update
         todo.is_done = !todo.is_done;
     }
 
+    // ================= DELETE =================
     async deleteTodo(todo) {
-        await rpc("/hospital/todo/delete", { id: todo.id });
+        await this.orm.call(
+            "hospital.todo",
+            "delete_todo",
+            [todo.id]
+        );
 
-        // remove from list
-        this.props.todos.splice(this.props.todos.indexOf(todo), 1);
-    }
-
-    async addTodo() {
-
-        const input = document.querySelector(".todo-input");
-
-        const name = input.value.trim();
-        if (!name) return;
-
-        const res = await rpc("/hospital/todo/create", { name });
-        // new data on top
-        this.props.todos.unshift(res);
-
-        input.value = "";
+        this.state.todos = this.state.todos.filter(t => t.id !== todo.id);
     }
 }
+
+TodoList.template = "hospital.TodoList";

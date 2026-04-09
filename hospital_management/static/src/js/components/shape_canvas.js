@@ -6,7 +6,8 @@ export class ShapeCanvas extends Component {
 
     setup() {
         this.state = useState({
-            shapes: this.props.shapes || [],
+            // shapes: this.props.shapes || [],
+            shapes: [],
             currentShape: null,
             currentColor: "#ff0000",
             drawMode: false,
@@ -54,7 +55,7 @@ export class ShapeCanvas extends Component {
 
         this.state.shapes = shapes;
 
-        this.props.onUpdate && this.props.onUpdate(shapes);
+        // this.props.onUpdate && this.props.onUpdate(shapes);
     }
 
     // ================= CONTROLS =================

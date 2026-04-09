@@ -1,18 +1,18 @@
 /** @odoo-module **/
-
 import { Component, useState, onMounted } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-
 import { PieChart } from "./components/pie_chart";
 import { BarChart } from "./components/bar_chart";
 import { ShapeCanvas } from "./components/shape_canvas";
+import { TodoList } from "./components/todo_list";
+import { TopDoctors } from "./components/top_doctors";
 import { Layout } from "@web/search/layout";
 import { CounterCard } from "./components/counter_card";
 
 export class HospitalDashboard extends Component {
 
-    static components = { Layout, CounterCard ,PieChart ,BarChart, ShapeCanvas};
+    static components = { Layout, CounterCard ,PieChart ,BarChart, ShapeCanvas, TodoList ,TopDoctors};
 
     setup() {
         this.action = useService("action");
@@ -72,14 +72,21 @@ export class HospitalDashboard extends Component {
             chartData: {},
             filter: "week",
             chartLoading: false, 
-            shapes: [],
+            //shapes: [],
+            isLoading: true, 
 
         });
 
         // correct async call place
-        onMounted(() => {
-            this.loadCardsAndPie(); 
-            this.loadBarChart(); 
+        onMounted(async () => {
+            this.state.isLoading = true;
+
+            await Promise.all([
+                this.loadCardsAndPie(),
+                this.loadBarChart()
+            ]);
+
+            this.state.isLoading = false;   
         });
     }
 
@@ -253,7 +260,7 @@ export class HospitalDashboard extends Component {
             ["start_date", "<=", endDate],
         ];
 
-        // 🔥 ADD STATUS FILTER (only if clicked on stacked part)
+        // ADD STATUS FILTER (only if clicked on stacked part)
         if (status) {
             domain.push(["state", "=", status]);
         }
@@ -273,10 +280,7 @@ export class HospitalDashboard extends Component {
         this.state.chartData = {};  
         this.loadBarChart();  
     }
-    onShapesUpdate(shapes) {
-        console.log("Shapes updated:", shapes);
-        this.state.shapes = shapes;
-    }
+
 }
 
 HospitalDashboard.template = "hospital_dashboard_template";
