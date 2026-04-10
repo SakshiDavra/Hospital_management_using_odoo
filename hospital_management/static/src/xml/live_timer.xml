@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="processing_timer_template">
+        <t t-name="hospital.ProcessingTimer">
+            <div class="text-success fw-bold">
+                <t t-esc="state.time"/>
+            </div>
+        </t>
+    </template>
+
+</odoo>

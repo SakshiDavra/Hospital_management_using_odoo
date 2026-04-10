@@ -176,21 +176,38 @@ export class HospitalDashboard extends Component {
         }
 
         if (type === "week" || type === "past_week") {
+
             const today = new Date();
-            const other = new Date();
+
+            // STEP 1: current week Sunday
+            const currentDay = today.getDay(); // 0 = Sun
+            const currentWeekStart = new Date(today);
+            currentWeekStart.setDate(today.getDate() - currentDay);
+
+            const currentWeekEnd = new Date(currentWeekStart);
+            currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+
+            let start, end;
 
             if (type === "week") {
-                other.setDate(today.getDate() + 7);
-            } else {
-                other.setDate(today.getDate() - 7);
-            }
+                // NEXT WEEK
+                start = new Date(currentWeekStart);
+                start.setDate(start.getDate() + 7);
 
-            const start = type === "week" ? today : other;
-            const end = type === "week" ? other : today;
+                end = new Date(currentWeekEnd);
+                end.setDate(end.getDate() + 7);
+            } else {
+                // PAST WEEK
+                start = new Date(currentWeekStart);
+                start.setDate(start.getDate() - 7);
+
+                end = new Date(currentWeekEnd);
+                end.setDate(end.getDate() - 7);
+            }
 
             return this.action.doAction({
                 type: "ir.actions.act_window",
-                name: "Appointments",
+                name: type === "week" ? "Next Week Appointments" : "Past Week Appointments",
                 res_model: "hospital.appointment",
                 views: [[false, "list"], [false, "form"]],
                 domain: [

@@ -7,7 +7,23 @@
 .o_kanban_record {
     overflow: visible !important;
 }
+.kanban_timer {
+    background: #17a2b8;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
 
+.kanban_timer_done {
+    background: #28a745;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
 /* dashboard css */
 
 .card:hover {
@@ -111,4 +127,13 @@
 
     font-weight: 600;
 }
+/* timer css */
+.custom_timer_header {
+    position: relative;
+}
 
+.custom_timer_header .my_timer {
+    position: absolute;
+    right: -230px;
+    top: 0;
+}

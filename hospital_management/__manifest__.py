@@ -86,6 +86,7 @@
             'hospital_management/static/src/xml/shape_canvas.xml',
             'hospital_management/static/src/xml/todo_list.xml',
             'hospital_management/static/src/xml/top_doctors.xml',
+            'hospital_management/static/src/xml/processing_timer.xml',
 
         ],
 

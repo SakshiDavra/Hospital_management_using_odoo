@@ -79,6 +79,7 @@ class HospitalAppointment(models.Model):
         ('draft', 'Draft'),
         ('requested', 'Requested'),
         ('confirmed', 'Confirmed'),
+        ('in_consultation', 'In Consultation'),
         ('done', 'Done'),
         ('cancel', 'Cancelled')
     ], string="Status", default='draft', tracking=True)
@@ -97,19 +98,39 @@ class HospitalAppointment(models.Model):
         store=True
     )
 
-    # ================ TIMER =================
+    processing_start_time = fields.Datetime("Processing Start", readonly=True)
+    total_processing_time = fields.Float("Total Processing Time (Minutes)", readonly=True) 
+    duration_display = fields.Char(
+        string="Total Duration",
+        compute="_compute_duration_display",
+        store=True
+    )
 
-    # timer_duration = fields.Float("Duration (minutes)")
-    is_timer_running = fields.Boolean("Timer Running", default=False)
-
-    def action_start_timer(self):
+    @api.depends('processing_start_time', 'state')
+    def _compute_duration_timer(self):
         for rec in self:
-            rec.is_timer_running = True
+            if rec.state == 'in_consultation' and rec.processing_start_time:
 
+                now = datetime.now()
+                start = fields.Datetime.to_datetime(rec.processing_start_time)
+                diff = now - start
+                rec.duration_timer = diff.total_seconds() / 3600.0
+            else:
+                rec.duration_timer = 0.0
 
-    def action_stop_timer(self):
+    @api.depends('total_processing_time')
+    def _compute_duration_display(self):
         for rec in self:
-            rec.is_timer_running = False
+            if rec.total_processing_time:
+                total_seconds = int(rec.total_processing_time * 60)
+
+                hours = total_seconds // 3600
+                minutes = (total_seconds % 3600) // 60
+                seconds = total_seconds % 60
+
+                rec.duration_display = "%02d:%02d:%02d" % (hours, minutes, seconds)
+            else:
+                rec.duration_display = "00:00:00"
 
     @api.depends('invoice_id.payment_state')
     def _compute_payment_status(self):
@@ -222,17 +243,18 @@ class HospitalAppointment(models.Model):
                 new_state = vals.get('state')
 
                 # DONE is fully locked
-                if old_state == 'done' and new_state != 'done':
-                    raise ValidationError("Done appointment cannot be modified!")
+                # if old_state == 'done' and new_state != 'done':
+                #     raise ValidationError("Done appointment cannot be modified!")
 
                 # Allowed transitions
                 allowed = {
                     'draft': ['requested'],
                     'requested': ['confirmed', 'cancel'],
-                    'confirmed': ['done', 'cancel'],
-                    'done': [],  # no movement
-                    'cancel': ['draft'],  # optional
-                }
+                    'confirmed': ['in_consultation', 'done', 'cancel'],
+                    'in_consultation': ['done'],  
+                    'done': ['draft'],
+                    'cancel': ['draft'],
+                 }
 
                 if new_state not in allowed.get(old_state, []):
                     raise ValidationError(
@@ -483,8 +505,30 @@ class HospitalAppointment(models.Model):
 
     # ================= STATE ACTIONS =================
 
-    def action_done(self):
+    # def action_done(self):
 
+    #     if not (
+    #         self.env.user.has_group('hospital_management.group_hospital_doctor')
+    #         or self.env.user.has_group('base.group_system')
+    #     ):
+    #         raise UserError("Only doctor or admin can mark appointment done.")
+
+    #     for rec in self:
+    #         if (
+    #             rec.doctor_id.user_id != self.env.user
+    #             and not self.env.user.has_group('base.group_system')
+    #         ):
+    #             raise UserError("You can update only your own appointments.")
+
+
+    #     self._set_state('done')
+
+    def action_processing(self):
+        for rec in self:
+            rec.state = 'in_consultation'
+            rec.processing_start_time = fields.Datetime.now()
+
+    def action_done(self):
         if not (
             self.env.user.has_group('hospital_management.group_hospital_doctor')
             or self.env.user.has_group('base.group_system')
@@ -492,13 +536,12 @@ class HospitalAppointment(models.Model):
             raise UserError("Only doctor or admin can mark appointment done.")
 
         for rec in self:
-            if (
-                rec.doctor_id.user_id != self.env.user
-                and not self.env.user.has_group('base.group_system')
-            ):
-                raise UserError("You can update only your own appointments.")
-
-        self._set_state('done')
+            if rec.processing_start_time:
+                diff = fields.Datetime.now() - rec.processing_start_time
+                rec.total_processing_time = diff.total_seconds() / 60.0
+            
+            rec.state = 'done'
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
 
     def action_cancel(self):
@@ -647,9 +690,14 @@ class HospitalAppointment(models.Model):
 
         # ================= WEEK =================
         if filter_type == 'week':
+
+            # Sunday as start of week
+            start_of_week = today - timedelta(days=(today.weekday() + 1) % 7)
+
             for i in range(7):
-                day = today + timedelta(days=i)
-                labels.append(day.strftime('%a'))
+                day = start_of_week + timedelta(days=i)
+
+                labels.append(day.strftime('%a'))  # Sun, Mon...
 
                 for state in states:
                     count = self.search_count([

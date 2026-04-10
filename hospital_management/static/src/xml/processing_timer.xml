@@ -1,0 +1,10 @@
+<templates xml:space="preserve">
+
+    <t t-name="hospital.ProcessingTimer">
+        <div class="badge rounded-pill text-bg-info px-3 py-2">
+            <i class="fa fa-clock-o me-1"/>
+            <t t-esc="state.time"/>
+        </div>
+    </t>
+
+</templates>

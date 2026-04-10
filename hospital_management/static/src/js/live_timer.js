@@ -1,92 +1,56 @@
-/** @odoo-module **/
+/* @odoo-module */
 
-console.log("TIMER JS LOADED");
+import { Component, useState, onMounted, onWillUnmount } from "@odoo/owl";
+import { deserializeDateTime } from "@web/core/l10n/dates";
+import { registry } from "@web/core/registry";
 
-let timerInterval = null;
-let seconds = 0;
+export class ProcessingTimer extends Component {
+    setup() {
+        this.state = useState({ time: "00:00:00" });
+        this.interval = null;
 
-// ================= START TIMER =================
-window.startTimer = function () {
+        onMounted(() => {
+            this.startTimer();
+        });
 
-    const el = document.getElementById("live_timer");
-    const startBtn = document.getElementById("start_btn");
-    const stopBtn = document.getElementById("stop_btn");
-
-    if (!el) {
-        console.log("live_timer not found");
-        return;
+        onWillUnmount(() => {
+            if (this.interval) {
+                clearInterval(this.interval);
+            }
+        });
     }
 
-    console.log("Start Timer");
+    startTimer() {
+        const record = this.props.record;
+        const startTimeStr = record && record.data.processing_start_time;
 
-    // BUTTON TOGGLE
-    if (startBtn) startBtn.style.display = "none";
-    if (stopBtn) stopBtn.style.display = "inline-block";
+        if (!startTimeStr) return;
 
-    // clear old timer
-    if (timerInterval) {
-        clearInterval(timerInterval);
+        const start = typeof startTimeStr === 'string'
+            ? deserializeDateTime(startTimeStr)
+            : startTimeStr;
+
+        this.interval = setInterval(() => {
+            const now = luxon.DateTime.now();
+            const diff = now.diff(start, ['hours', 'minutes', 'seconds']);
+
+            if (diff.as('seconds') < 0) {
+                this.state.time = "00:00:00";
+                return;
+            }
+
+            const hrs = String(Math.floor(diff.hours)).padStart(2, "0");
+            const mins = String(Math.floor(diff.minutes)).padStart(2, "0");
+            const secs = String(Math.floor(diff.seconds)).padStart(2, "0");
+
+            this.state.time = `${hrs}:${mins}:${secs}`;
+        }, 1000);
     }
+}
 
-    // reset timer
-    seconds = 0;
-    el.innerText = "00:00:00";
+ProcessingTimer.template = "hospital.ProcessingTimer";
+ProcessingTimer.props = ["*"];
 
-    // start timer
-    timerInterval = setInterval(() => {
-
-        seconds++;
-
-        let hrs = Math.floor(seconds / 3600);
-        let min = Math.floor((seconds % 3600) / 60);
-        let sec = seconds % 60;
-
-        el.innerText =
-            `${hrs.toString().padStart(2,'0')}:` +
-            `${min.toString().padStart(2,'0')}:` +
-            `${sec.toString().padStart(2,'0')}`;
-
-    }, 1000);
-};
-
-
-// ================= STOP TIMER =================
-window.stopTimer = function () {
-
-    console.log("Stop Timer");
-
-    const startBtn = document.getElementById("start_btn");
-    const stopBtn = document.getElementById("stop_btn");
-
-    // BUTTON TOGGLE BACK
-    if (startBtn) startBtn.style.display = "inline-block";
-    if (stopBtn) stopBtn.style.display = "none";
-
-    // stop timer
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-
-    // store duration
-    const durationField = document.querySelector("input[name='timer_duration']");
-    if (durationField) {
-        durationField.value = (seconds / 60).toFixed(2);
-    }
-
-    console.log("⏱ Duration:", (seconds / 60).toFixed(2), "minutes");
-};
-
-// ================= FIX INITIAL BUTTON STATE =================
-let fixInterval = setInterval(() => {
-
-    const startBtn = document.getElementById("start_btn");
-    const stopBtn = document.getElementById("stop_btn");
-
-    if (startBtn && stopBtn) {
-        startBtn.style.display = "inline-block";
-        stopBtn.style.display = "none";
-        clearInterval(fixInterval);
-    }
-
-}, 200);
+registry.category("view_widgets").add("processing_timer", {
+    component: ProcessingTimer,
+});
