@@ -69,14 +69,14 @@
           name="Appointments"
           parent="hospital_main_menu"
           action="action_hospital_appointment"
-          sequence="0"
+          sequence="1"
           groups="hospital_management.group_hospital_doctor,hospital_management.group_hospital_patient,base.group_system"/>
 
     <menuitem id="menu_hospital_dashboard"
           name="Dashboard"
           parent="hospital_main_menu"
           action="action_hospital_dashboard"
-          sequence="1"
+          sequence="0"
           groups="hospital_management.group_hospital_doctor,base.group_system"/>
               
     <menuitem id="menu_hospital_doctors"

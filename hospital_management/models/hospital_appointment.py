@@ -1,9 +1,11 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError, UserError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date,time
+# from datetime import datetime, time
 import calendar
 import logging
 import base64
+
 
 _logger = logging.getLogger(__name__)
 
@@ -654,12 +656,39 @@ class HospitalAppointment(models.Model):
 
         today = fields.Date.today()
 
+        # ================= TODAY =================
         today_appointments = self.search_count([
             ('start_date', '>=', str(today) + ' 00:00:00'),
             ('start_date', '<=', str(today) + ' 23:59:59')
         ])
 
-        # Pie chart data
+        # ================= WEEK CALCULATION =================
+        from datetime import timedelta
+
+        # current week Sunday
+        current_day = today.weekday()  # 0=Mon
+        start_of_week = today - timedelta(days=(current_day + 1) % 7)
+        end_of_week = start_of_week + timedelta(days=6)
+
+        # ================= NEXT WEEK =================
+        next_week_start = start_of_week + timedelta(days=7)
+        next_week_end   = end_of_week + timedelta(days=7)
+
+        next_week_count = self.search_count([
+            ('start_date', '>=', str(next_week_start) + ' 00:00:00'),
+            ('start_date', '<=', str(next_week_end) + ' 23:59:59'),
+        ])
+
+        # ================= PAST WEEK =================
+        past_week_start = start_of_week - timedelta(days=7)
+        past_week_end   = end_of_week - timedelta(days=7)
+
+        past_week_count = self.search_count([
+            ('start_date', '>=', str(past_week_start) + ' 00:00:00'),
+            ('start_date', '<=', str(past_week_end) + ' 23:59:59'),
+        ])
+
+        # ================= PIE =================
         states = self.read_group(
             [('state', '!=', False)],
             ['state'],
@@ -673,6 +702,11 @@ class HospitalAppointment(models.Model):
             'doctors': total_doctors,
             'appointments': total_appointments,
             'today_appointments': today_appointments,
+
+            # ADD THIS (IMPORTANT)
+            'week_appointments': next_week_count,
+            'past_week': past_week_count,
+
             'state_chart': state_chart,
         }
 
@@ -686,7 +720,9 @@ class HospitalAppointment(models.Model):
         states = ['draft', 'requested', 'confirmed', 'done', 'cancel']
 
         labels = []
+
         datasets = {state: [] for state in states}
+        week_ranges = []  
 
         # ================= WEEK =================
         if filter_type == 'week':
@@ -708,18 +744,50 @@ class HospitalAppointment(models.Model):
                     datasets[state].append(count)
 
         # ================= MONTH =================
+
         elif filter_type == 'month':
-            for i in range(1, 31):
-                day = today.replace(day=1) + timedelta(days=i-1)
-                labels.append(str(i))
+            year = today.year
+            month = today.month
+
+            cal = calendar.Calendar(firstweekday=6)
+
+            month_days = cal.monthdatescalendar(year, month)
+
+            week_index = 1
+            week_ranges = []   # 🔥 ADD THIS
+
+            for week in month_days:
+
+                valid_days = [d for d in week if d.month == month]
+
+                if not valid_days:
+                    continue
+
+                label = f"W{week_index}"
+                labels.append(label)
+
+                start_day = valid_days[0]
+                end_day = valid_days[-1]
+
+                # 🔥 STORE RANGE
+                week_ranges.append({
+                    "label": label,
+                    "start": str(start_day),
+                    "end": str(end_day),
+                })
+
+                start_dt = datetime.combine(start_day, time.min)
+                end_dt   = datetime.combine(end_day, time.max)
 
                 for state in states:
                     count = self.search_count([
                         ('state', '=', state),
-                        ('start_date', '>=', str(day) + ' 00:00:00'),
-                        ('start_date', '<=', str(day) + ' 23:59:59')
+                        ('start_date', '>=', start_dt),
+                        ('start_date', '<=', end_dt),
                     ])
                     datasets[state].append(count)
+
+                week_index += 1
 
         # ================= YEAR =================
         elif filter_type == 'year':
@@ -741,7 +809,8 @@ class HospitalAppointment(models.Model):
             "datasets": [
                 {"label": state, "data": datasets[state]}
                 for state in states
-            ]
+            ],
+            "week_ranges": week_ranges
         }
 
     @api.model

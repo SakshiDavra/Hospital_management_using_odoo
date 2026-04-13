@@ -13,7 +13,13 @@ import { CounterCard } from "./components/counter_card";
 export class HospitalDashboard extends Component {
 
     static components = { Layout, CounterCard ,PieChart ,BarChart, ShapeCanvas, TodoList ,TopDoctors};
+    formatLocalDate(date) {
+        const year  = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day   = String(date.getDate()).padStart(2, '0');
 
+        return `${year}-${month}-${day}`;
+    }
     setup() {
         this.action = useService("action");
         this.orm = useService("orm");
@@ -143,26 +149,33 @@ export class HospitalDashboard extends Component {
                     ["start_date", ">=", today + " 00:00:00"],
                     ["start_date", "<=", today + " 23:59:59"],
                 ],
+                context: {
+                    create: false,   //cards  hide New button
+                    edit: false,
+                    delete: false
+                }
             });
         }
 
         if (type === "patient") {
-            return this.action.doAction({
-                type: "ir.actions.act_window",
-                name: "Patients",
-                res_model: "res.partner",
-                views: [[false, "list"], [false, "form"]],
-                domain: [["role_ids.name", "=", "Patient"]],
+            return this.action.doAction("hospital_management.action_patient_custom",
+            {
+                additionalContext: {
+                    create: false,
+                    edit: false,
+                    delete: false
+                }
             });
         }
 
         if (type === "doctor") {
-            return this.action.doAction({
-                type: "ir.actions.act_window",
-                name: "Doctors",
-                res_model: "res.partner",
-                views: [[false, "list"], [false, "form"]],
-                domain: [["role_ids.name", "=", "Doctor"]],
+            return this.action.doAction("hospital_management.action_doctor_custom",
+            {
+                additionalContext: {
+                    create: false,
+                    edit: false,
+                    delete: false
+                }
             });
         }
 
@@ -172,6 +185,11 @@ export class HospitalDashboard extends Component {
                 name: "Appointments",
                 res_model: "hospital.appointment",
                 views: [[false, "list"], [false, "form"]],
+                context: {
+                    create: false,   //cards  hide New button
+                    edit: false,
+                    delete: false
+                }
             });
         }
 
@@ -214,6 +232,11 @@ export class HospitalDashboard extends Component {
                     ["start_date", ">=", start.toISOString().split('T')[0] + " 00:00:00"],
                     ["start_date", "<=", end.toISOString().split('T')[0] + " 23:59:59"],
                 ],
+                context: {
+                    create: false,   //cards  hide New button
+                    edit: false,
+                    delete: false
+                }
             });
         }
     }
@@ -224,6 +247,11 @@ export class HospitalDashboard extends Component {
             res_model: "hospital.appointment",
             views: [[false, "list"], [false, "form"]],
             domain: [["state", "=", status]],
+            context: {
+                create: false,   // pie hide New button
+                    edit: false,
+                    delete: false
+            }
         });
     }
     openWeekDay(label, status = null) {
@@ -234,8 +262,8 @@ export class HospitalDashboard extends Component {
         // ================= WEEK =================
         if (this.state.filter === "week") {
             const daysMap = {
-                Mon: 1, Tue: 2, Wed: 3, Thu: 4,
-                Fri: 5, Sat: 6, Sun: 0
+                Sun: 0, Mon: 1, Tue: 2, Wed: 3,
+                Thu: 4, Fri: 5, Sat: 6
             };
 
             const targetDay = daysMap[label];
@@ -246,18 +274,29 @@ export class HospitalDashboard extends Component {
             const selectedDate = new Date(today);
             selectedDate.setDate(today.getDate() + diff);
 
-            startDate = selectedDate.toISOString().split('T')[0] + " 00:00:00";
-            endDate   = selectedDate.toISOString().split('T')[0] + " 23:59:59";
+            const start = new Date(selectedDate);
+            start.setHours(0, 0, 0, 0);
+
+            const end = new Date(selectedDate);
+            end.setHours(23, 59, 59, 999);
+
+            startDate = start.toISOString().slice(0, 19).replace('T', ' ');
+            endDate   = end.toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        // ================= MONTH =================
         else if (this.state.filter === "month") {
-            const day = parseInt(label);
 
-            const selectedDate = new Date(today.getFullYear(), today.getMonth(), day);
+            const weekRanges = this.state.chartData.week_ranges || [];
 
-            startDate = selectedDate.toISOString().split('T')[0] + " 00:00:00";
-            endDate   = selectedDate.toISOString().split('T')[0] + " 23:59:59";
+            const selected = weekRanges.find(w => w.label === label);
+
+            if (!selected) {
+                console.error("Week not found", label, weekRanges);
+                return;
+            }
+
+            startDate = selected.start + " 00:00:00";
+            endDate   = selected.end + " 23:59:59";
         }
 
         // ================= YEAR =================
@@ -267,31 +306,39 @@ export class HospitalDashboard extends Component {
             const start = new Date(today.getFullYear(), month - 1, 1);
             const end   = new Date(today.getFullYear(), month, 0);
 
-            startDate = start.toISOString().split('T')[0] + " 00:00:00";
-            endDate   = end.toISOString().split('T')[0] + " 23:59:59";
+            start.setHours(0, 0, 0, 0);
+            end.setHours(23, 59, 59, 999);
+
+            startDate = start.toISOString().slice(0, 19).replace('T', ' ');
+            endDate   = end.toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        // ================= DOMAIN BUILD =================
+        // ================= DOMAIN =================
         const domain = [
             ["start_date", ">=", startDate],
             ["start_date", "<=", endDate],
         ];
 
-        // ADD STATUS FILTER (only if clicked on stacked part)
         if (status) {
             domain.push(["state", "=", status]);
         }
 
+        console.log("FINAL DOMAIN:", domain);
+
         return this.action.doAction({
             type: "ir.actions.act_window",
-            name: status 
+            name: status
                 ? `${label} (${status}) Appointments`
                 : `${label} Appointments`,
             res_model: "hospital.appointment",
             views: [[false, "list"], [false, "form"]],
             domain: domain,
+            context: {
+                create: false   // hide New button
+            }
         });
     }
+    
     onFilterChange(ev) {
         this.state.filter = ev.target.value;
         this.state.chartData = {};  

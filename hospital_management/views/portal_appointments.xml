@@ -147,7 +147,7 @@
                                         <t t-elif="groupby in ['doctor_id','patient_id']">
                                             <t t-esc="'[' + (group['key'].hospital_code or '') + '] ' + (group['key'].name or '')"/>
 
-                                            <!-- 🔥 CONTINUED LABEL -->
+                                            <!-- CONTINUED LABEL -->
                                             <t t-if="g_index == 0 and page &gt; 1">
                                                 <span class="text-muted">(continued)</span>
                                             </t>

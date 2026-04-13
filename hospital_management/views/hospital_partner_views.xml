@@ -221,4 +221,36 @@
         </form>
     </field>
 </record>
+<!--dashboard actions-->
+<!-- ================= DOCTOR CUSTOM ACTION ================= -->
+<record id="action_doctor_custom" model="ir.actions.act_window">
+    <field name="name">Doctors</field>
+    <field name="res_model">res.partner</field>
+    <field name="view_mode">list,form</field>
+
+    <field name="view_ids" eval="[
+        (5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'view_id': ref('view_doctor_list')}),
+        (0, 0, {'view_mode': 'form', 'view_id': ref('view_doctor_form')})
+    ]"/>
+
+    <field name="domain">[('role_ids.name', '=', 'Doctor')]</field>
+</record>
+<!-- ================= PATIENT CUSTOM ACTION ================= -->
+<record id="action_patient_custom" model="ir.actions.act_window">
+    <field name="name">Patients</field>
+    <field name="res_model">res.partner</field>
+    <field name="view_mode">list,form</field>
+
+    <field name="view_ids" eval="[
+        (5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'view_id': ref('view_patient_list')}),
+        (0, 0, {'view_mode': 'form', 'view_id': ref('view_patient_form')})
+    ]"/>
+
+    <field name="domain">[('role_ids.name', '=', 'Patient')]</field>
+
+    <!-- optional -->
+    <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+</record>
 </odoo>

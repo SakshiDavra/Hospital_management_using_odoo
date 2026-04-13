@@ -52,7 +52,14 @@ export class BarChart extends Component {
             data: {
                 labels: labels,
                 datasets: datasets.map(ds => ({
-                    label: ds.label,
+                    label: {
+                        draft: "Draft",
+                        requested: "Requested",
+                        confirmed: "Confirmed",
+                        done: "Done",
+                        in_consultation: "In Consultation",
+                        cancel: "Cancelled",
+                    }[ds.label] || ds.label,
                     data: ds.data,
                     backgroundColor: {
                         draft: "#602577",

@@ -48,7 +48,16 @@ export class PieChart extends Component {
 
         const ctx = this.canvasRef.el.getContext("2d");
 
-        const labels = Object.keys(data);
+        const rawLabels = Object.keys(data);
+
+        const labels = rawLabels.map(label => ({
+            draft: "Draft",
+            requested: "Requested",
+            confirmed: "Confirmed",
+            done: "Done",
+            in_consultation: "In Consultation",
+            cancel: "Cancelled",
+        }[label] || label));
         const values = Object.values(data);
 
         const total = values.reduce((a, b) => a + b, 0);
@@ -113,7 +122,7 @@ export class PieChart extends Component {
                 onClick: (evt, elements) => {
                     if (elements.length > 0 && props.onClick) {
                         const index = elements[0].index;
-                        const label = labels[index];
+                        const label = rawLabels[index];
                         props.onClick(label);
                     }
                 },

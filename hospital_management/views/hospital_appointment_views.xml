@@ -404,8 +404,12 @@
                         <div>
                             <field name="start_date"/>
                         </div>
-                        
-
+                        <field name="processing_start_time" invisible="1"/>
+                        <div class="kanban_timer">
+                            <widget name="processing_timer"
+                                    options="{'start_time_field': 'processing_start_time'}"
+                                    invisible="state != 'in_consultation'"/>
+                        </div>
                     </div>
                 </t>
             </templates>
