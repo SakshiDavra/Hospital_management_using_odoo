@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="add_my_snippet" inherit_id="website.snippets">
+
+        <xpath expr="//snippets[@id='snippet_structure']" position="inside">
+
+            <!-- Existing snippet -->
+            <!-- <t t-snippet="hospital_management.my_image_text_snippet"
+               string="Image Text Demo"
+               group="text"
+               t-thumbnail="/website/static/src/img/snippets/s_text_block.svg"/> -->
+
+            <!-- NEW Doctor Specialization snippet -->
+            <!-- <t t-snippet="hospital_management.doctor_specialization_snippet"
+               string="Doctor Specialization"
+               group="text"
+               t-thumbnail="/website/static/src/img/snippets/s_text_block.svg"/> -->
+
+            <!-- <t t-snippet="hospital_management.s_specialization_list"
+                string="Specialization"
+                group="text"
+                t-thumbnail="/website/static/src/img/snippets/s_text_block.svg"/> -->
+            
+            <t t-snippet="hospital_management.s_specialization_list"
+               string="Specializations"
+               group="text"/>
+
+        </xpath>
+
+    </template>
+</odoo>

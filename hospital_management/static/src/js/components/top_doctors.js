@@ -1,5 +1,4 @@
 /** @odoo-module **/
-console.log("TopDoctors file loaded");
 import { Component, useState, onMounted } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 

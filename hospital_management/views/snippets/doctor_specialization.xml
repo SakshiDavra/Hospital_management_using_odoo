@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<odoo> 
+    <template id="doctor_specialization_snippet" name="Doctor Specialization"> 
+    <!-- IMPORTANT CLASS ADD --> 
+        <section class="o_snippet s_my_doctor_specialization py-5 bg-light"> 
+            <div class="container"> 
+                <h2 class="text-center mb-4">Our Specializations</h2> 
+                <div class="row text-center"> 
+                    <div class="col-lg-3 col-md-6 mb-4"> 
+                        <div class="card p-3 shadow-sm"> 
+                            <h5>Cardiologist</h5> 
+                            <p>Heart specialist</p> 
+                        </div> 
+                    </div> 
+                    <div class="col-lg-3 col-md-6 mb-4"> 
+                        <div class="card p-3 shadow-sm"> 
+                            <h5>Neurologist</h5> 
+                            <p>Brain specialist</p> 
+                        </div> 
+                    </div> 
+                    <div class="col-lg-3 col-md-6 mb-4"> 
+                        <div class="card p-3 shadow-sm"> 
+                            <h5>Orthopedic</h5> 
+                            <p>Bone specialist</p> 
+                        </div> 
+                    </div> 
+                    <div class="col-lg-3 col-md-6 mb-4"> 
+                        <div class="card p-3 shadow-sm"> 
+                            <h5>Pediatrician</h5> 
+                            <p>Child specialist</p> 
+                        </div> 
+                    </div> 
+                </div> 
+            </div> 
+        </section> 
+    </template> 
+</odoo>
