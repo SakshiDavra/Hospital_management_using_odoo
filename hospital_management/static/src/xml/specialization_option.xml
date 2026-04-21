@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="hospital.specialization_option">
+
+    <BuilderRow label.translate="No. of Records">
+
+        <BuilderSelect action="'setRecordLimit'">
+            <BuilderSelectItem actionValue="'2'">2</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'4'">4</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'6'">6</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'8'">8</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'9'">9</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'10'">10</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'11'">11</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'12'">12</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'13'">13</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'14'">14</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'15'">15</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'16'">16</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'17'">17</BuilderSelectItem>
+        </BuilderSelect>
+
+    </BuilderRow>
+
+</t>
+
+</templates>

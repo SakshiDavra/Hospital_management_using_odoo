@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="s_specialization_list_snippets" name="Specialization List">
+        <section class="s_specialization_list_snippets"
+                 data-snippet="hospital.specialization_snippet"
+                 data-name="Specializations"
+                 data-limit="4">
+
+            <div class="container">
+                <div class="row o_specialization_container"></div>
+            </div>
+
+        </section>
+    </template>
+
+</odoo>

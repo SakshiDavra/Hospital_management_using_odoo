@@ -128,3 +128,21 @@
     right: -230px;
     top: 0;
 }
+
+
+/* snippet */
+/* .o_we_sidebar,
+.o_we_options {
+    overflow: visible !important;
+}
+
+.o_we_option .form-select {
+    position: relative;
+    z-index: 9999;
+    max-height: 200px;
+    overflow-y: auto;
+} */
+
+.spec-item {
+    transition: all 0.3s ease;
+}

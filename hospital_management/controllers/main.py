@@ -14,3 +14,12 @@ class HospitalSnippet(http.Controller):
         )
 
         return {'html': html}
+
+    # @http.route('/specializations', type='http', auth='public', website=True)
+    # def specialization_list(self):
+
+    #     specs = request.env['hospital.specialization'].sudo().search([])
+
+    #     return request.render('hospital_management.specialization_list_page', {
+    #         'specializations': specs
+    #     })

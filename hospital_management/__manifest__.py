@@ -52,9 +52,12 @@
             # 'views/snippets/image_text_snippet.xml',
             # 'views/snippets/doctor_specialization.xml',
             'views/snippets/snippet_catalog.xml',
-            'views/snippets/s_specialization_snippet.xml',
-            'views/snippets/s_specialization_preview_data.xml',
-            #'views/snippets/specialization_card_template.xml',
+            # 'views/snippets/s_specialization_snippet.xml',
+            # 'views/snippets/s_specialization_preview_data.xml',
+            
+            'views/snippets/specialization_snippet.xml',
+
+
  
             'views/hospital_menus.xml',
         ],
@@ -89,13 +92,22 @@
                 'hospital_management/static/src/xml/todo_list.xml',
                 'hospital_management/static/src/xml/top_doctors.xml',
                 'hospital_management/static/src/xml/processing_timer.xml',
+
             ],
 
             'web.assets_frontend': [
                 'hospital_management/static/src/css/style.css',
-                'hospital_management/static/src/css/snippet.css',
-                'hospital_management/static/src/js/doctor_specialization.js',
+                # 'hospital_management/static/src/css/snippet.css',
+                # 'hospital_management/static/src/js/doctor_specialization.js',
+                'hospital_management/static/src/js/specialization_snippet.js',
+
             ],
+            'website.assets_editor': [   
+                'hospital_management/static/src/js/specialization_option.js',
+                'hospital_management/static/src/js/specialization_plugin.js',
+                'hospital_management/static/src/js/limit_action.js',
+                'hospital_management/static/src/xml/specialization_option.xml',                
+            ]
         },
 
         'installable': True,

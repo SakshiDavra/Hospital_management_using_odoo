@@ -22,7 +22,11 @@
                 group="text"
                 t-thumbnail="/website/static/src/img/snippets/s_text_block.svg"/> -->
             
-            <t t-snippet="hospital_management.s_specialization_list"
+            <!-- <t t-snippet="hospital_management.s_specialization_list"
+               string="Specializations"
+               group="text"/> -->
+
+            <t t-snippet="hospital_management.s_specialization_list_snippets"
                string="Specializations"
                group="text"/>
 

@@ -23,23 +23,29 @@ export class SpecializationSnippet extends Interaction {
         if (!container) return;
 
         try {
-            const result = await rpc('/hospital/specializations_html');
+            // 🔥 NO LIMIT → badha data
+            const result = await rpc('/hospital/specializations_html', {
+                limit: 0
+            });
 
             if (result && result.html) {
                 container.innerHTML = result.html;
+                console.log("!!! ALL CARDS RENDERED !!!");
             }
 
         } catch (e) {
             console.error("RPC Error:", e);
         }
     }
-    _observeClassChanges() {
-        if (this._observer) this._observer.disconnect();
-        this._observer = new MutationObserver(() => this._fetchCards());
-        this._observer.observe(this.el, { attributes: true, attributeFilter: ["class"] });
-    }
 }
 
+// register
+registry.category("public.interactions").add(
+    "hospital_management.specialization_list",
+    SpecializationSnippet
+);
 
-registry.category("public.interactions").add("hospital_management.specialization_list", SpecializationSnippet);
-registry.category("public.interactions.edit").add("hospital_management.specialization_list", {Interaction:SpecializationSnippet});
+registry.category("public.interactions.edit").add(
+    "hospital_management.specialization_list",
+    { Interaction: SpecializationSnippet }
+);

@@ -1,56 +1,29 @@
 <odoo>
-  <template id="s_specialization_list" name="Specialization List">
-    <section class="s_specialization_list o_spc_20" data-snippet="hospital_management.specialization_list">
+<template id="s_specialization_list" name="Specialization List">
+    <section class="s_specialization_list"
+         data-snippet="hospital_management.specialization_list"
+         >
+
         <div class="container">
             <div class="row o_specialization_container">
-                <t t-call="hospital_management.s_specialization_list_preview_data"/>
+
+                <t t-if="request.env.context.get('editable')">
+                    <t t-call="hospital_management.s_specialization_list_preview_data"/>
+                </t>
+
             </div>
         </div>
+
     </section>
 </template>
 
-<template id="specialization_card_template" name="Specialization Card Template">
+<template id="specialization_card_template">
 
-    <t t-if="specializations">
-
-        <div class="row g-3">
-
-            <t t-foreach="specializations" t-as="spec">
-
-                <!-- 4 cards per row -->
-                <div class="col-lg-3 col-md-4 col-sm-6">
-
-                    <div class="card h-100 border-0 shadow-sm text-center p-2"
-                         style="border-radius: 12px; min-height: 140px; position: relative;">
-
-                        <!-- Top line -->
-                        <div style="height: 3px; background: #0f1188; position: absolute; top: 0; left: 0; right: 0; border-radius: 12px 12px 0 0;"></div>
-
-                        <!-- Name -->
-                        <h6 class="fw-bold mt-2 mb-1">
-                            <t t-out="spec.name"/>
-                        </h6>
-
-                        <!-- Description -->
-                        <p class="text-muted small mb-0 px-1"
-                           style="font-size: 13px; line-height: 1.3;">
-                            <t t-out="spec.description"/>
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </t>
-
-        </div>
-
-    </t>
-
-    <!-- No data -->
-    <t t-else="">
-        <div class="col-12 text-center p-5">
-            <h4 class="text-muted">No specializations found.</h4>
+    <t t-foreach="specializations" t-as="spec">
+        <div class="col-3">
+            <div class="card p-3 text-center">
+                <h5><t t-out="spec.name"/></h5>
+            </div>
         </div>
     </t>
 
