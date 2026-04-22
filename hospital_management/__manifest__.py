@@ -42,7 +42,9 @@
             'data/hospital_cron.xml',
 
             # Views
+           
             'views/templates.xml',
+            'views/doctor_list_template.xml',
             'views/hospital_role_views.xml',
             'views/hospital_partner_views.xml',
             'views/portal_appointments.xml',
@@ -54,7 +56,7 @@
             'views/snippets/snippet_catalog.xml',
             # 'views/snippets/s_specialization_snippet.xml',
             # 'views/snippets/s_specialization_preview_data.xml',
-            
+
             'views/snippets/specialization_snippet.xml',
 
 
@@ -100,13 +102,19 @@
                 # 'hospital_management/static/src/css/snippet.css',
                 # 'hospital_management/static/src/js/doctor_specialization.js',
                 'hospital_management/static/src/js/specialization_snippet.js',
+                'hospital_management/static/src/xml/specialization_template.xml', 
+                'hospital_management/static/src/scss/specialization.scss',
+                'hospital_management/static/src/scss/doctor_card.scss',
+                'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css',
+
 
             ],
             'website.assets_editor': [   
                 'hospital_management/static/src/js/specialization_option.js',
                 'hospital_management/static/src/js/specialization_plugin.js',
                 'hospital_management/static/src/js/limit_action.js',
-                'hospital_management/static/src/xml/specialization_option.xml',                
+                'hospital_management/static/src/xml/specialization_option.xml',  
+                'hospital_management/static/src/js/style_action.js',              
             ]
         },
 

@@ -1,25 +1,42 @@
 from odoo import http
 from odoo.http import request
 
-class HospitalSnippet(http.Controller):
+class HospitalController(http.Controller):
 
-    @http.route('/hospital/specializations_html', type='json', auth='public', website=True)
-    def get_specializations_html(self):
+    @http.route('/specializations', type='http', auth='public', website=True)
+    def all_specializations(self, **kwargs):
+        specializations = request.env['hospital.specialization'].sudo().search([])
 
-        specs = request.env['hospital.specialization'].sudo().search([])
+        return request.render('hospital_management.all_specializations_page', {
+            'specializations': specializations
+        })
 
-        html = request.env['ir.ui.view']._render_template(
-            'hospital_management.specialization_card_template',
-            {'specializations': specs}
-        )
+     # BOTH: all + specialization
+    @http.route(['/doctors', '/doctors/<string:spec_slug>'], type='http', auth='public', website=True)
+    def doctors(self, spec_slug=None, **kwargs):
 
-        return {'html': html}
+        domain = [
+            ('role_ids.name', '=', 'Doctor')
+        ]
 
-    # @http.route('/specializations', type='http', auth='public', website=True)
-    # def specialization_list(self):
+        specialization = None
+        from_page = kwargs.get('from')
 
-    #     specs = request.env['hospital.specialization'].sudo().search([])
+        # If specialization URL hoy
+        if spec_slug:
+            spec_name = spec_slug.replace('-', ' ')
+            specialization = request.env['hospital.specialization'].sudo().search([
+                ('name', 'ilike', spec_name)
+            ], limit=1)
 
-    #     return request.render('hospital_management.specialization_list_page', {
-    #         'specializations': specs
-    #     })
+            if specialization:
+                domain.append(('specialization_id', '=', specialization.id))
+
+        doctors = request.env['res.partner'].sudo().search(domain)
+
+        return request.render('hospital_management.doctor_list_page', {
+            'doctors': doctors,
+            'specialization': specialization,
+            'from_page': from_page
+        })
+        

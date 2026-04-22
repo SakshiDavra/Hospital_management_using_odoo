@@ -127,4 +127,11 @@
         action="action_hospital_schedule"
         sequence="3" />
 
+
+    <record id="website_menu_doctors" model="website.menu">
+        <field name="name">Doctors</field>
+        <field name="url">/doctors</field>
+        <field name="parent_id" ref="website.main_menu"/>
+        <field name="sequence" type="int">30</field>
+    </record>
 </odoo>

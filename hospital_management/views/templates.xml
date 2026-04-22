@@ -1,14 +1,78 @@
 <odoo>
-    <template id="hide_backend_switch_patient_only" inherit_id="website.layout">
+    <template id="all_specializations_page" name="All Specializations">
+        <t t-call="website.layout">
 
-        <!-- SAFE HIDE ONLY FOR PATIENT -->
-        <xpath expr="//div[hasclass('o_frontend_to_backend_nav')]" position="attributes">
+            <section class="pt48 pb48">
+                <div class="container">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
 
-            <attribute name="t-attf-style">
-                #{ 'display:none !important;' if request.env.user.has_group('hospital_management.group_hospital_patient') else '' }
-            </attribute>
+                            <li class="breadcrumb-item">
+                                <a href="/">
+                                    <i class="fa fa-home"></i>
+                                </a>
+                            </li>
 
-        </xpath>
+                            <li class="breadcrumb-item active">
+                                Specializations
+                            </li>
 
+                        </ol>
+                    </nav>
+                    <div class="row">
+
+                        <t t-foreach="specializations" t-as="rec" t-key="rec.id">
+
+                            <t t-set="img_map" t-value="{
+                                'Dermetologist': 'dermetologist.jpg',
+                                'MBBS': 'mbbs.jpg',
+                                'MD': 'md.jpg',
+                                'Cardiologist': 'cardiologist.jpg',
+                                'Serjan specialist': 'serjanspecialist.jpg',
+                                'Neuroserjan': 'neuroserjan.jpg',
+                                'Gynecologist': 'gynecologist.jpg',
+                                'Orthopedic': 'orthopedic.jpg',
+                                'Hematologists': 'hematologists.jpg',
+                                'abc': 'abc.jpg'
+
+                            }"/>
+
+                            <t t-set="img_url"
+                            t-value="'/hospital_management/static/src/img/' + (img_map.get(rec.name) or 'default.jpg')"/>
+
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+
+                                <div class="s_ecomm_categories_showcase_block o_cc o_cc5 oe_img_bg rounded-2"
+                                     t-att-style="'background-image: url(' + img_url + '); height:250px; background-size:cover; background-position:center;'">
+
+                                    <div class="o_we_bg_filter bg-black-25"/>
+
+                                    <div class="d-flex h-100 align-items-end p-3 text-white">
+
+                                        <div>
+                                            <h5>
+                                                <t t-esc="rec.name"/>
+                                            </h5>
+
+                                            <a t-att-href="'/doctors/' + rec.name.lower().replace(' ', '-').replace(' ', '-')"
+                                                class="btn btn-secondary btn-sm">
+                                                View All
+                                            </a>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </t>
+
+                    </div>
+
+                </div>
+            </section>
+
+        </t>
     </template>
 </odoo>

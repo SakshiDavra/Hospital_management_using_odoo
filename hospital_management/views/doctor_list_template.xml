@@ -1,0 +1,102 @@
+<odoo>
+
+    <template id="doctor_list_page" name="Doctor List Page">
+
+        <t t-call="website.layout">
+
+            <div class="container mt-5">
+
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb">
+
+                        <li class="breadcrumb-item">
+                            <a href="/"><i class="fa fa-home"></i></a>
+                        </li>
+
+                        <!-- IF came from home -->
+                        <t t-if="from_page == 'home' and specialization">
+                            <li class="breadcrumb-item active">
+                                <t t-esc="specialization.name"/>
+                            </li>
+                        </t>
+
+                        <t t-else="">
+                            <li class="breadcrumb-item">
+                                <a href="/doctors">Doctors</a>
+                            </li>
+
+                            <t t-if="specialization">
+                                <li class="breadcrumb-item active">
+                                    <t t-esc="specialization.name"/>
+                                </li>
+                            </t>
+                        </t>
+
+                    </ol>
+                </nav>
+
+
+                <t t-if="not doctors">
+                    <div class="text-center mt-5">
+                        <h4>No Doctors Found</h4>
+                    </div>
+                </t>
+
+                <div class="row">
+
+                    <t t-foreach="doctors" t-as="doc">
+
+                        <div class="col-lg-3 col-md-6 mb-5">
+
+                            <div class="doctor-card">
+
+                                <div class="doctor-img">
+                                    <img t-att-src="'/web/image/res.partner/' + str(doc.id) + '/image_1920'"
+                                         onerror="this.src='/web/static/img/placeholder.png'"/>
+                                </div>
+
+                                <div class="doctor-body">
+
+                                    <h5><t t-esc="doc.name"/></h5>
+
+                                    <div class="specialization" t-if="doc.specialization_id">
+                                        <t t-esc="doc.specialization_id.name"/>
+                                    </div>
+
+                                    <div class="fees">
+                                        ₹ <t t-esc="doc.consultation_fees"/>
+                                    </div>
+
+                                    <div class="desc">
+                                        Experienced doctor with quality treatment and patient care.
+                                    </div>
+
+                                    <div class="contact">
+                                        <p t-if="doc.email">📧 <t t-esc="doc.email"/></p>
+                                        <p t-if="doc.phone">📞 <t t-esc="doc.phone"/></p>
+                                    </div>
+
+                                </div>
+
+                                <div class="doctor-btn">
+                                    <a t-att-href="'/my/appointment/new?doctor_id=' + str(doc.id)"
+                                    class="btn btn-primary w-100">
+                                        Book Appointment
+                                    </a>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </t>
+
+                </div>
+
+            </div>
+
+        </t>
+
+    </template>
+
+</odoo>

@@ -382,10 +382,17 @@ class PortalAppointment(CustomerPortal):
     def portal_create_appointment_form(self, **kw):
 
         appointment_id = kw.get('appointment_id')
-        appointment = False
 
+        doctor_id = kw.get('doctor_id')
+        appointment = False
+        selected_doctor = False  
+        selected_specialization = False 
         start_date_local = False
         end_date_local = False
+
+        if doctor_id:
+            selected_doctor = request.env['res.partner'].sudo().browse(int(doctor_id))
+            selected_specialization = selected_doctor.specialization_id 
 
         if appointment_id:
             appointment = request.env['hospital.appointment'].sudo().browse(int(appointment_id))
@@ -413,6 +420,8 @@ class PortalAppointment(CustomerPortal):
             # IMPORTANT
             'start_date_local': start_date_local,
             'end_date_local': end_date_local,
+            'selected_doctor': selected_doctor,
+            'selected_specialization': selected_specialization,
 
             'patients': request.env['res.partner'].sudo().search([('role_ids.name', '=', 'Patient')]),
             'doctors': request.env['res.partner'].sudo().search([('role_ids.name', '=', 'Doctor')]),

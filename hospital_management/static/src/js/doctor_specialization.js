@@ -23,7 +23,7 @@ export class SpecializationSnippet extends Interaction {
         if (!container) return;
 
         try {
-            // 🔥 NO LIMIT → badha data
+            // NO LIMIT → badha data
             const result = await rpc('/hospital/specializations_html', {
                 limit: 0
             });

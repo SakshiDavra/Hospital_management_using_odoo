@@ -44,13 +44,11 @@
 
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
 
-            <!-- LIST PAGE -->
             <li t-if="page_name == 'appointments'"
                 class="breadcrumb-item active">
                 Appointments
             </li>
 
-            <!-- DETAIL PAGE -->
             <li t-if="page_name == 'appointment'"
                 class="breadcrumb-item">
                 <a href="/my/appointments">Appointments</a>
@@ -61,7 +59,6 @@
                 <t t-esc="appointment.name"/>
             </li>
 
-            <!-- CREATE PAGE -->
             <li t-if="page_name == 'create_appointment'"
                 class="breadcrumb-item active">
                 Create Appointment
@@ -654,14 +651,28 @@
                                 <!-- Patient / Admin -->
                                 <div class="mb-3">
                                     <label class="form-label">Specialization</label>
-                                    <select name="specialization_id" id="specialization_id" class="form-control" required="1">
+                                    <select name="specialization_id"
+                                            id="specialization_id"
+                                            class="form-control"
+                                            required="1"
+                                            t-att-disabled="selected_specialization">
+
                                         <option value="">Select Specialization</option>
-                                        <t t-foreach="specializations" t-as="s">
+
+                                        <t t-foreach="specializations" t-as="s" t-key="s.id">
+
                                             <option t-att-value="s.id"
-                                                    t-att-selected="appointment and appointment.specialization_id.id == s.id">
+                                                    t-att-selected="
+                                                        (selected_specialization and s.id == selected_specialization.id)
+                                                        or (appointment and appointment.specialization_id.id == s.id)
+                                                    ">
+
                                                 <t t-esc="s.name"/>
+
                                             </option>
+
                                         </t>
+
                                     </select>
                                 </div>
                             </t>
@@ -685,19 +696,36 @@
 
                             <t t-else="">
                                 <!-- Patient / Admin -->
+                                <!-- Patient / Admin -->
                                 <div class="mb-3">
                                     <label class="form-label">Doctor</label>
-                                    <select name="doctor_id" class="form-control" required="1">
+
+                                    <select name="doctor_id"
+                                            class="form-control"
+                                            required="1"
+                                            t-att-disabled="selected_doctor">
+
                                         <option value="">Select Doctor</option>
-                                        <t t-foreach="doctors" t-as="d">
+
+                                        <t t-foreach="doctors" t-as="d" t-key="d.id">
+
                                             <option t-att-value="d.id"
                                                     t-att-data-spec="d.specialization_id.id"
                                                     t-att-data-fees="d.consultation_fees"
-                                                    t-att-selected="appointment and appointment.doctor_id.id == d.id">
+
+                                                    t-att-selected="
+                                                        (selected_doctor and d.id == selected_doctor.id)
+                                                        or (appointment and appointment.doctor_id.id == d.id)
+                                                    ">
+
                                                 <t t-esc="d.name"/>
+
                                             </option>
+
                                         </t>
+
                                     </select>
+
                                 </div>
                             </t>
 

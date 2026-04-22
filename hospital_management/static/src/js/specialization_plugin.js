@@ -4,8 +4,10 @@ import { Plugin } from "@html_editor/plugin";
 import { registry } from "@web/core/registry";
 import { withSequence } from "@html_editor/utils/resource";
 
+
 import { SpecializationOption } from "./specialization_option";
 import { SetRecordLimitAction } from "./limit_action";
+import { SetTemplateStyle } from "./style_action";
 
 export class SpecializationPlugin extends Plugin {
     static id = "specializationPlugin";
@@ -13,6 +15,7 @@ export class SpecializationPlugin extends Plugin {
     resources = {
         builder_actions: {
             SetRecordLimitAction,
+            SetTemplateStyle,
         },
         builder_options: withSequence(1000, SpecializationOption),
     };

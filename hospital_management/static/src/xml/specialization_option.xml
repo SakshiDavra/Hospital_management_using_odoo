@@ -23,6 +23,17 @@
 
     </BuilderRow>
 
+    <!-- NEW STYLE OPTION -->
+    <BuilderRow label.translate="Template Style">
+
+        <BuilderSelect action="'setTemplateStyle'">
+            <BuilderSelectItem actionValue="'style1'">Style 1</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'style2'">Style 2</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'style3'">Style 3</BuilderSelectItem>
+        </BuilderSelect>
+
+    </BuilderRow>
+
 </t>
 
 </templates>

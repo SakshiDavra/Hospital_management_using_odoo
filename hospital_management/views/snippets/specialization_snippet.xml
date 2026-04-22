@@ -4,13 +4,26 @@
         <section class="s_specialization_list_snippets"
                  data-snippet="hospital.specialization_snippet"
                  data-name="Specializations"
-                 data-limit="4">
+                 data-limit="4"
+                 data-style="style1">
 
             <div class="container">
+
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <h2 class="fw-bold mb-0">Our Specialization</h2>
+
+                    <a href="/specializations" class="btn btn-outline-primary see-all-btn">
+                        See all →
+                    </a>
+
+                </div>
+
                 <div class="row o_specialization_container"></div>
+
             </div>
 
         </section>
     </template>
-
 </odoo>

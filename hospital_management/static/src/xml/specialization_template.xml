@@ -1,0 +1,156 @@
+<t t-name="hospital.SpecializationGrid">
+
+    <!-- STYLE 1 (DEFAULT - TAMARO CURRENT DESIGN) -->
+    <t t-if="style == 'style1'">
+
+        <section class="s_ecomm_categories_showcase first-large-layout o_cc o_cc1 pt48 pb48">
+
+            <div class="container">
+
+                <div class="s_ecomm_categories_showcase_wrapper d-flex gap-4">
+
+                    <t t-foreach="records" t-as="rec" t-key="rec.id">
+
+                        <t t-set="img_url"
+                           t-value="'/hospital_management/static/src/img/' + rec.name.toLowerCase().replace(' ', '_') + '.jpg'"/>
+
+                        <div class="s_ecomm_categories_showcase_block o_cc o_cc5 oe_img_bg rounded-2"
+                             t-att-style="'background-image: url(' + img_url + '); background-position: 15% 50%;'">
+
+                            <div class="o_we_bg_filter bg-black-25"/>
+
+                            <div class="s_ecomm_categories_showcase_row d-flex">
+
+                                <div class="s_ecomm_categories_showcase_content d-flex flex-column justify-content-end text-start">
+
+                                    <h2 class="h3-fs">
+                                        <t t-esc="rec.name"/>
+                                    </h2>
+
+                                    <p>
+                                        <a t-att-href="'/doctors/' + rec.name.toLowerCase().split(' ').join('-') + '?from=home'"
+                                           class="btn btn-secondary btn-sm">
+                                            View Doctors
+                                        </a>
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </t>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </t>
+
+
+    <!-- STYLE 2 (NEW DESIGN - CARD GRID) -->
+    <t t-elif="style == 'style2'">
+
+        <section class="container mt-3">
+            <div class="row g-4">
+
+                <t t-foreach="records" t-as="rec" t-key="rec.id">
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="spec-card">
+
+                            <!-- Image -->
+                            <div class="spec-img">
+                                <img t-att-src="'/hospital_management/static/src/img/' + rec.name.toLowerCase().split(' ').join('_') + '.jpg'"/>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="spec-body">
+
+                                <h5 class="spec-title">
+                                    <t t-esc="rec.name"/>
+                                </h5>
+
+                                <a t-att-href="'/doctors/' + rec.name.toLowerCase().split(' ').join('-') + '?from=home'"
+                                class="btn spec-btn">
+                                    View Doctors
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </t>
+
+            </div>
+        </section>
+
+    </t>
+
+    <!-- STYLE 3 (MODERN LIST STYLE) -->
+    <t t-elif="style == 'style3'">
+
+        <section class="container mt-3">
+
+            <t t-foreach="records" t-as="rec" t-key="rec.id">
+
+                <a t-att-href="'/doctors/' + rec.name.toLowerCase().split(' ').join('-') + '?from=home'"
+                class="spec-list-item d-flex align-items-center justify-content-between mb-3 p-3 shadow-sm rounded text-decoration-none text-dark">
+
+                    <!-- LEFT -->
+                    <div class="d-flex align-items-center">
+
+                        <img t-att-src="'/hospital_management/static/src/img/' + rec.name.toLowerCase().replace(' ', '_') + '.jpg'"
+                            width="80" height="80"
+                            class="rounded me-3 object-fit-cover"/>
+
+                        <div>
+                            <h6 class="mb-1 fw-semibold">
+                                <t t-esc="rec.name"/>
+                            </h6>
+                            <small class="text-muted">Specialized Department</small>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT -->
+                    <span class="custom-btn">
+                        View Doctors →
+                    </span>
+
+                </a>
+
+            </t>
+
+            <!-- SHOW MORE / LESS -->
+            <t t-if="showToggle and total > limit">
+
+                <div class="text-center mt-4">
+
+                    <t t-if="!expanded">
+                        <button class="arrow-btn show-more-btn">
+                            ↓
+                        </button>
+                    </t>
+
+                    <t t-else="">
+                        <button class="arrow-btn show-less-btn">
+                            ↑
+                        </button>
+                    </t>
+
+                </div>
+
+            </t>
+
+        </section>
+
+    </t>
+
+</t>

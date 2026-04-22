@@ -1,0 +1,96 @@
+// ================= VARIABLES =================
+$primary: #4e73df;
+$secondary: #6c757d;
+$card-radius: 20px;
+$transition: all 0.3s ease;
+
+// ================= DOCTOR CARD =================
+.doctor-card {
+    position: relative;
+    background: #fff;
+    border-radius: $card-radius;
+    padding: 20px;
+    padding-top: 60px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transition: $transition;
+
+    &:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    // ===== TOP DOT =====
+    .doctor-dot {
+        width: 40px;
+        height: 40px;
+        background: $primary;
+        border-radius: 50%;
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    // ===== IMAGE =====
+    .doctor-img {
+        margin-top: -50px;
+
+        img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 5px solid #fff;
+            object-fit: cover;
+        }
+    }
+
+    // ===== CONTENT =====
+    .doctor-body {
+        margin-top: 10px;
+
+        h5 {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .specialization {
+            color: $secondary;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .fees {
+            font-weight: 600;
+            color: $primary;
+            margin-bottom: 10px;
+        }
+
+        .desc {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 15px;
+        }
+
+        .contact {
+            font-size: 12px;
+            color: #555;
+
+            p {
+                margin: 2px 0;
+            }
+        }
+    }
+
+    // ===== BUTTON =====
+    .doctor-btn {
+        margin-top: 15px;
+
+        .btn {
+            border-radius: 30px;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+    }
+}
