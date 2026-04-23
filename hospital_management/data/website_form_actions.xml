@@ -1,0 +1,25 @@
+<odoo>
+    <data>
+
+        <!-- UPDATE existing model (NOT create) -->
+        <record id="model_hospital_appointment" model="ir.model">
+            <field name="website_form_key">create_appointment</field>
+            <field name="website_form_access">True</field>
+            <field name="website_form_label">Create Appointment</field>
+        </record>
+
+        <!-- WHITELIST -->
+        <function model="ir.model.fields" name="formbuilder_whitelist">
+            <value>hospital.appointment</value>
+            <value eval="[
+                'patient_id',
+                'doctor_id',
+                'specialization_id',
+                'start_date',
+                'end_date',
+                'symptoms'
+            ]"/>
+        </function>
+
+    </data>
+</odoo>

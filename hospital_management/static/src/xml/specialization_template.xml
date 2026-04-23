@@ -1,40 +1,34 @@
 <t t-name="hospital.SpecializationGrid">
 
-    <!-- STYLE 1 (DEFAULT - TAMARO CURRENT DESIGN) -->
+    <!-- STYLE 1 (DEFAULT) -->
     <t t-if="style == 'style1'">
 
-        <section class="s_ecomm_categories_showcase first-large-layout o_cc o_cc1 pt48 pb48">
+        <section class="my_categories_showcase pt48 pb48">
 
             <div class="container">
 
-                <div class="s_ecomm_categories_showcase_wrapper d-flex gap-4">
+                <div class="my_categories_wrapper d-flex gap-4">
 
                     <t t-foreach="records" t-as="rec" t-key="rec.id">
 
                         <t t-set="img_url"
-                           t-value="'/hospital_management/static/src/img/' + rec.name.toLowerCase().replace(' ', '_') + '.jpg'"/>
+                        t-value="'/hospital_management/static/src/img/' + rec.name.toLowerCase().replace(' ', '_') + '.jpg'"/>
 
-                        <div class="s_ecomm_categories_showcase_block o_cc o_cc5 oe_img_bg rounded-2"
-                             t-att-style="'background-image: url(' + img_url + '); background-position: 15% 50%;'">
+                        <div class="my_category_card oe_img_bg rounded-3"
+                            t-att-style="'background-image: url(' + img_url + '); background-position: center;'">
 
-                            <div class="o_we_bg_filter bg-black-25"/>
+                            <div class="overlay"/>
 
-                            <div class="s_ecomm_categories_showcase_row d-flex">
+                            <div class="content d-flex flex-column justify-content-end">
 
-                                <div class="s_ecomm_categories_showcase_content d-flex flex-column justify-content-end text-start">
+                                <h2>
+                                    <t t-esc="rec.name"/>
+                                </h2>
 
-                                    <h2 class="h3-fs">
-                                        <t t-esc="rec.name"/>
-                                    </h2>
-
-                                    <p>
-                                        <a t-att-href="'/doctors/' + rec.name.toLowerCase().split(' ').join('-') + '?from=home'"
-                                           class="btn btn-secondary btn-sm">
-                                            View Doctors
-                                        </a>
-                                    </p>
-
-                                </div>
+                                <a t-att-href="'/doctors/' + rec.name.toLowerCase().replace(' ', '-')"
+                                class="btn btn-light btn-sm">
+                                    View Doctors
+                                </a>
 
                             </div>
 
@@ -51,7 +45,7 @@
     </t>
 
 
-    <!-- STYLE 2 (NEW DESIGN - CARD GRID) -->
+    <!-- STYLE 2 (CARD GRID) -->
     <t t-elif="style == 'style2'">
 
         <section class="container mt-3">
@@ -63,12 +57,10 @@
 
                         <div class="spec-card">
 
-                            <!-- Image -->
                             <div class="spec-img">
                                 <img t-att-src="'/hospital_management/static/src/img/' + rec.name.toLowerCase().split(' ').join('_') + '.jpg'"/>
                             </div>
 
-                            <!-- Content -->
                             <div class="spec-body">
 
                                 <h5 class="spec-title">
@@ -93,7 +85,7 @@
 
     </t>
 
-    <!-- STYLE 3 (MODERN LIST STYLE) -->
+    <!-- STYLE 3 (LIST STYLE) -->
     <t t-elif="style == 'style3'">
 
         <section class="container mt-3">
@@ -119,7 +111,6 @@
 
                     </div>
 
-                    <!-- RIGHT -->
                     <span class="custom-btn">
                         View Doctors →
                     </span>
@@ -128,7 +119,6 @@
 
             </t>
 
-            <!-- SHOW MORE / LESS -->
             <t t-if="showToggle and total > limit">
 
                 <div class="text-center mt-4">

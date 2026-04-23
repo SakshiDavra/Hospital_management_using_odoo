@@ -1,0 +1,15 @@
+<odoo>
+
+    <template id="my_snippet_inherit" inherit_id="website.snippets">
+
+        <xpath expr="//snippets[@id='snippet_structure']" position="inside">
+
+            <t t-snippet="hospital_management.s_my_form"
+               string="My Custom Form"
+               group="contact_and_forms"/>
+
+        </xpath>
+
+    </template>
+
+</odoo>

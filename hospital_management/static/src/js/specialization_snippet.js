@@ -103,7 +103,6 @@ export class SpecializationSnippet extends Interaction {
     }
 }
 
-// register
 registry.category("public.interactions").add(
     "hospital.specialization_snippet",
     SpecializationSnippet

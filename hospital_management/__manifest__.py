@@ -1,4 +1,4 @@
-    {
+{
         'name': 'Hospital Management',
         'version': '1.0.0',
         'license': 'LGPL-3',
@@ -18,7 +18,7 @@
             'portal', 
             'account',
             'contacts',
-            'mail',   # ADD THIS
+            'mail',  
         ],
         'data': [
             # Security
@@ -40,6 +40,7 @@
             'data/hospital_appointment_sequence.xml',
             'data/mail_template_data.xml',
             'data/hospital_cron.xml',
+            'data/website_form_actions.xml',
 
             # Views
            
@@ -54,12 +55,9 @@
             # 'views/snippets/image_text_snippet.xml',
             # 'views/snippets/doctor_specialization.xml',
             'views/snippets/snippet_catalog.xml',
-            # 'views/snippets/s_specialization_snippet.xml',
-            # 'views/snippets/s_specialization_preview_data.xml',
-
             'views/snippets/specialization_snippet.xml',
-
-
+            'views/snippets/s_my_form.xml',
+            'views/snippets/snippets.xml',
  
             'views/hospital_menus.xml',
         ],
@@ -99,14 +97,11 @@
 
             'web.assets_frontend': [
                 'hospital_management/static/src/css/style.css',
-                # 'hospital_management/static/src/css/snippet.css',
-                # 'hospital_management/static/src/js/doctor_specialization.js',
                 'hospital_management/static/src/js/specialization_snippet.js',
                 'hospital_management/static/src/xml/specialization_template.xml', 
                 'hospital_management/static/src/scss/specialization.scss',
                 'hospital_management/static/src/scss/doctor_card.scss',
-                'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css',
-
+                'hospital_management/static/src/js/appointment_form.js',
 
             ],
             'website.assets_editor': [   
@@ -114,11 +109,12 @@
                 'hospital_management/static/src/js/specialization_plugin.js',
                 'hospital_management/static/src/js/limit_action.js',
                 'hospital_management/static/src/xml/specialization_option.xml',  
-                'hospital_management/static/src/js/style_action.js',              
+                'hospital_management/static/src/js/style_action.js',  
+                'hospital_management/static/src/js/form_editor.js',     
             ]
         },
 
         'installable': True,
         'application': True,
         'auto_install': False,
-    }
+}

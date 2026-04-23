@@ -1,0 +1,26 @@
+<odoo>
+
+    <template id="s_my_form" name="My Custom Form">
+        <section class="s_my_form o_cc o_cc2 pt64 pb48" data-snippet="s_my_form">
+
+            <div class="o_container_small">
+
+                <h2 class="text-center mb-3">Appointment Form </h2>
+
+                <p class="text-center lead mb-4">
+                    Every patient deserves the best care. Book your appointment today and connect with our experienced doctors.
+                </p>
+
+                <!-- FORM -->
+                <div class="bg-white p-4 rounded shadow-sm">
+
+                    <t t-snippet-call="website.s_website_form"/>
+
+                </div>
+
+            </div>
+
+        </section>
+    </template>
+
+</odoo>
