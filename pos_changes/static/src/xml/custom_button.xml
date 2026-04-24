@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!-- OrderWidget extend -->
+    <t t-inherit="point_of_sale.OrderWidget" t-inherit-mode="extension">
+
+        <!-- control buttons area -->
+        <xpath expr="//div[contains(@class, 'control-buttons')]" position="inside">
+
+            <button class="btn btn-secondary btn-lg"
+                    t-on-click="onClickClear">
+                Clear
+            </button>
+
+        </xpath>
+
+    </t>
+
+</templates>
