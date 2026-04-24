@@ -632,100 +632,80 @@
 
                             <!-- ================= SPECIALIZATION ================= -->
 
-                            <t t-if="is_doctor">
-                                <!-- Doctor login → auto -->
+                           <!-- ================= SPECIALIZATION ================= -->
+
+                            <t t-if="selected_specialization">
                                 <div class="mb-3">
                                     <label class="form-label">Specialization</label>
 
                                     <input type="text"
                                         class="form-control"
-                                        t-att-value="user_specialization.name"
+                                        t-att-value="selected_specialization.name"
                                         readonly="1"/>
 
                                     <input type="hidden"
                                         name="specialization_id"
-                                        t-att-value="user_specialization.id"/>
+                                        t-att-value="selected_specialization.id"/>
                                 </div>
                             </t>
+
                             <t t-else="">
-                                <!-- Patient / Admin -->
                                 <div class="mb-3">
                                     <label class="form-label">Specialization</label>
+
                                     <select name="specialization_id"
-                                            id="specialization_id"
                                             class="form-control"
-                                            required="1"
-                                            t-att-disabled="selected_specialization">
+                                            required="1">
 
                                         <option value="">Select Specialization</option>
 
-                                        <t t-foreach="specializations" t-as="s" t-key="s.id">
-
-                                            <option t-att-value="s.id"
-                                                    t-att-selected="
-                                                        (selected_specialization and s.id == selected_specialization.id)
-                                                        or (appointment and appointment.specialization_id.id == s.id)
-                                                    ">
-
+                                        <t t-foreach="specializations" t-as="s">
+                                            <option t-att-value="s.id">
                                                 <t t-esc="s.name"/>
-
                                             </option>
-
                                         </t>
 
                                     </select>
                                 </div>
                             </t>
-                            <!-- Doctor -->
-                            <!-- ================= DOCTOR ================= -->
 
-                            <t t-if="is_doctor">
-                                <!-- Doctor login -->
+                           <!-- ================= DOCTOR ================= -->
+
+                            <t t-if="selected_doctor">
+                                <!-- Doctor already selected (from list page) -->
+
                                 <div class="mb-3">
                                     <label class="form-label">Doctor</label>
+
                                     <input type="text"
                                         class="form-control"
-                                        t-att-value="request.env.user.partner_id.name"
+                                        t-att-value="selected_doctor.name"
                                         readonly="1"/>
 
+                                    <!-- IMPORTANT -->
                                     <input type="hidden"
                                         name="doctor_id"
-                                        t-att-value="request.env.user.partner_id.id"/>
+                                        t-att-value="selected_doctor.id"/>
                                 </div>
                             </t>
 
                             <t t-else="">
-                                <!-- Patient / Admin -->
-                                <!-- Patient / Admin -->
+                                <!-- Normal dropdown -->
+
                                 <div class="mb-3">
                                     <label class="form-label">Doctor</label>
 
-                                    <select name="doctor_id"
-                                            class="form-control"
-                                            required="1"
-                                            t-att-disabled="selected_doctor">
-
+                                    <select name="doctor_id" class="form-control" required="1">
                                         <option value="">Select Doctor</option>
 
-                                        <t t-foreach="doctors" t-as="d" t-key="d.id">
-
+                                        <t t-foreach="doctors" t-as="d">
                                             <option t-att-value="d.id"
                                                     t-att-data-spec="d.specialization_id.id"
-                                                    t-att-data-fees="d.consultation_fees"
-
-                                                    t-att-selected="
-                                                        (selected_doctor and d.id == selected_doctor.id)
-                                                        or (appointment and appointment.doctor_id.id == d.id)
-                                                    ">
-
+                                                    t-att-selected="appointment and appointment.doctor_id.id == d.id">
                                                 <t t-esc="d.name"/>
-
                                             </option>
-
                                         </t>
-
                                     </select>
-
                                 </div>
                             </t>
 

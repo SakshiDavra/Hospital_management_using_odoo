@@ -4,7 +4,7 @@ from odoo.http import request
 
 class WebsiteAppointmentController(http.Controller):
 
-    # 🔹 specialization → doctor filter
+    # specialization → doctor filter
     @http.route('/get_doctors_by_specialization', type='json', auth='public', website=True)
     def get_doctors(self, specialization_id=None):
 
@@ -22,7 +22,7 @@ class WebsiteAppointmentController(http.Controller):
         } for d in doctors]
 
 
-    # 🔹 doctor → specialization auto fill
+    # doctor → specialization auto fill
     @http.route('/get_doctor_specialization', type='json', auth='public', website=True)
     def get_specialization(self, doctor_id):
 

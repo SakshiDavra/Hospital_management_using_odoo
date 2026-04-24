@@ -13,7 +13,7 @@ export class SpecializationSnippet extends Interaction {
         this.allRecords = [];
         this.expanded = false;
         this.defaultLimit = 4;
-        this.style = "style1";
+        this.style = "Style-Default";
     }
 
     start() {
@@ -34,11 +34,11 @@ export class SpecializationSnippet extends Interaction {
 
     async loadData() {
         this.defaultLimit = parseInt(this.el.dataset.limit) || 4;
-        this.style = this.el.dataset.style || "style1";
+        this.style = this.el.dataset.style || "Style-Default";
 
         this.expanded = false;
 
-        if (this.style === "style3") {
+        if (this.style === "Style-Listview") {
             this.allRecords = await this.orm.searchRead(
                 "hospital.specialization",
                 [],
@@ -59,7 +59,7 @@ export class SpecializationSnippet extends Interaction {
     renderData() {
         let recordsToShow;
 
-        if (this.style === "style3") {
+        if (this.style === "Style-Listview") {
             recordsToShow = this.expanded
                 ? this.allRecords
                 : this.allRecords.slice(0, this.defaultLimit);
@@ -70,7 +70,7 @@ export class SpecializationSnippet extends Interaction {
         const html = renderToElement("hospital.SpecializationGrid", {
             records: recordsToShow,
             style: this.style,
-            showToggle: this.style === "style3",
+            showToggle: this.style === "Style-Listview",
             expanded: this.expanded,
             total: this.allRecords.length,
             limit: this.defaultLimit,
@@ -78,7 +78,7 @@ export class SpecializationSnippet extends Interaction {
 
         const container = this.el.querySelector(".o_specialization_container");
         container.innerHTML = "";
-        container.appendChild(html);
+        container.replaceChildren(html);
 
         this.bindButtons();
     }

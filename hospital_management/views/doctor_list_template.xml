@@ -22,7 +22,7 @@
 
                         <t t-else="">
                             <li class="breadcrumb-item">
-                                <a href="/doctors">Doctors</a>
+                                <a href="/specializations">Specializations</a>
                             </li>
 
                             <t t-if="specialization">

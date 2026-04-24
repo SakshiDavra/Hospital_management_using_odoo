@@ -1,7 +1,7 @@
 <t t-name="hospital.SpecializationGrid">
 
     <!-- STYLE 1 (DEFAULT) -->
-    <t t-if="style == 'style1'">
+    <t t-if="style == 'Style-Default'">
 
         <section class="my_categories_showcase pt48 pb48">
 
@@ -25,9 +25,9 @@
                                     <t t-esc="rec.name"/>
                                 </h2>
 
-                                <a t-att-href="'/doctors/' + rec.name.toLowerCase().replace(' ', '-')"
-                                class="btn btn-light btn-sm">
-                                    View Doctors
+                                <a t-att-href="'/doctors/' + rec.name.toLowerCase().replace(' ', '-') + '?from_page=home'"
+                                    class="spec-btn">
+                                        View Doctors
                                 </a>
 
                             </div>
@@ -46,7 +46,7 @@
 
 
     <!-- STYLE 2 (CARD GRID) -->
-    <t t-elif="style == 'style2'">
+    <t t-elif="style == 'Style-Grid'">
 
         <section class="container mt-3">
             <div class="row g-4">
@@ -58,7 +58,8 @@
                         <div class="spec-card">
 
                             <div class="spec-img">
-                                <img t-att-src="'/hospital_management/static/src/img/' + rec.name.toLowerCase().split(' ').join('_') + '.jpg'"/>
+                                <img t-att-src="'/hospital_management/static/src/img/' + rec.name.toLowerCase().split(' ').join('_') + '.jpg'"
+                                    onerror="this.src='/hospital_management/static/src/img/serjapecialist.jpg'"/>
                             </div>
 
                             <div class="spec-body">
@@ -67,7 +68,7 @@
                                     <t t-esc="rec.name"/>
                                 </h5>
 
-                                <a t-att-href="'/doctors/' + rec.name.toLowerCase().split(' ').join('-') + '?from=home'"
+                                <a t-att-href="'/doctors/' + rec.name.toLowerCase().split(' ').join('-') + '?from_page=home'"
                                 class="btn spec-btn">
                                     View Doctors
                                 </a>
@@ -86,13 +87,13 @@
     </t>
 
     <!-- STYLE 3 (LIST STYLE) -->
-    <t t-elif="style == 'style3'">
+    <t t-elif="style == 'Style-Listview'">
 
         <section class="container mt-3">
 
             <t t-foreach="records" t-as="rec" t-key="rec.id">
 
-                <a t-att-href="'/doctors/' + rec.name.toLowerCase().split(' ').join('-') + '?from=home'"
+                <a t-att-href="'/doctors/' + rec.name.toLowerCase().split(' ').join('-') + '?from_page=home'"
                 class="spec-list-item d-flex align-items-center justify-content-between mb-3 p-3 shadow-sm rounded text-decoration-none text-dark">
 
                     <!-- LEFT -->
@@ -124,14 +125,14 @@
                 <div class="text-center mt-4">
 
                     <t t-if="!expanded">
-                        <button class="arrow-btn show-more-btn">
-                            ↓
+                        <button class="see-all-style-btn show-more-btn">
+                            ↓ View All
                         </button>
                     </t>
 
                     <t t-else="">
-                        <button class="arrow-btn show-less-btn">
-                            ↑
+                        <button class="see-all-style-btn show-less-btn">
+                            ↑ View Less
                         </button>
                     </t>
 

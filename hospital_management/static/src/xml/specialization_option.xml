@@ -3,9 +3,9 @@
 
 <t t-name="hospital.specialization_option">
 
-    <BuilderRow label.translate="No. of Records">
+    <BuilderRow label.translate="Fetched Elements">
 
-        <BuilderSelect action="'setRecordLimit'">
+        <!-- <BuilderSelect action="'setRecordLimit'">
             <BuilderSelectItem actionValue="'2'">2</BuilderSelectItem>
             <BuilderSelectItem actionValue="'4'">4</BuilderSelectItem>
             <BuilderSelectItem actionValue="'6'">6</BuilderSelectItem>
@@ -19,6 +19,20 @@
             <BuilderSelectItem actionValue="'15'">15</BuilderSelectItem>
             <BuilderSelectItem actionValue="'16'">16</BuilderSelectItem>
             <BuilderSelectItem actionValue="'17'">17</BuilderSelectItem>
+        </BuilderSelect> -->
+
+        <BuilderSelect action="'setRecordLimit'" preview="false">
+
+            <!-- Dynamic loop -->
+            <t t-foreach="Array.from({ length: this.count }, (_, i) => i + 1)" t-as="num" t-key="num">
+
+                <BuilderSelectItem
+                    actionValue="num"
+                    t-out="num"
+                />
+
+            </t>
+
         </BuilderSelect>
 
     </BuilderRow>
@@ -26,10 +40,10 @@
     <!-- NEW STYLE OPTION -->
     <BuilderRow label.translate="Template Style">
 
-        <BuilderSelect action="'setTemplateStyle'">
-            <BuilderSelectItem actionValue="'style1'">Style 1</BuilderSelectItem>
-            <BuilderSelectItem actionValue="'style2'">Style 2</BuilderSelectItem>
-            <BuilderSelectItem actionValue="'style3'">Style 3</BuilderSelectItem>
+        <BuilderSelect action="'setTemplateStyle'" preview="false">
+            <BuilderSelectItem actionValue="'Style-Default'">Style-Default</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'Style-Grid'">Style-Grid</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'Style-Listview'">Style-Listview</BuilderSelectItem>
         </BuilderSelect>
 
     </BuilderRow>

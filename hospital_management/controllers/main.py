@@ -20,7 +20,7 @@ class HospitalController(http.Controller):
         ]
 
         specialization = None
-        from_page = kwargs.get('from')
+        from_page = kwargs.get('from_page')
 
         # If specialization URL hoy
         if spec_slug:
