@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Clear button -->
+    <t t-name="pos_changes.ClearButton">
+        <button class="btn btn-secondary btn-lg lh-lg text-truncate w-auto"
+                t-on-click="onClick">
+            Clear
+        </button>
+    </t>
+
+</templates>

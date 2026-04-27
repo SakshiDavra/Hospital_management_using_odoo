@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="point_of_sale.ControlButtons"
+       t-inherit-mode="extension">
+
+        <!-- Note pachhi add -->
+        <xpath expr="//InternalNoteButton" position="after">
+            <ClearButton/>
+        </xpath>
+
+    </t>
+
+</templates>

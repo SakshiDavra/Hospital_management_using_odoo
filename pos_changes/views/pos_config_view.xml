@@ -1,0 +1,58 @@
+<odoo>
+    <record id="view_res_config_settings_inherit_pos_ui" model="ir.ui.view">
+        <field name="name">res.config.settings.inherit.pos.ui.card</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//block[@id='pos_interface_section']" position="after">
+
+                <block title="Product Card UI" id="pos_product_card_section">
+
+                    <!-- ENABLE -->
+                    <setting string="Enable Card Resize"
+                             help="Enable custom product card size in POS">
+
+                        <field name="enable_card_resize"/>
+
+                        <!-- FIELDS -->
+                        <div class="content-group mt24" invisible="not enable_card_resize">
+
+                            <!-- WIDTH -->
+                            <div class="row mt16">
+                                <label for="product_card_width" class="col-lg-3 o_light_label"/>
+                                <div class="col-lg-6">
+                                    <field name="product_card_width"/>
+                                    <div class="text-muted">Width (px)</div>
+                                </div>
+                            </div>
+
+                            <!-- HEIGHT -->
+                            <div class="row mt16">
+                                <label for="product_card_height" class="col-lg-3 o_light_label"/>
+                                <div class="col-lg-6">
+                                    <field name="product_card_height"/>
+                                    <div class="text-muted">Height (px)</div>
+                                </div>
+                            </div>
+
+                            <!-- FONT -->
+                            <div class="row mt16">
+                                <label for="product_font_size" class="col-lg-3 o_light_label"/>
+                                <div class="col-lg-6">
+                                    <field name="product_font_size"/>
+                                    <div class="text-muted">Font size (px)</div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </setting>
+
+                </block>
+
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
