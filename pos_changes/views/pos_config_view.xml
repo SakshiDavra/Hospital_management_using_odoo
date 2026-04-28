@@ -1,58 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="view_res_config_settings_inherit_pos_ui" model="ir.ui.view">
-        <field name="name">res.config.settings.inherit.pos.ui.card</field>
-        <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+
+    <record id="view_pos_config_inherit_card_ui" model="ir.ui.view">
+        <field name="name">pos.config.inherit.card.ui</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
         <field name="arch" type="xml">
 
-            <xpath expr="//block[@id='pos_interface_section']" position="after">
+            <xpath expr="//sheet" position="inside">
 
-                <block title="Product Card UI" id="pos_product_card_section">
+                <group string="Product Card UI">
 
-                    <!-- ENABLE -->
-                    <setting string="Enable Card Resize"
-                             help="Enable custom product card size in POS">
+                    <field name="enable_card_resize"/>
 
-                        <field name="enable_card_resize"/>
+                    <field name="product_card_width"
+                        invisible="not enable_card_resize"/>
 
-                        <!-- FIELDS -->
-                        <div class="content-group mt24" invisible="not enable_card_resize">
+                    <field name="product_card_height"
+                        invisible="not enable_card_resize"/>
 
-                            <!-- WIDTH -->
-                            <div class="row mt16">
-                                <label for="product_card_width" class="col-lg-3 o_light_label"/>
-                                <div class="col-lg-6">
-                                    <field name="product_card_width"/>
-                                    <div class="text-muted">Width (px)</div>
-                                </div>
-                            </div>
+                    <field name="product_font_size"
+                        invisible="not enable_card_resize"/>
 
-                            <!-- HEIGHT -->
-                            <div class="row mt16">
-                                <label for="product_card_height" class="col-lg-3 o_light_label"/>
-                                <div class="col-lg-6">
-                                    <field name="product_card_height"/>
-                                    <div class="text-muted">Height (px)</div>
-                                </div>
-                            </div>
-
-                            <!-- FONT -->
-                            <div class="row mt16">
-                                <label for="product_font_size" class="col-lg-3 o_light_label"/>
-                                <div class="col-lg-6">
-                                    <field name="product_font_size"/>
-                                    <div class="text-muted">Font size (px)</div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </setting>
-
-                </block>
+                </group>
 
             </xpath>
 
         </field>
     </record>
+
 </odoo>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+<t t-inherit="point_of_sale.ProductCard" t-inherit-mode="extension">
+    <xpath expr="//article" position="attributes">
+        <attribute name="t-att-style">
+            env.services.pos.config?.enable_card_resize ? 
+            `width: ${env.services.pos.config.product_card_width}px !important; 
+             height: ${env.services.pos.config.product_card_height}px !important;` 
+            : undefined
+        </attribute>
+    </xpath>
+
+    <xpath expr="//div[contains(@class,'product-name')]" position="attributes">
+        <attribute name="t-att-style">
+            env.services.pos.config?.enable_card_resize ? 
+            `font-size: ${env.services.pos.config.product_font_size}px !important;` 
+            : undefined
+        </attribute>
+    </xpath>
+</t>
+
+</templates>

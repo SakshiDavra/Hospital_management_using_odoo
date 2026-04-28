@@ -4,6 +4,8 @@
     'depends': ['point_of_sale'],
     'data': [
         'views/pos_config_view.xml',
+        'views/pos_order_view.xml',
+        
     ],
     'installable': True,
 
@@ -12,10 +14,9 @@
             'pos_changes/static/src/js/clear_button.js',
             'pos_changes/static/src/xml/clear_button.xml',
             'pos_changes/static/src/xml/pos_buttons.xml',
+            'pos_changes/static/src/xml/product_card.xml',
+            'pos_changes/static/src/xml/product_screen.xml',
 
-            # 'pos_changes/static/src/scss/pos_custom.scss',
-
-            'pos_changes/static/src/js/pos_dynamic_style.js',
 
         ],
 
