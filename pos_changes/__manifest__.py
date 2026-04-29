@@ -1,9 +1,11 @@
 {
     'name': 'POS Change',
     'version': '1.0',
-    'depends': ['point_of_sale'],
+    'depends': ['point_of_sale','account'],
     'data': [
         'views/pos_config_view.xml',
+        'reports/report.xml',
+        'reports/pos_order_receipt.xml',
         'views/pos_order_view.xml',
         
     ],
@@ -16,8 +18,6 @@
             'pos_changes/static/src/xml/pos_buttons.xml',
             'pos_changes/static/src/xml/product_card.xml',
             'pos_changes/static/src/xml/product_screen.xml',
-
-
         ],
 
     },

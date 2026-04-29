@@ -11,7 +11,7 @@
         </attribute>
     </xpath>
 
-    <xpath expr="//div[contains(@class,'product-name')]" position="attributes">
+    <xpath expr="//div[hasclass('product-name')]" position="attributes">
         <attribute name="t-att-style">
             env.services.pos.config?.enable_card_resize ? 
             `font-size: ${env.services.pos.config.product_font_size}px !important;` 
