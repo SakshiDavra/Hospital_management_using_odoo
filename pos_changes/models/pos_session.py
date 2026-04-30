@@ -8,11 +8,9 @@ class PosSession(models.Model):
 
         fields = res['search_params'].get('fields', [])
 
-        # 👉 ensure required field present (VERY IMPORTANT)
         if 'currency_id' not in fields:
             fields.append('currency_id')
 
-        # 👉 avoid duplicate fields
         custom_fields = [
             'enable_card_resize',
             'product_card_width',

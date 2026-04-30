@@ -1,196 +1,322 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
   <template id="pos_order_receipt_backend">
-    <t t-call="web.basic_layout">
-      <t t-foreach="docs" t-as="order">
+      <t t-call="web.html_container"> 
+        <head>
+            <link rel="stylesheet"
+                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+        </head>
+            <t t-foreach="docs" t-as="order">
+                <t t-call="web.basic_layout">
+                    <div class="page"> 
+    
+                        <div style=" font-family:monospace; color:#000;">
 
-        <div style="width:260px; margin:auto; font-family:monospace; font-size:12px; line-height:1.2; color:#000;">
+                          <!-- HEADER -->
+                            <div style="text-align:center; margin-bottom:10px;">
 
-          <!-- HEADER -->
-          <div style="text-align:center; margin-bottom:10px;">
+                                <img t-if="order.company_id.id"
+                                  t-att-src="'/web/image/res.company/%s/logo' % order.company_id.id"
+                                  style="max-height:55px; margin-top:3px; margin-bottom:6px;"/>
 
-            <img t-if="order.company_id.id"
-                t-att-src="'/web/image/res.company/%s/logo' % order.company_id.id"
-                style="max-height:55px; margin-bottom:6px;"/>
+                                <div style="font-size:10px;">
+                                    Tax Invoice <t t-esc="order.pos_reference"/> INVOICE
+                                </div>
 
-            <div style="font-size:10px;">
-              Tax Invoice <t t-esc="order.pos_reference"/> INVOICE
-            </div>
+                                <div style="font-size:10px; margin-top:3px;">
+                                    <t t-esc="context_timestamp(order.date_order).strftime('%d/%m/%Y, %I:%M %p')"/>
+                                </div>
 
-            <div style="font-size:10px; margin-top:3px;">
-              <t t-esc="order.date_order.strftime('%d/%m/%Y, %I:%M %p')"/>
-            </div>
+                                <div style="font-size:10px; color:#555;">
+                                    Served by: <t t-esc="order.user_id.name.split(' ')[0]"/>
+                                </div>
+                                <!-- CUSTOMER INFO -->
+                                <t t-if="order.partner_id">
 
-            <div style="font-size:10px; color:#555;">
-              Served by: <t t-esc="order.user_id.name"/>
-            </div>
+                                    <!-- NAME (Company + Contact like POS) -->
+                                    <div style="margin-top:6px; font-size:10px; line-height:1.1;">
 
-          </div>
+                                        <t t-if="order.partner_id.parent_id">
+                                            <t t-esc="order.partner_id.parent_id.name + ', '"/>
+                                        </t>
+                                        <t t-esc="order.partner_id.name"/>
 
-          <div style="border-top:1px dashed #ffffff; margin:8px 0;"></div>
+                                    </div>
 
-          <!-- PRODUCTS -->
-          <t t-foreach="order.lines" t-as="line">
-          <div style="margin-bottom:4px;">
-            <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
-              <tr>
+                                    <!-- ADDRESS (POS style single clean line) -->
+                                    <div style="font-size:10px; margin-top:2px; line-height:1.1;">
 
-                <td style="width:18px; font-weight:600;">
-                  <t t-esc="int(line.qty)"/>
-                </td>
+                                        <t t-set="addr"
+                                            t-value="' '.join(filter(None, [
+                                                order.partner_id.street,
+                                                order.partner_id.street2,
+                                                order.partner_id.city,
+                                                (order.partner_id.state_id.name if order.partner_id.state_id else ''),
+                                                order.partner_id.zip,
+                                                (order.partner_id.country_id.name if order.partner_id.country_id else '')
+                                            ]))"/>
 
-                <td style="padding-left:6px;">
-                  <div style="font-size:13px; line-height:1.2;">
-                    <t t-esc="line.product_id.name"/>
-                  </div>
+                                        <t t-esc="addr"/>
 
-                  <div style="font-size:10px; color:#666;">
-                    $ <t t-esc="'{:,.2f}'.format(line.price_unit)"/> / Units
-                  </div>
-                </td>
+                                    </div>
 
-                <td style="text-align:right; font-size:13px;">
-                  $ <t t-esc="'{:,.2f}'.format(line.price_subtotal_incl)"/>
-                </td>
+                                    <!-- VAT -->
+                                    <t t-if="order.partner_id.vat">
+                                        <div style="font-size:10px; margin-top:2px; line-height:1.1;">
+                                            <t t-esc="order.partner_id.vat"/>
+                                        </div>
+                                    </t>
 
-              </tr>
-            </table>
-          </div>
-          </t>
+                                    <!-- PHONE -->
+                                    <t t-if="order.partner_id.phone">
+                                        <div style="font-size:10px; margin-top:2px; line-height:1.1;">
+                                            Phone: <t t-esc="order.partner_id.phone"/>
+                                        </div>
+                                    </t>
 
-          <!-- TOTAL -->
-          <table style="width:100%;">
-            <tr>
-              <td style="font-weight:700;">Total</td>
-              <td style="text-align:right; font-weight:700;">
-                $ <t t-esc="'{:,.2f}'.format(order.amount_total)"/>
-              </td>
-            </tr>
-          </table>
+                                </t>
+                          </div>
 
-          <!-- PAYMENTS -->
-          <t t-foreach="order.payment_ids" t-as="p">
-          <table style="width:100%;">
-            <tr>
-              <td><t t-esc="p.payment_method_id.name"/></td>
-              <td style="text-align:right;">
-                $ <t t-esc="'{:,.2f}'.format(p.amount)"/>
-              </td>
-            </tr>
-          </table>
-          </t>
+                          <div style="border-top:1px dashed #ffffff; margin:8px 0;"></div>
 
-          <!-- QR -->
-          <table style="width:100%; margin-top:6px;">
-          <tr style="vertical-align:top;">
+                        <!-- PRODUCTS -->
+                        <t t-foreach="order.lines" t-as="line">
+                            <div style="margin-bottom:8px; font-family:monospace;">
 
-            <td style="width:95px;">
-              <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=90&amp;height=90' % (
-                (request.env['ir.config_parameter'].sudo().get_param('web.base.url') or '') 
-                + '/pos/ticket/validate?access_token=' 
-                + (order.access_token or '')
-              )"/>
-            </td>
+                                <table style="width:100%; table-layout:fixed;">
 
-            <td style="padding-left:6px; font-size:11px; vertical-align:top;">
+                                    <tr>
+                                        <td style="width:40px; font-weight:600; text-align:left; vertical-align:middle; white-space:nowrap;">
+                                            <t t-esc="line.qty"/>
+                                        </td>
+                                        <td style="padding-left:6px; vertical-align:top;">
 
-            <div style="margin-top:4px; font-weight:600;">
-              Need an invoice?
-            </div>
+                                            <!-- PRODUCT NAME -->
+                                            <div style="font-size:13px; line-height:1.2;">
+                                                <t t-esc="line.full_product_name"/>
+                                            </div>
 
-            <div style="margin-top:2px;">
-              <t t-esc="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/pos/ticket'"/>
-            </div>
+                                            <!-- UNIT PRICE -->
+                                            <t t-set="unit_price_raw"
+                                            t-value="line.price_subtotal_incl / line.qty if line.qty else 0"/>
 
-            <div style="margin-top:2px;">
-              Code: <t t-esc="order.ticket_code"/>
-            </div>
+                                            <t t-set="unit_price"
+                                            t-value="round(unit_price_raw + 0.005, 2)"/>
 
-          </td>
+                                            <div style="font-size:11px; color:#666; margin-top:2px;">
+                                                $ <t t-esc="'{:,.2f}'.format(unit_price)"/> / Units
+                                            </div>
 
-          </tr>
-          </table>
+                                            <!-- DISCOUNT -->
+                                            <t t-if="line.discount">
 
-          <!-- HSN -->
-          <div style="text-align:center; font-weight:600; margin-top:6px;">
-            HSN Summary
-          </div>
+                                                <t t-set="base_price_raw"
+                                                t-value="line.price_subtotal_incl / (1 - (line.discount / 100))"/>
 
-          <table style="width:100%; margin-top:4px; border-collapse:collapse; font-size:13px;">
+                                                <t t-set="base_price"
+                                                t-value="round(base_price_raw + 0.005, 2)"/>
 
-            <!-- HEADER -->
-            <tr style="font-weight:600;">
-              <td style="width:50%; text-align:center; padding:2px 0;">
-                HSN Code
-              </td>
-              <td style="width:50%; text-align:center; padding:2px 0;">
-                Rate%
-              </td>
-            </tr>
+                                                <div style="font-size:11px; color:#444;">
+                                                    <i class="fa fa-tag" style="margin-right:4px;"></i>
+                                                    <t t-esc="line.discount"/>% discount off on $
+                                                    <t t-esc="'{:,.2f}'.format(base_price)"/>
+                                                </div>
 
-            <!-- DATA -->
-            <t t-set="hsn_map" t-value="{}"/>
+                                            </t>
 
-              <t t-foreach="order.lines" t-as="line">
-                  <t t-if="line.product_id.l10n_in_hsn_code">
-                      <t t-set="hsn"
-                        t-value="line.product_id.l10n_in_hsn_code"/>
+                                        </td>
 
-                      <!-- add unique -->
-                      <t t-if="not hsn_map.get(hsn)">
-                          <t t-set="hsn_map"
-                            t-value="dict(hsn_map, **{hsn: line})"/>
-                      </t>
-                  </t>
-              </t>
+                                        <td style="width:90px; text-align:right; vertical-align:middle;">
 
-              <!-- DISPLAY -->
-              <t t-foreach="hsn_map.values()" t-as="line">
-                  <tr>
+                                            <div style="display:table; width:100%; height:100%;">
+                                                <div style="display:table-cell; vertical-align:middle; text-align:right; font-size:13px;">
+                                                    $ <t t-esc="'{:,.2f}'.format(line.price_subtotal_incl)"/>
+                                                </div>
+                                            </div>
 
-                      <td style="text-align:center;">
-                          <t t-esc="line.product_id.l10n_in_hsn_code"/>
-                      </td>
+                                        </td>
 
-                      <td style="text-align:center;">
-                          <t t-if="line.tax_ids">
-                              <t t-foreach="line.tax_ids" t-as="tax">
-                                  <t t-esc="tax.amount"/>%
+                                    </tr>
+
+                                </table>
+
+                            </div>
+                        </t>
+                        <div style="border-top:1px dashed #ffffff; margin:8px 0;"></div>
+                        
+                        <!-- TOTAL -->
+                        <!-- SUBTOTAL + TAX + TOTAL -->
+                        <table style="width:100%; font-size:13px; margin-top:6px;">
+
+                            <!-- SUBTOTAL -->
+                            <tr>
+                                <td>Subtotal</td>
+                                <td style="text-align:right;">
+                                    $ <t t-esc="'{:,.2f}'.format(order.amount_total - order.amount_tax)"/>
+                                </td>
+                            </tr>
+
+                            <!-- TAX -->
+                            <t t-if="order.amount_tax">
+                                <tr>
+                                    <td>
+                                        Tax
+                                    </td>
+                                    <td style="text-align:right;">
+                                        $ <t t-esc="'{:,.2f}'.format(order.amount_tax)"/>
+                                    </td>
+                                </tr>
+                            </t>
+
+                            <!-- TOTAL -->
+                            <tr>
+                                <td style="font-weight:700; padding-top:4px;">Total</td>
+                                <td style="text-align:right; font-weight:700; padding-top:4px;">
+                                    $ <t t-esc="'{:,.2f}'.format(order.amount_total)"/>
+                                </td>
+                            </tr>
+
+                        </table>
+
+                          <!-- PAYMENTS -->
+                        <t t-foreach="order.payment_ids" t-as="p">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td><t t-esc="p.payment_method_id.name"/></td>
+                                    <td style="text-align:right;">
+                                        $ <t t-esc="'{:,.2f}'.format(p.amount)"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </t>
+
+                        <!-- DISCOUNT (ONLY IF EXISTS) -->
+
+                        <t t-set="discount_total"
+                        t-value="sum([(l.price_unit * l.qty * l.discount / 100) for l in order.lines])"/>
+
+                        <t t-if="discount_total &gt; 0">
+                            <table style="width:100%; font-size:13px;">
+                                <tr>
+                                    <td>Discounts</td>
+                                    <td style="text-align:right;">
+                                        $ <t t-esc="'{:,.2f}'.format(discount_total)"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </t>
+                          <!-- QR -->
+                        <table style="width:100%; margin-top:3px; border-collapse:collapse;">
+                            <tr style="vertical-align:top;">
+
+                                <!-- QR -->
+                                <td style="width:95px; position:relative; padding:0;">
+                                    <img style="width:170px; height:170px; display:block; margin:0;"
+                                        t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=200&amp;height=200' % (
+                                            (request.env['ir.config_parameter'].sudo().get_param('web.base.url') or '') 
+                                            + '/pos/ticket/validate?access_token=' 
+                                            + (order.access_token or '')
+                                        )"/>
+                                </td>
+
+                                <!-- TEXT (Added padding-top here) -->
+                                <td style="padding-top:3mm; font-size:9px; vertical-align:top; padding-left:2px;">
+
+                                    <div style="font-weight:600;">
+                                        Need an invoice?
+                                    </div>
+
+                                    <div style="margin-top:2px; word-break:break-all;">
+                                        <t t-esc="request.env['ir.config_parameter'].sudo().get_param('web.base.url') + '/pos/ticket'"/>
+                                    </div>
+
+                                    <div style="margin-top:2px;">
+                                        Code: <t t-esc="order.ticket_code"/>
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        </table>
+
+                          <!-- HSN -->
+                          <div style="text-align:center; font-weight:600; margin-top:2px;">
+                              HSN Summary
+                          </div>
+
+                          <table style="width:100%; margin-top:0px; border-collapse:collapse; font-size:13px;">
+
+                              <!-- HEADER -->
+                              <tr style="font-weight:600;">
+                              <td style="width:50%; text-align:center; padding:2px 0;">
+                                  HSN Code
+                              </td>
+                              <td style="width:50%; text-align:center; padding:2px 0;">
+                                  Rate%
+                              </td>
+                              </tr>
+
+                              <!-- DATA -->
+                              <t t-set="hsn_map" t-value="{}"/>
+
+                              <t t-foreach="order.lines" t-as="line">
+                                  <t t-if="line.product_id.l10n_in_hsn_code">
+                                      <t t-set="hsn"
+                                          t-value="line.product_id.l10n_in_hsn_code"/>
+
+                                      <!-- add unique -->
+                                      <t t-if="not hsn_map.get(hsn)">
+                                          <t t-set="hsn_map"
+                                              t-value="dict(hsn_map, **{hsn: line})"/>
+                                      </t>
+                                  </t>
                               </t>
-                          </t>
-                          <t t-if="not line.tax_ids">0%</t>
-                      </td>
 
-                  </tr>
+                              <!-- DISPLAY -->
+                              <t t-foreach="hsn_map.values()" t-as="line">
+                                  <tr>
+
+                                      <td style="text-align:center;">
+                                          <t t-esc="line.product_id.l10n_in_hsn_code"/>
+                                      </td>
+
+                                      <td style="text-align:center;">
+                                          <t t-if="line.tax_ids">
+                                              <t t-foreach="line.tax_ids" t-as="tax">
+                                                  <t t-esc="tax.amount"/>%
+                                              </t>
+                                          </t>
+                                          <t t-if="not line.tax_ids">0%</t>
+                                      </td>
+
+                                  </tr>
+                              </t>
+
+                          </table>
+                          <!-- FOOTER -->
+                          <table style="width:100%; margin-top:3px; font-size:11px;">
+                              <tr>
+                              <td>
+                                  <t t-esc="order.config_id.name"/><br/>
+                                  <t t-esc="order.company_id.street"/><br/>
+                                  <t t-esc="order.company_id.city"/>
+                              </td>
+                              <td style="text-align:right;">
+                                  Tel: <t t-esc="order.company_id.phone"/><br/>
+                                  <t t-esc="order.company_id.email"/><br/>
+                                  <t t-esc="order.company_id.website"/>
+                              </td>
+                              </tr>
+                          </table>
+
+                          <div style="text-align:center; margin-top:10px; font-size:11px;">
+                              Powered by <b>Odoo</b>
+                          </div>
+
+                          </div>
+                  </div>
               </t>
-
-          </table>
-
-          <div style="border-top:1px dashed #ffffff; margin:8px 0;"></div>
-
-          <!-- FOOTER -->
-          <table style="width:100%; font-size:11px;">
-            <tr>
-              <td>
-                <t t-esc="order.config_id.name"/><br/>
-                <t t-esc="order.company_id.street"/><br/>
-                <t t-esc="order.company_id.city"/>
-              </td>
-              <td style="text-align:right;">
-                Tel: <t t-esc="order.company_id.phone"/><br/>
-                <t t-esc="order.company_id.email"/><br/>
-                <t t-esc="order.company_id.website"/>
-              </td>
-            </tr>
-          </table>
-
-          <div style="text-align:center; margin-top:10px; font-size:11px;">
-            Powered by <b>Odoo</b>
-          </div>
-
-        </div>
-
+          </t>
       </t>
-    </t>
   </template>
 </odoo>
