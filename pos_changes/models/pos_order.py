@@ -70,7 +70,7 @@ class PosOrder(models.Model):
                 if key not in result:
                     result[key] = {
                         'name': group.name,
-                        'rate': tax.amount,   # display purpose
+                        'rate': tax.amount,  
                         'base': 0,
                         'amount': 0,
                     }
@@ -112,7 +112,7 @@ class PosOrder(models.Model):
             qty = line.qty or 1
             unit_price = line.price_subtotal_incl / qty if qty else 0
 
-            # ✅ COMBO TOTAL
+            #  COMBO TOTAL
             if line.combo_line_ids:
                 combo_total = sum(l.price_subtotal_incl for l in line.combo_line_ids)
             else:
@@ -125,12 +125,12 @@ class PosOrder(models.Model):
 
                 'unit_price': round(unit_price, 2),
 
-                # ✅ FIXED PRICE
+                # FIXED PRICE
                 'price': 0 if is_child else round(combo_total, 2),
 
                 'discount': line.discount,
 
-                # ✅ MAIN FIX HERE
+                # MAIN FIX HERE
                 'no_discount_price': round(self.get_no_discount_price(line), 2),
             })
 

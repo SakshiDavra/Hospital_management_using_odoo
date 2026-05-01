@@ -95,7 +95,7 @@ class PosReceiptReport(models.AbstractModel):
 
         paper_format = self.env.ref('pos_changes.paperformat_pos_receipt')
 
-        # ✅ FIX 3: round height properly
+        # round height properly
         paper_format.sudo().write({
             'page_height': math.ceil(max_total_height)
         })
