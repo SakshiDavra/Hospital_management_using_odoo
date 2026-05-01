@@ -5,7 +5,7 @@
         <field name="default" eval="False"/>
         <field name="format">custom</field>
 
-        <field name="page_width">90</field>
+        <field name="page_width">100</field>
 
         <field name="page_height">0</field>
 
