@@ -19,10 +19,8 @@ class PosReceiptReport(models.AbstractModel):
         for order in docs:
             height = 0
 
-            # -------- HEADER --------
             height += 50
 
-            # -------- CUSTOMER --------
             if order.partner_id:
                 name_lines = self._get_line_count(order.partner_id.name, 30)
 
@@ -40,7 +38,7 @@ class PosReceiptReport(models.AbstractModel):
                     height += 5
 
             # ===============================
-            # PRODUCTS (FINAL FIX)
+            # PRODUCTS (FINAL FIX)  
             # ===============================
             lines = order.get_pos_ui_lines()
 
@@ -48,8 +46,7 @@ class PosReceiptReport(models.AbstractModel):
                 is_child = line.get('is_child')
 
                 # base line
-                height += 8.4
-
+                height += 6.4
                 # product name
                 name_lines = self._get_line_count(line.get('name'), 28)
                 height += (name_lines - 1) * 7
@@ -60,7 +57,7 @@ class PosReceiptReport(models.AbstractModel):
 
                 # discount only parent
                 if line.get('discount') and not is_child:
-                    height += 2
+                    height += 3.2
 
 
             # -------- TOTAL --------

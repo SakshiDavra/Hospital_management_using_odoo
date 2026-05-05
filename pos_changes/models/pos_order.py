@@ -1,7 +1,11 @@
-from odoo import models
+from odoo import models, api
+import logging
+
+_logger = logging.getLogger(__name__) 
 
 class PosOrder(models.Model):
     _inherit = 'pos.order'
+    
 
     def action_print_receipt(self):
         return self.env.ref('pos_changes.action_pos_order_receipt_backend').report_action(self)
@@ -27,10 +31,8 @@ class PosOrder(models.Model):
             if line.combo_parent_id:
                 continue
 
-            #  REMOVE N/A
             hsn = line.product_id.l10n_in_hsn_code
 
-            #  SKIP if empty
             if not hsn:
                 continue
 
@@ -56,32 +58,36 @@ class PosOrder(models.Model):
     
     def get_tax_breakup(self):
         result = {}
+        currency = self.currency_id or self.company_id.currency_id
 
         for line in self.lines:
-
             taxes = line.tax_ids_after_fiscal_position
 
             for tax in taxes:
                 group = tax.tax_group_id
-
-                # GROUP BY tax group (NOT rate)
                 key = group.id
 
                 if key not in result:
                     result[key] = {
+                        'id': group.id,
                         'name': group.name,
-                        'rate': tax.amount,  
+                        'rate': tax.amount,
                         'base': 0,
                         'amount': 0,
                     }
 
-                base = line.price_subtotal
-                tax_amt = line.price_subtotal_incl - line.price_subtotal
+                # NO ROUND HERE
+                result[key]['base'] += line.price_subtotal
+                result[key]['amount'] += (
+                    line.price_subtotal_incl - line.price_subtotal
+                )
 
-                result[key]['base'] += base
-                result[key]['amount'] += tax_amt
+        # ROUND ONLY AT END
+        for val in result.values():
+            val['base'] = currency.round(val['base'])
+            val['amount'] = currency.round(val['amount'])
 
-        return list(result.values())
+        return sorted(result.values(), key=lambda x: x['id'])
     
     def get_pos_lines(self):
         result = []
@@ -110,7 +116,7 @@ class PosOrder(models.Model):
             is_child = bool(line.combo_parent_id)
 
             qty = line.qty or 1
-            unit_price = line.price_subtotal_incl / qty if qty else 0
+            unit_price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
 
             #  COMBO TOTAL
             if line.combo_line_ids:
@@ -161,40 +167,48 @@ class PosOrder(models.Model):
         )
 
         return taxes['total_included']
+    
     def compute_pos_discount_total(self):
         self.ensure_one()
-
-        currency = self.currency_id or self.company_id.currency_id
+        ignored_product_ids = self._get_ignored_product_ids_total_discount() if hasattr(self, '_get_ignored_product_ids_total_discount') else []
+        
         total_discount = 0.0
+        currency = self.currency_id
+
+        discount_policy = 'with_discount'
+        if self.config_id:
+            discount_policy = getattr(self.config_id, 'discount_policy', 'with_discount')
 
         for line in self.lines:
-
-            if line.combo_parent_id:
+            if line.product_id.id in ignored_product_ids:
                 continue
 
-            price_unit = line.price_unit
-            qty = line.qty
-            discount = line.discount or 0.0
+            is_without_discount = (discount_policy == 'without_discount')
 
-            # WITH discount
-            discounted_unit = price_unit * (1 - discount / 100.0)
+            original_unit_price = line.product_id.lst_price if (is_without_discount and line.discount == 0) else line.price_unit
 
-            taxes_with_discount = line.tax_ids_after_fiscal_position.compute_all(
-                discounted_unit,
-                quantity=qty,
-                currency=currency
+            orig_taxes = line.tax_ids_after_fiscal_position.compute_all(
+                original_unit_price, 
+                currency, 
+                line.qty, 
+                product=line.product_id, 
+                partner=self.partner_id
             )
 
-            # WITHOUT discount
-            taxes_without_discount = line.tax_ids_after_fiscal_position.compute_all(
-                price_unit,
-                quantity=qty,
-                currency=currency
+            discounted_unit_price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+            current_taxes = line.tax_ids_after_fiscal_position.compute_all(
+                discounted_unit_price, 
+                currency, 
+                line.qty, 
+                product=line.product_id, 
+                partner=self.partner_id
             )
 
-            total_discount += (
-                taxes_without_discount['total_included']
-                - taxes_with_discount['total_included']
-            )
+            discount_on_this_line = orig_taxes['total_included'] - current_taxes['total_included']
+            
+            if discount_on_this_line > 0:
+                total_discount += discount_on_this_line
 
         return currency.round(total_discount)
+    
+    

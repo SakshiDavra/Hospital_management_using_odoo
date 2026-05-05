@@ -18,6 +18,13 @@
             'pos_changes/static/src/xml/pos_buttons.xml',
             'pos_changes/static/src/xml/product_card.xml',
             'pos_changes/static/src/xml/product_screen.xml',
+            'pos_changes/static/src/js/location_popup.js',
+            'pos_changes/static/src/xml/location_popup.xml',
+
+            # 'pos_changes/static/src/js/popup/custom_popup.js',
+            # 'pos_changes/static/src/xml/popup/custom_popup.xml',
+            'pos_changes/static/src/js/product_screen_override.js',
+            # 'pos_changes/static/src/js/orderline_patch.js',
         ],
 
     },
