@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_changes.ProductStockPopup">
+        <!-- props.title ને t-esc માં લખો જેથી ડાયનેમિક ટાઈટલ દેખાય -->
+        <Dialog title="props.title">
+            <div class="product-stock-container p-3">
+                <div class="mb-3">
+                    <strong>Product: </strong> <span t-esc="props.productName"/>
+                </div>
+                <table class="table table-hover border">
+                    <thead class="bg-100">
+                        <tr>
+                            <th class="p-2">Location Name</th>
+                            <th class="p-2 text-center">Available Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- જો ડેટા હોય તો જ લૂપ ફેરવો -->
+                        <t t-if="props.stockData and props.stockData.length > 0">
+                            <t t-foreach="props.stockData" t-as="stock" t-key="stock.locationName">
+                                <tr>
+                                    <td class="p-2" t-esc="stock.locationName"/>
+                                    <!-- અહીં stock.quantity ને બદલે stock.stockQty કરો -->
+                                    <td class="p-2 text-center" t-esc="stock.stockQty"/>
+                                </tr>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <tr>
+                                <td colspan="2" class="p-2 text-center text-muted">No stock found in any location.</td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary rounded-0" t-on-click="props.confirm">Add to Order</button>
+                <button class="btn btn-secondary rounded-0" t-on-click="props.close">Close</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

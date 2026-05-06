@@ -1,7 +1,7 @@
 {
     'name': 'POS Change',
     'version': '1.0',
-    'depends': ['point_of_sale','account'],
+    'depends': ['point_of_sale','account','stock'],
     'data': [
         'views/pos_config_view.xml',
         'reports/report.xml',
@@ -18,13 +18,13 @@
             'pos_changes/static/src/xml/pos_buttons.xml',
             'pos_changes/static/src/xml/product_card.xml',
             'pos_changes/static/src/xml/product_screen.xml',
-            'pos_changes/static/src/js/location_popup.js',
-            'pos_changes/static/src/xml/location_popup.xml',
 
-            # 'pos_changes/static/src/js/popup/custom_popup.js',
-            # 'pos_changes/static/src/xml/popup/custom_popup.xml',
-            'pos_changes/static/src/js/product_screen_override.js',
-            # 'pos_changes/static/src/js/orderline_patch.js',
+            'pos_changes/static/src/js/product_stock_popup.js',
+            'pos_changes/static/src/js/product_screen_patch.js',
+            'pos_changes/static/src/xml/product_stock_popup.xml',
+            'pos_changes/static/src/js/pos_store.js',
+            'pos_changes/static/src/js/product_configurator_patch.js',
+
         ],
 
     },

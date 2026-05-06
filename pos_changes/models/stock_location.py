@@ -1,11 +1,8 @@
 from odoo import models, api
 
 class StockLocation(models.Model):
-    _inherit = 'stock.location'
+    _inherit = ['stock.location', 'pos.load.mixin']
 
     @api.model
-    def _load_pos_data(self, data):
-        return self.search_read(
-            [('usage', '=', 'internal')],
-            ['id', 'name', 'complete_name']
-        )
+    def _load_pos_data_fields(self, config):
+        return ['name', 'complete_name', 'usage']
