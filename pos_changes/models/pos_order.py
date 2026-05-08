@@ -211,4 +211,9 @@ class PosOrder(models.Model):
 
         return currency.round(total_discount)
     
-    
+    @api.model
+    def _order_line_fields(self, line, session_id=None):
+        fields = super()._order_line_fields(line, session_id)
+        if line[2].get('custom_location_id'):
+            fields[2]['custom_location_id'] = line[2].get('custom_location_id')
+        return fields

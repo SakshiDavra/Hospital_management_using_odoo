@@ -18,11 +18,14 @@
             'pos_changes/static/src/xml/pos_buttons.xml',
             'pos_changes/static/src/xml/product_card.xml',
             'pos_changes/static/src/xml/product_screen.xml',
-
             'pos_changes/static/src/js/product_stock_popup.js',
+            
             'pos_changes/static/src/js/product_screen_patch.js',
+
             'pos_changes/static/src/xml/product_stock_popup.xml',
+
             'pos_changes/static/src/js/pos_store.js',
+
             'pos_changes/static/src/js/product_configurator_patch.js',
 
         ],

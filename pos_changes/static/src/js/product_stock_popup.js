@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component } from "@odoo/owl";
+import { Component, useState } from "@odoo/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 
 export class ProductStockPopup extends Component {
@@ -10,11 +10,20 @@ export class ProductStockPopup extends Component {
         productName: { type: String },
         stockData: { type: Array },
         confirm: { type: Function },
-        close: { type: Function }, // આ Dialog દ્વારા ઓટોમેટિક મળે છે
+        close: { type: Function },
     };
 
+    setup() {
+
+        this.state = useState({ selectedLocId: null });
+    }
+
     async onAdd() {
-        await this.props.confirm();
-        this.props.close();
+        console.log("Selected Location ID in Popup:", this.state.selectedLocId); 
+        if (!this.state.selectedLocId) {
+            alert("Please select a location first!");
+            return;
+        }
+        await this.props.confirm(this.state.selectedLocId);
     }
 }

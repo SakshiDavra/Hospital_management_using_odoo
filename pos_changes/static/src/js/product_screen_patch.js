@@ -12,33 +12,44 @@ patch(ProductScreen.prototype, {
     },
 
     async addProductToOrder(product) {
-        if (product.isConfigurable()) {
-            return super.addProductToOrder(product);
-        }
-
+        // ૧. સ્ટોક મેપમાંથી ડેટા મેળવો
         const stockMap = this.pos.productStockMap || {};
-        const stockInfo = stockMap[product.id] || [];
+        const stockInfo = stockMap[product.id] || stockMap[product.product_variant_ids?.[0]?.id] || [];
 
-        const confirmed = await new Promise((resolve) => {
-            this.dialog.add(ProductStockPopup, {
-                title: _t("Confirm Selection"),
-                productName: product.display_name,
-                stockData: stockInfo,
-                confirm: () => {
-                    // ૧. પહેલા resolve true કરો
-                    resolve(true);
-                    // ૨. આ લાઈન પોપ-અપને બંધ કરી દેશે
-                    this.dialog.closeAll(); 
-                },
-                close: () => {
-                    resolve(false);
-                    this.dialog.closeAll();
-                }
+        let selectedLocationId = null;
+
+        // ૨. લોકેશન સિલેક્શન લોજિક
+        if (stockInfo.length > 1) {
+            selectedLocationId = await new Promise((resolve) => {
+                this.dialog.add(ProductStockPopup, {
+                    title: _t("Multiple Locations Found"),
+                    productName: product.display_name,
+                    stockData: stockInfo,
+                    confirm: (locId) => {
+                        resolve(locId);
+                        this.dialog.closeAll(); 
+                    },
+                    close: () => {
+                        resolve(false);
+                        this.dialog.closeAll();
+                    }
+                });
             });
-        });
-
-        if (confirmed) {
-            return super.addProductToOrder(product);
+            if (!selectedLocationId) return;
+        } else if (stockInfo.length === 1) {
+            selectedLocationId = stockInfo[0].locationId;
         }
+
+        const options = selectedLocationId ? { extras: { custom_location_id: selectedLocationId } } : {};
+        const result = await super.addProductToOrder(product, options);
+        const order = this.pos.getOrder();
+        const lastLine = order.lines[order.lines.length - 1];
+
+        if (lastLine && selectedLocationId) {
+            // આ રીતે ડેટા સેટ કરવાથી Odoo તેને ઓટોમેટિકલી સિંક લિસ્ટમાં લેશે
+            lastLine.update({ custom_location_id: selectedLocationId });
+            console.log("Data Assigned via Update:", lastLine.custom_location_id);
+        }
+        return result;
     }
 });

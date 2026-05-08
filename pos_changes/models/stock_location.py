@@ -6,3 +6,6 @@ class StockLocation(models.Model):
     @api.model
     def _load_pos_data_fields(self, config):
         return ['name', 'complete_name', 'usage']
+    
+
+    
