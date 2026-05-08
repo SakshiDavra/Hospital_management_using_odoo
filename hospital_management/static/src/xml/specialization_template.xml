@@ -59,7 +59,8 @@
 
                             <div class="spec-img">
                                 <img t-att-src="'/hospital_management/static/src/img/' + rec.name.toLowerCase().split(' ').join('_') + '.jpg'"
-                                    onerror="this.src='/hospital_management/static/src/img/serjapecialist.jpg'"/>
+                                    onerror="this.src='/hospital_management/static/src/img/serja
+                                    pecialist.jpg'"/>
                             </div>
 
                             <div class="spec-body">
