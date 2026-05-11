@@ -19,11 +19,21 @@
             'pos_changes/static/src/xml/product_card.xml',
             'pos_changes/static/src/xml/product_screen.xml',
             'pos_changes/static/src/js/product_stock_popup.js',
+            
             'pos_changes/static/src/js/product_screen_patch.js',
+
             'pos_changes/static/src/xml/product_stock_popup.xml',
+
             'pos_changes/static/src/js/pos_store.js',
+
             'pos_changes/static/src/js/product_configurator_patch.js',
-            # 'pos_changes/static/src/js/optional_product_popup.js',
+
+            'pos_changes/static/src/js/pos_orderline_patch.js',
+
+ 
+
+            'pos_changes/static/src/js/combo_configurator_patch.js',
+
 
         ],
 
