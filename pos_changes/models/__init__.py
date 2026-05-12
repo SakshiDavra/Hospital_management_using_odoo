@@ -5,3 +5,5 @@ from . import pos_order_line
 from . import report_pos_receipt
 from . import stock_quant
 from . import stock_location
+from . import stock_picking
+from . import stock_move

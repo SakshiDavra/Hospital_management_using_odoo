@@ -6,7 +6,6 @@ import { Dialog } from "@web/core/dialog/dialog";
 export class ProductStockPopup extends Component {
 
     static template = "pos_changes.ProductStockPopup";
-
     static components = {
         Dialog,
     };
@@ -21,34 +20,32 @@ export class ProductStockPopup extends Component {
 
     setup() {
 
-        this.state = useState({
-            selectedLocId: null,
-        });
+        this.state = useState({selectedLocId: null,});
     }
 
     async onAdd() {
 
-        console.log(
-            "Selected Location ID in Popup:",
-            this.state.selectedLocId
-        );
-
         if (!this.state.selectedLocId) {
-
-            alert(
-                "Please select a location first!"
-            );
-
+            alert("Please select a location first!");
             return;
         }
-        await this.props.confirm(
-            this.state.selectedLocId
-        );
+        const selectedLocation = this.props.stockData.find(
+                loc => loc.locationId === this.state.selectedLocId
+            );
+
+        // OUT OF STOCK
+        if (
+            !selectedLocation ||
+            selectedLocation.stockQty <= 0
+        ) {
+            alert("Product is not available in this location!");
+            return;
+        }
+
+        await this.props.confirm(this.state.selectedLocId);
         this.props.close();
     }
-
     onClose() {
-
         this.props.close();
     }
 }

@@ -23,7 +23,6 @@ patch(PosStore.prototype, {
             ])
         );
         this.productStockMap = {};
-
         rawQuants.forEach((quant) => {
             if (!quant?.product_id || !quant?.location_id) {
                 return;
@@ -48,7 +47,6 @@ patch(PosStore.prototype, {
             }
 
             const existing = this.productStockMap[pId].find(s => s.locationId === locId);
-
             existing
                 ? existing.stockQty += qty : this.productStockMap[pId].push(stockLine);
         });
