@@ -7,6 +7,7 @@
         'reports/report.xml',
         'reports/pos_order_receipt.xml',
         'views/pos_order_view.xml',
+        'views/stock_picking_views.xml',
         
     ],
     'installable': True,

@@ -17,4 +17,3 @@ class PosOrderLine(models.Model):
         if line[2].get('custom_location_id'):
             fields[2]['custom_location_id'] = line[2].get('custom_location_id')
         return fields
-    

@@ -211,5 +211,44 @@ class PosOrder(models.Model):
 
         return currency.round(total_discount)
     
+    def _prepare_stock_move_vals(
+        self,
+        picking,
+        order_line,
+        picking_type,
+        vals
+    ):
+        res = super()._prepare_stock_move_vals(
+            picking,
+            order_line,
+            picking_type,
+            vals
+        )
 
+        if order_line.custom_location_id:
+            res['custom_location_id'] = order_line.custom_location_id.id
 
+        return res
+
+    # def _create_picking(self):
+    #     res = super()._create_picking()
+
+    #     for order in self:
+    #         for picking in order.picking_ids:
+    #             for move in picking.move_ids:
+
+    #                 line = order.lines.filtered(
+    #                     lambda l: l.product_id == move.product_id
+    #                 )[:1]
+
+    #                 if line and line.custom_location_id:
+
+    #                     # MOVE LOCATION
+    #                     move.location_id = line.custom_location_id.id
+
+    #                     # MOVE LINE LOCATION
+    #                     move.move_line_ids.write({
+    #                         'location_id': line.custom_location_id.id
+    #                     })
+
+    #     return res

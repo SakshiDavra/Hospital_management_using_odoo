@@ -56,6 +56,3 @@ class PosSession(models.Model):
             if model not in data:
                 data.append(model)
         return data
-    
-
-    
