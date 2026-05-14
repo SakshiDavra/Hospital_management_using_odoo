@@ -1,0 +1,239 @@
+.event_studio_calendar_wrapper {
+
+    background: #fff;
+
+    border-radius: 18px;
+
+    padding: 10px 0;
+
+    position: relative;
+}
+
+/* =========================
+   TITLE
+========================= */
+
+.event_calendar_title,
+.event_upcoming_title {
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    letter-spacing: 2px;
+
+    color: #8d8d8d;
+
+    margin-bottom: 18px;
+
+    text-transform: uppercase;
+}
+
+/* =========================
+   CALENDAR
+========================= */
+
+.event_calendar_main {
+
+    position: relative;
+}
+
+.flatpickr-calendar {
+
+    width: 100% !important;
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+    border: none !important;
+}
+
+.flatpickr-months {
+
+    margin-bottom: 10px;
+}
+
+.flatpickr-current-month {
+
+    font-size: 18px !important;
+
+    font-weight: 600;
+}
+
+.flatpickr-weekday {
+
+    font-size: 11px !important;
+
+    font-weight: 600;
+
+    color: #9c9c9c !important;
+}
+
+.flatpickr-day {
+
+    border-radius: 50% !important;
+
+    transition: .2s ease;
+
+    font-size: 14px;
+}
+
+.flatpickr-day:hover {
+
+    background: #f6f1f1 !important;
+}
+
+/* =========================
+   EVENT DATE
+========================= */
+
+.has-event-date {
+
+    background:
+        #f3dfdb !important;
+
+    color:
+        #000 !important;
+
+    font-weight: 700;
+
+    position: relative;
+}
+
+.has-event-date::after {
+
+    content: "";
+
+    position: absolute;
+
+    bottom: 4px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 5px;
+
+    height: 5px;
+
+    border-radius: 50%;
+
+    background: #d58d83;
+}
+
+/* =========================
+   POPUP
+========================= */
+
+.event_calendar_popup {
+
+    position: absolute;
+
+    top: 100%;
+
+    left: 0;
+
+    margin-top: 12px;
+
+    width: 100%;
+
+    background: #fff;
+
+    border-radius: 18px;
+
+    padding: 12px;
+
+    box-shadow:
+        0 10px 30px
+        rgba(0,0,0,0.12);
+
+    z-index: 9999;
+}
+
+.event-popup-hidden {
+
+    display: none !important;
+}
+
+/* =========================
+   POPUP ITEM
+========================= */
+
+.calendar_popup_item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 10px;
+
+    border-radius: 14px;
+
+    text-decoration: none;
+
+    transition: .2s ease;
+
+    margin-bottom: 8px;
+}
+
+.calendar_popup_item:hover {
+
+    background: #f7f7f7;
+}
+
+.calendar_popup_img {
+
+    width: 58px;
+
+    height: 58px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    flex-shrink: 0;
+}
+
+.calendar_popup_title {
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    color: #222;
+
+    line-height: 1.3;
+}
+
+.calendar_popup_location {
+
+    font-size: 13px;
+
+    color: #777;
+
+    margin-top: 4px;
+}
+
+/* =========================
+   UPCOMING
+========================= */
+
+.event_upcoming {
+
+    margin-top: 25px;
+}
+
+.event_upcoming_list {
+
+    padding-left: 18px;
+}
+
+.event_upcoming_list li {
+
+    margin-bottom: 10px;
+
+    font-size: 15px;
+}

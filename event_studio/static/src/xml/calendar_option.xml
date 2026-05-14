@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t
+        t-name="event_studio.EventsListPageOptionInherit"
+        t-inherit="website_event.EventsListPageOption"
+        t-inherit-mode="extension"
+    >
+
+        <!-- Quotes niche add -->
+        <xpath expr="//BuilderRow[@label.translate='Quotes']" position="after">
+
+            <BuilderRow label.translate="Calendar">
+                <BuilderCheckbox
+                    actionParam="{views: ['event_studio.index_sidebar_calendar']}"
+                />
+            </BuilderRow>
+
+        </xpath>
+
+    </t>
+
+</templates>

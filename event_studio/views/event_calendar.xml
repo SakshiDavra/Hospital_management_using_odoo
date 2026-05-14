@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template
+        id="index_sidebar_calendar"
+        inherit_id="website_event.index_sidebar"
+        active="True"
+        name="Event Calendar Sidebar"
+    >
+
+        <xpath
+            expr="//div[@id='o_wevent_index_sidebar']"
+            position="inside"
+        >
+
+            <div class="o_wevent_sidebar_block event_studio_calendar_wrapper">
+
+                <!-- TITLE -->
+                <h6 class="event_calendar_title">
+                    EVENTS CALENDAR
+                </h6>
+
+                <!-- CALENDAR -->
+                <div class="event_calendar_main">
+
+                    <!-- FLATPICKR -->
+                    <div id="event_studio_calendar"></div>
+
+                    <!-- EVENT POPUP -->
+                    <div
+                        id="event_calendar_popup"
+                        class="event_calendar_popup event-popup-hidden"
+                    ></div>
+
+                </div>
+
+                <!-- UPCOMING -->
+                <div class="event_upcoming">
+
+                    <h6 class="event_upcoming_title">
+                        UPCOMING EVENTS
+                    </h6>
+
+                    <ul class="event_upcoming_list">
+
+                        <li>Tech Summit 2026</li>
+
+                        <li>Music Night</li>
+
+                        <li>Business Conference</li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </xpath>
+
+    </template>
+
+</odoo>
