@@ -1,4 +1,6 @@
 from odoo import models, api
+from collections import defaultdict
+
 import logging
 
 _logger = logging.getLogger(__name__) 
@@ -226,29 +228,97 @@ class PosOrder(models.Model):
         )
 
         if order_line.custom_location_id:
-            res['custom_location_id'] = order_line.custom_location_id.id
+            res.update({
+                'custom_location_id': order_line.custom_location_id.id,
+                'location_id': order_line.custom_location_id.id,
+            })
 
         return res
 
-    # def _create_picking(self):
-    #     res = super()._create_picking()
+    def _create_order_picking(self):
 
-    #     for order in self:
-    #         for picking in order.picking_ids:
-    #             for move in picking.move_ids:
+        StockPicking = self.env['stock.picking']
+        StockMove = self.env['stock.move']
+        StockWarehouse = self.env['stock.warehouse']
 
-    #                 line = order.lines.filtered(
-    #                     lambda l: l.product_id == move.product_id
-    #                 )[:1]
+        for order in self:
+            # GROUP ORDER LINES BY WAREHOUSE
+            warehouse_lines = defaultdict(list)
 
-    #                 if line and line.custom_location_id:
+            for line in order.lines:
+                warehouse = False
+                if line.custom_location_id:
+                    warehouse = StockWarehouse.search([
+                        (
+                            'view_location_id',
+                            'parent_of',
+                            line.custom_location_id.id
+                        )
+                    ], limit=1)
 
-    #                     # MOVE LOCATION
-    #                     move.location_id = line.custom_location_id.id
+                if not warehouse:
+                    warehouse = (
+                        order.config_id
+                        .picking_type_id
+                        .warehouse_id
+                    )
 
-    #                     # MOVE LINE LOCATION
-    #                     move.move_line_ids.write({
-    #                         'location_id': line.custom_location_id.id
-    #                     })
+                warehouse_lines[warehouse].append(line)
 
-    #     return res
+            # CREATE PICKING PER WAREHOUSE
+            for warehouse, lines in warehouse_lines.items():
+
+                picking_type = (
+                    warehouse.out_type_id
+                    or order.config_id.picking_type_id
+                )
+                picking = StockPicking.create({
+                    'partner_id': order.partner_id.id,
+                    'picking_type_id': picking_type.id,
+                    'location_id': warehouse.lot_stock_id.id,
+                    'location_dest_id': (
+                        picking_type.default_location_dest_id.id
+                    ),
+                    'origin': order.name,
+                    'company_id': order.company_id.id,
+                })
+
+                order.write({
+                    'picking_ids': [(4, picking.id)]
+                })
+
+                picking.action_confirm()
+
+                # CREATE STOCK MOVES
+                for line in lines:
+
+                    if not line.qty:
+                        continue
+                    source_location = (
+                        line.custom_location_id.id
+                        if line.custom_location_id
+                        else warehouse.lot_stock_id.id
+                    )
+                    move = StockMove.create({
+                        'company_id': order.company_id.id,
+                        'product_id': line.product_id.id,
+                        'product_uom_qty': abs(line.qty),
+                        'product_uom': line.product_id.uom_id.id,
+                        'location_id': warehouse.lot_stock_id.id,
+                        'custom_location_id': (
+                            line.custom_location_id.id
+                            if line.custom_location_id
+                            else False
+                        ),
+                        'location_dest_id': (
+                            picking.location_dest_id.id
+                        ),
+                        'picking_id': picking.id,
+                        'picking_type_id': picking_type.id,
+                        'origin': order.name,
+                        'state': 'draft',
+                    })
+                    move._action_confirm()
+                    move._action_assign()
+
+        return True
