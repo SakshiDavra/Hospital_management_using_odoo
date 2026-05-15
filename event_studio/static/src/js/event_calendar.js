@@ -3,27 +3,34 @@
 import publicWidget from "@web/legacy/js/public/public_widget";
 
 publicWidget.registry.EventStudioCalendar =
-    publicWidget.Widget.extend({
+publicWidget.Widget.extend({
 
     selector: ".event_studio_calendar_wrapper",
 
     async start() {
 
-        if (!window.flatpickr) {
-            return Promise.resolve();
-        }
+        if (!window.flatpickr) return;
 
-        const calendarDiv =
-            this.el.querySelector("#event_studio_calendar");
+        this.calendar = this.el.querySelector("#event_studio_calendar");
 
-        const popup =
-            this.el.querySelector("#event_calendar_popup");
+        this.popup = this.el.querySelector("#event_calendar_popup");
 
-        if (!calendarDiv || !popup) {
-            return Promise.resolve();
-        }
+        this.upcoming = this.el.querySelector("#event_studio_upcoming_events");
 
-        let result = [];
+        const result = await this._fetchEvents();
+
+        this.events = {};
+
+        result.forEach(event => {
+            (this.events[event.date] ||= []).push(event);
+        });
+
+        this._renderUpcoming(result);
+        this._initCalendar();
+        this._bindPopupClose();
+    },
+
+    async _fetchEvents() {
 
         try {
 
@@ -31,11 +38,9 @@ publicWidget.registry.EventStudioCalendar =
                 "/event/calendar/data",
                 {
                     method: "POST",
-
                     headers: {
                         "Content-Type": "application/json",
                     },
-
                     body: JSON.stringify({
                         jsonrpc: "2.0",
                         method: "call",
@@ -45,155 +50,139 @@ publicWidget.registry.EventStudioCalendar =
                 }
             );
 
-            const data = await response.json();
-
-            result = data.result || [];
+            return (await response.json()).result || [];
 
         } catch {
-            return Promise.resolve();
+            return [];
         }
+    },
+    _renderUpcoming(events) {
+        if (!this.upcoming) return;
+        const upcoming = events
+            .filter(e => new Date(e.datetime || e.date) >= new Date())
+            .sort((a, b) => new Date(a.datetime || a.date) - new Date(b.datetime || b.date));
 
-        const events = {};
+        this.upcoming.innerHTML = upcoming.length
+            ? upcoming.map(event => `
+                <div class="event_upcoming_item" data-url="${event.url}">
+                    <div class="event_upcoming_dot"></div>
+                    <div class="event_upcoming_info">
+                        <div class="event_upcoming_name">${event.title}</div>
+                        <div class="event_upcoming_date">${event.date}</div>
+                    </div>
+                </div>
+            `).join("")
+            : `<div class="event_upcoming_empty">No upcoming events found.</div>`;
 
-        result.forEach(event => {
-
-            if (!events[event.date]) {
-                events[event.date] = [];
-            }
-
-            events[event.date].push(event);
+        this.upcoming.querySelectorAll(".event_upcoming_item").forEach(item => {
+            item.addEventListener("click", () => {
+                window.location.href = item.dataset.url;
+            });
         });
+        if (upcoming.length > 3) {
+            const container = this.upcoming;
+            const scrollSpeed = 1; 
+            const intervalTime = 50;
 
-        flatpickr(calendarDiv, {
+            setInterval(() => {
 
-            inline: true,
-
-            disableMobile: true,
-
-            dateFormat: "Y-m-d",
-
-            defaultDate: "today",
-
-            onDayCreate(dObj, dStr, fp, dayElem) {
-
-                const date = [
-                    dayElem.dateObj.getFullYear(),
-                    String(
-                        dayElem.dateObj.getMonth() + 1
-                    ).padStart(2, "0"),
-                    String(
-                        dayElem.dateObj.getDate()
-                    ).padStart(2, "0"),
-                ].join("-");
-
-                if (!events[date]) {
-                    return;
+                if (container.scrollTop + container.clientHeight >= container.scrollHeight - 1) {
+                    container.scrollTop = 0; 
+                } else {
+                    container.scrollTop += scrollSpeed;
                 }
+            }, intervalTime);
+        }
+    },
 
-                dayElem.classList.add(
-                    "has-event-date"
-                );
+    _initCalendar() {
+        flatpickr(this.calendar, {
 
-                const dot =
-                    document.createElement("span");
-
-                dot.className =
-                    "calendar-event-dot";
-
-                dayElem.appendChild(dot);
-
-                dayElem.addEventListener(
-                    "click",
-
-                    ev => {
-
-                        ev.stopPropagation();
-
-                        popup.innerHTML =
-                            events[date]
-                                .map(event => `
-
-                                    <div
-                                        class="calendar_popup_item"
-                                        data-url="${event.url}"
-                                    >
-
-                                        <img
-                                            src="${event.image}"
-                                            class="calendar_popup_img"
-                                        />
-
-                                        <div class="calendar_popup_info">
-
-                                            <div class="calendar_popup_title">
-                                                ${event.title}
-                                            </div>
-
-                                            <div class="calendar_popup_location">
-                                                ${event.location || ""}
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                `)
-                                .join("");
-
-                        popup.classList.remove(
-                            "event-popup-hidden"
-                        );
-
-                        const rect =
-                            dayElem.getBoundingClientRect();
-
-                        const parentRect =
-                            calendarDiv.getBoundingClientRect();
-
-                        popup.style.top =
-                            `${rect.top - parentRect.top + 45}px`;
-
-                        popup.style.left =
-                            `${rect.left - parentRect.left - 40}px`;
-
-                        popup
-                            .querySelectorAll(
-                                ".calendar_popup_item"
-                            )
-                            .forEach(item => {
-
-                                item.addEventListener(
-                                    "click",
-
-                                    () => {
-                                        window.location.href =
-                                            item.dataset.url;
-                                    }
-                                );
-                            });
-                    }
-                );
-            },
+                inline: true,
+                static: true,
+                disableMobile: true,
+                dateFormat: "Y-m-d",
+                defaultDate: "today",
+                monthSelectorType: "dropdown",
+            onDayCreate:
+                this._onDayCreate.bind(this),
         });
+    },
 
-        document.addEventListener(
-            "click",
+    _onDayCreate(dObj, dStr, fp, dayElem) {
 
-            ev => {
+        const date = [
+            dayElem.dateObj.getFullYear(),
 
-                if (
-                    !popup.contains(ev.target)
-                    &&
-                    !calendarDiv.contains(ev.target)
-                ) {
+            String(
+                dayElem.dateObj.getMonth() + 1
+            ).padStart(2, "0"),
 
-                    popup.classList.add(
-                        "event-popup-hidden"
-                    );
-                }
+            String(
+                dayElem.dateObj.getDate()
+            ).padStart(2, "0"),
+
+        ].join("-");
+
+        const events = this.events[date];
+
+        if (!events) return;
+
+        dayElem.classList.add("has-event-date");
+        const dot = document.createElement("span");
+        dot.className = "calendar-event-dot";
+        dayElem.appendChild(dot);
+
+        dayElem.addEventListener("click", ev => {
+
+            ev.stopPropagation();
+
+            this.popup.innerHTML = events.map(event => `
+                <div
+                    class="calendar_popup_item"
+                    data-url="${event.url}"
+                >
+
+                    <img
+                        src="${event.image}"
+                        class="calendar_popup_img"
+                    />
+
+                    <div class="calendar_popup_info">
+
+                        <div class="calendar_popup_title">
+                            ${event.title}
+                        </div>
+
+                        <div class="calendar_popup_location">
+                            ${event.location || ""}
+                        </div>
+
+                    </div>
+
+                </div>
+            `).join("");
+
+            this.popup.classList.remove( "event-popup-hidden");
+            this.popup
+                .querySelectorAll(".calendar_popup_item")
+                .forEach(item => {
+
+                    item.addEventListener("click", () => {
+                        window.location.href = item.dataset.url;
+                    });
+                });
+        });
+    },
+
+    _bindPopupClose() {
+        document.addEventListener("click", ev => {
+            if (!this.popup.contains(ev.target)&& !this.calendar.contains(ev.target))
+            {
+                this.popup.classList.add(
+                    "event-popup-hidden"
+                );
             }
-        );
-
-        return Promise.resolve();
+        });
     },
 });

@@ -1,239 +1,258 @@
+/* ==========================================================================
+   1. LAYOUT & UTILITIES
+   ========================================================================== */
 .event_studio_calendar_wrapper {
-
     background: #fff;
-
     border-radius: 18px;
-
     padding: 10px 0;
-
     position: relative;
 }
 
-/* =========================
-   TITLE
-========================= */
-
+/* Titles */
 .event_calendar_title,
 .event_upcoming_title {
-
     font-size: 12px;
-
     font-weight: 700;
-
     letter-spacing: 2px;
-
     color: #8d8d8d;
-
     margin-bottom: 18px;
-
     text-transform: uppercase;
 }
 
-/* =========================
-   CALENDAR
-========================= */
+/* Utilities */
+.event_calendar_main { position: relative; }
+.event-popup-hidden { display: none !important; }
 
-.event_calendar_main {
-
-    position: relative;
-}
-
+/* ==========================================================================
+   2. FLATPICKR (CALENDAR) OVERRIDES
+   ========================================================================== */
 .flatpickr-calendar {
-
     width: 100% !important;
-
     background: transparent !important;
-
     box-shadow: none !important;
-
     border: none !important;
 }
 
+/* Header & Navigation */
 .flatpickr-months {
-
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 10px;
+    padding: 0 8px;
+    position: relative;
+}
+
+.flatpickr-month {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
 }
 
 .flatpickr-current-month {
-
     font-size: 18px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: auto !important;
+    padding: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+}
 
+.flatpickr-current-month .cur-month {
     font-weight: 600;
 }
 
+.flatpickr-current-month input.cur-year {
+    font-weight: 700;
+    pointer-events: none;
+    border: none !important;
+    background: transparent !important;
+}
+
+/* Arrows */
+.flatpickr-prev-month,
+.flatpickr-next-month {
+    top: 8px !important;
+    padding: 0 !important;
+    width: 28px;
+    height: 28px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+.flatpickr-prev-month { left: 8px !important; }
+.flatpickr-next-month { right: 8px !important; }
+
+/* Weekdays & Days */
+.flatpickr-weekdays { margin-bottom: 6px; }
+
 .flatpickr-weekday {
-
     font-size: 11px !important;
-
     font-weight: 600;
-
     color: #9c9c9c !important;
 }
 
+.flatpickr-days, 
+.dayContainer {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+}
+
 .flatpickr-day {
-
     border-radius: 50% !important;
-
-    transition: .2s ease;
-
+    transition: 0.2s ease;
     font-size: 14px;
+    height: 40px;
+    line-height: 40px;
+    max-width: 40px;
 }
 
-.flatpickr-day:hover {
+.flatpickr-day:hover { background: #f6f1f1 !important; }
+.flatpickr-day.today { border-color: transparent !important; }
 
-    background: #f6f1f1 !important;
+.flatpickr-day.selected {
+    background: #4f8df7 !important;
+    border-color: #4f8df7 !important;
+    color: #fff !important;
 }
 
-/* =========================
-   EVENT DATE
-========================= */
-
+/* Event Date (Dot Indicator) */
 .has-event-date {
-
-    background:
-        #f3dfdb !important;
-
-    color:
-        #000 !important;
-
+    background: #f3dfdb !important;
+    color: #000 !important;
     font-weight: 700;
-
     position: relative;
 }
 
 .has-event-date::after {
-
     content: "";
-
     position: absolute;
-
     bottom: 4px;
-
     left: 50%;
-
     transform: translateX(-50%);
-
     width: 5px;
-
     height: 5px;
-
     border-radius: 50%;
-
     background: #d58d83;
 }
 
-/* =========================
-   POPUP
-========================= */
-
+/* ==========================================================================
+   3. POPUP MODULE
+   ========================================================================== */
 .event_calendar_popup {
-
     position: absolute;
-
     top: 100%;
-
     left: 0;
-
     margin-top: 12px;
-
     width: 100%;
-
     background: #fff;
-
     border-radius: 18px;
-
     padding: 12px;
-
-    box-shadow:
-        0 10px 30px
-        rgba(0,0,0,0.12);
-
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
     z-index: 9999;
 }
 
-.event-popup-hidden {
-
-    display: none !important;
-}
-
-/* =========================
-   POPUP ITEM
-========================= */
-
 .calendar_popup_item {
-
     display: flex;
-
     align-items: center;
-
     gap: 14px;
-
-    padding: 10px;
-
-    border-radius: 14px;
-
-    text-decoration: none;
-
-    transition: .2s ease;
-
-    margin-bottom: 8px;
+    overflow: hidden;
 }
-
-.calendar_popup_item:hover {
-
-    background: #f7f7f7;
-}
-
-.calendar_popup_img {
-
-    width: 58px;
-
-    height: 58px;
-
-    border-radius: 50%;
-
-    object-fit: cover;
-
-    flex-shrink: 0;
-}
+.calendar_popup_item:hover { background: #f7f7f7; }
 
 .calendar_popup_title {
-
-    font-size: 16px;
-
+    font-size: 15px;
     font-weight: 600;
-
     color: #222;
-
     line-height: 1.3;
 }
 
 .calendar_popup_location {
-
     font-size: 13px;
-
     color: #777;
-
     margin-top: 4px;
 }
 
-/* =========================
-   UPCOMING
-========================= */
-
-.event_upcoming {
-
-    margin-top: 25px;
+/* Popup Images / Circles */
+.calendar_popup_circle,
+.calendar_popup_img {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    border-radius: 50% !important;
 }
 
-.event_upcoming_list {
-
-    padding-left: 18px;
+.calendar_popup_circle {
+    border: 4px solid #000;
+    background: transparent;
 }
 
-.event_upcoming_list li {
+.calendar_popup_img {
+    max-width: 58px !important;
+    object-fit: cover !important;
+    flex-shrink: 0;
+    display: block;
+}
 
-    margin-bottom: 10px;
+/* ==========================================================================
+   4. UPCOMING EVENTS LIST
+   ========================================================================== */
+.event_upcoming { margin-top: 25px; }
 
-    font-size: 15px;
+.event_upcoming_list_wrapper {
+    margin-top: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Scrollbar Customization */
+.event_upcoming_list_wrapper::-webkit-scrollbar { width: 4px; }
+.event_upcoming_list_wrapper::-webkit-scrollbar-thumb {
+    background: #d8d8d8;
+    border-radius: 10px;
+}
+
+/* Upcoming Items */
+.event_upcoming_item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    cursor: pointer;
+}
+
+.event_upcoming_dot {
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+    background: #e58f8f;
+}
+
+.event_upcoming_info { flex: 1; }
+
+.event_upcoming_name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222 !important;
+    line-height: 1.3;
+}
+
+.event_upcoming_date,
+.event_upcoming_empty {
+    font-size: 12px;
+    color: #888 !important;
+}
+.event_upcoming_date { margin-top: 2px; }
+.event_upcoming_empty { font-size: 13px; }
+
+.event_upcoming_list_wrapper {
+    /* scroll-behavior: auto; */
+    overflow-y: hidden;  
 }

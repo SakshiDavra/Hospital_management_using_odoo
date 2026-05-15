@@ -16,8 +16,8 @@
             <div class="o_wevent_sidebar_block event_studio_calendar_wrapper">
 
                 <!-- TITLE -->
-                <h6 class="event_calendar_title">
-                    EVENTS CALENDAR
+                <h6 class="o_wevent_sidebar_title">
+                    Events Calendar
                 </h6>
 
                 <!-- CALENDAR -->
@@ -34,29 +34,36 @@
 
                 </div>
 
-                <!-- UPCOMING -->
-                <div class="event_upcoming">
+                <!-- UPCOMING EVENTS -->
+                <t t-if="is_view_active('event_studio.index_upcoming_events')">
 
-                    <h6 class="event_upcoming_title">
-                        UPCOMING EVENTS
-                    </h6>
+                    <div class="event_upcoming">
 
-                    <ul class="event_upcoming_list">
+                        <h6 class="o_wevent_sidebar_title">
+                            Upcoming Events
+                        </h6>
 
-                        <li>Tech Summit 2026</li>
+                        <!-- DYNAMIC EVENTS -->
+                        <div
+                            id="event_studio_upcoming_events"
+                            class="event_upcoming_list_wrapper"
+                        ></div>
 
-                        <li>Music Night</li>
+                    </div>
 
-                        <li>Business Conference</li>
-
-                    </ul>
-
-                </div>
+                </t>
 
             </div>
 
         </xpath>
 
     </template>
+
+    <!-- TOGGLE -->
+    <template
+        id="index_upcoming_events"
+        name="Upcoming Events Toggle"
+        active="True"
+    />
 
 </odoo>

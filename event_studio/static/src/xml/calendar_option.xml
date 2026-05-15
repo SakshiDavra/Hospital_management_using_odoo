@@ -10,14 +10,26 @@
         <!-- Quotes niche add -->
         <xpath expr="//BuilderRow[@label.translate='Quotes']" position="after">
 
+            <!-- Calendar -->
             <BuilderRow label.translate="Calendar">
                 <BuilderCheckbox
                     actionParam="{views: ['event_studio.index_sidebar_calendar']}"
                 />
             </BuilderRow>
 
+            <!-- Upcoming Events -->
+            <BuilderRow label.translate="Upcoming Events">
+                <BuilderCheckbox
+                    actionParam="{views: ['event_studio.index_upcoming_events']}"
+                />
+            </BuilderRow>
+
         </xpath>
 
     </t>
+
+
+
+    
 
 </templates>
