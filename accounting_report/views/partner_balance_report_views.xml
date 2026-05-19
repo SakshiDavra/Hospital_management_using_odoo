@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+
+    <record id="view_partner_balance_report_list" model="ir.ui.view">
+
+        <field name="name">partner.balance.report.list</field>
+        <field name="model">partner.balance.report</field>
+
+        <field name="arch" type="xml">
+
+            <list create="0" delete="0" sample="1">
+
+                <field name="partner_id"/>
+                <field name="company_currency_id" column_invisible="1"/>
+
+                <!-- Purchase -->
+
+                <field name="purchase_total"
+                       widget="monetary"
+                       options="{'currency_field':'company_currency_id'}"
+                       sum="Total"/>
+
+                <field name="purchase_paid"
+                       widget="monetary"
+                       options="{'currency_field':'company_currency_id'}"
+                       sum="Total"
+                       decoration-success="purchase_paid > 0"/>
+
+                <field name="purchase_due"
+                       widget="monetary"
+                       options="{'currency_field':'company_currency_id'}"
+                       sum="Total"
+                       decoration-danger="purchase_due > 0"/>
+
+                <!-- Sales -->
+
+                <field name="sales_total"
+                       widget="monetary"
+                       options="{'currency_field':'company_currency_id'}"
+                       sum="Total"/>
+
+                <field name="sales_received"
+                       widget="monetary"
+                       options="{'currency_field':'company_currency_id'}"
+                       sum="Total"
+                       decoration-success="sales_received > 0"/>
+
+                <field name="sales_due"
+                       widget="monetary"
+                       options="{'currency_field':'company_currency_id'}"
+                       sum="Total"
+                       decoration-warning="sales_due > 0"/>
+
+                <!-- Net Balance -->
+
+                <field name="net_balance"
+                       widget="monetary"
+                       options="{'currency_field':'company_currency_id'}"
+                       sum="Total"
+                       decoration-success="net_balance &gt; 0"
+                       decoration-danger="net_balance &lt; 0"/>
+
+                <!-- Status -->
+
+                <field name="status"
+                       widget="badge"
+                       decoration-success="status == 'receivable'"
+                       decoration-danger="status == 'payable'"/>
+
+                <button
+                    name="action_view_moves"
+                    type="object"
+                    string="View"
+                    class="btn-primary"
+                    />
+            </list>
+
+        </field>
+
+    </record>
+
+
+    <!-- FORM VIEW -->
+
+    <record id="view_partner_balance_report_form" model="ir.ui.view">
+
+        <field name="name">partner.balance.report.form</field>
+        <field name="model">partner.balance.report</field>
+
+        <field name="arch" type="xml">
+
+            <form>
+
+                <header>
+
+                    <button
+                        name="action_view_moves"
+                        type="object"
+                        string="View Bills"
+                        class="btn-primary"
+                        icon="fa-eye"/>
+
+                </header>
+
+                <sheet>
+
+                    <field name="company_currency_id" invisible="1"/>
+
+                    <group>
+
+                        <group>
+
+                            <field name="partner_id"/>
+
+                            <field name="status"
+                                   widget="badge"
+                                   decoration-success="status == 'receivable'"
+                                   decoration-danger="status == 'payable'"/>
+
+                        </group>
+
+                        <group>
+
+                            <field name="net_balance"
+                                   widget="monetary"
+                                   options="{'currency_field':'company_currency_id'}"/>
+
+                        </group>
+
+                    </group>
+
+                    <group string="Purchase">
+
+                        <field name="purchase_total"
+                               widget="monetary"
+                               options="{'currency_field':'company_currency_id'}"/>
+
+                        <field name="purchase_paid"
+                               widget="monetary"
+                               options="{'currency_field':'company_currency_id'}"/>
+
+                        <field name="purchase_due"
+                               widget="monetary"
+                               options="{'currency_field':'company_currency_id'}"/>
+
+                    </group>
+
+                    <group string="Sales">
+
+                        <field name="sales_total"
+                               widget="monetary"
+                               options="{'currency_field':'company_currency_id'}"/>
+
+                        <field name="sales_received"
+                               widget="monetary"
+                               options="{'currency_field':'company_currency_id'}"/>
+
+                        <field name="sales_due"
+                               widget="monetary"
+                               options="{'currency_field':'company_currency_id'}"/>
+
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+
+    </record>
+
+</odoo>

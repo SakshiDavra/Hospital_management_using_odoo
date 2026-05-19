@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record
+        id="action_partner_balance_report"
+        model="ir.actions.act_window"
+    >
+
+        <field name="name">Partner Balance Report</field>
+
+        <field name="res_model">partner.balance.report</field>
+
+        <field name="view_mode">list,form</field>
+
+    </record>
+
+
+    <menuitem
+        id="menu_partner_balance_root"
+        name="Partner Balance"
+        sequence="1"
+    />
+
+
+    <menuitem
+        id="menu_partner_balance_report"
+        name="Reports"
+        parent="menu_partner_balance_root"
+        action="action_partner_balance_report"
+        sequence="1"
+    />
+
+</odoo>
