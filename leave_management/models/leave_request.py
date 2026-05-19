@@ -1,5 +1,6 @@
 from odoo import api, models
 
+
 class HrLeave(models.Model):
     _inherit = "hr.leave"
 
