@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record id="hr_leave_view_form_inherit_session"
+            model="ir.ui.view">
+        <field name="name">
+            hr.leave.form.inherit.session
+        </field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id"
+               ref="hr_holidays.hr_leave_view_form_dashboard_new_time_off"/>
+        <field name="arch" type="xml">
+
+            <!-- FORCE SHOW DAY PERIOD LABEL -->
+
+            <xpath expr="//label[@for='request_date_from_period']"
+                   position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+            <!-- FORCE SHOW OFFICIAL DROPDOWN ROW -->
+            <xpath expr="//field[@name='request_date_from_period']/.."
+                   position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+            <!-- REMOVE FIELD LEVEL INVISIBLE -->
+
+            <xpath expr="//field[@name='request_date_from_period']"
+                   position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='request_date_to_period']"
+                   position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>
