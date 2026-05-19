@@ -1,7 +1,9 @@
 {
     'name': 'Leave Management',
     'version': '1.0',
-    'depends': ['base', 'hr', 'hr_holidays'],
+    'author': 'Sakshi Davra',
+    'license': 'LGPL-3',
+    'depends': ['base', 'hr', 'hr_holidays','hr_attendance'],
 
     'data': [
         'views/hr_leave_views.xml',

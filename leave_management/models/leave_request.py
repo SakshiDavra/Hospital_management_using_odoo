@@ -11,7 +11,5 @@ class HrLeave(models.Model):
     def _onchange_half_day_custom(self):
 
         self.request_unit_half = True
-
         self._compute_date_from_to()
-
         self._compute_duration()
