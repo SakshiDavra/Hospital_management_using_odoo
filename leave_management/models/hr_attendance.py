@@ -121,6 +121,7 @@ class HrAttendance(models.Model):
                 'allocation_type': 'regular',
                 'number_of_days': leave_days,
             })
+
             allocation._action_validate()
             allocation.message_post(
                 body=Markup(f"""
