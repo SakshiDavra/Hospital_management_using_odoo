@@ -131,6 +131,9 @@ class HrAttendance(models.Model):
                             if leave else
                             _('Comp Off added for Holiday / Weekend work.')
                         }
+
+
+                        
                         <br/><br/>
 
                         <b>Date:</b> {today}<br/>
