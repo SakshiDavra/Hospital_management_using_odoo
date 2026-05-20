@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+
+        <record id="email_template_extra_hours_manager" model="mail.template">
+
+            <field name="name">Extra Hours Notification</field>
+
+            <field name="model_id"
+                ref="hr_attendance.model_hr_attendance"/>
+
+            <field name="subject">Employee Worked Extra Hours</field>
+
+            <field name="email_to">{{object.employee_id.parent_id.work_email}}</field>
+
+            <field name="body_html" type="html">
+
+                <div style="padding:20px;font-family:Arial, Helvetica, sans-serif;background:#f4f6f9;">
+
+                    <div style="background:white;padding:25px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.08);">
+
+                        <h2 style="color:#714B67;margin-bottom:20px;">
+                            Extra Hours Notification
+                        </h2>
+
+                        <p style="font-size:14px;color:#333;">
+                            Hello
+                            <strong>
+                                <t t-out="object.employee_id.parent_id.name"/>
+                            </strong>,
+                        </p>
+
+                        <p style="font-size:14px;color:#555;line-height:1.7;">
+                            Employee
+                            <strong>
+                                <t t-out="object.employee_id.name"/>
+                            </strong>
+                            worked extra hours.
+                        </p>
+
+                        <div style="background:#f8f9fc;border-left:4px solid #714B67;padding:15px;margin-top:20px;border-radius:6px;">
+
+                            <p style="margin:6px 0;">
+                                <strong>Date:</strong>
+                                <t t-out="object.check_in.date()"/>
+                            </p>
+
+                            <p style="margin:6px 0;">
+                                <strong>Worked Hours:</strong>
+                                <t t-out="round(object.worked_hours, 2)"/>
+                            </p>
+
+                            <p>
+                                <b>Leave Type:</b>
+                                <t t-out="ctx.get('leave_type_name', '-')"/>
+                            </p>
+
+                        </div>
+
+                        <p style="margin-top:25px;font-size:12px;color:#888;">
+                            This is an automated email from
+                            <strong>
+                                <t t-out="object.employee_id.company_id.name"/>
+                            </strong>.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </field>
+
+        </record>
+
+    </data>
+
+</odoo>

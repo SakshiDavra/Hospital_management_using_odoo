@@ -6,6 +6,10 @@
     'depends': ['base', 'hr', 'hr_holidays','hr_attendance'],
 
     'data': [
+
+        'data/mail_template.xml',
+
+        
         'views/hr_leave_views.xml',
     ],
 
