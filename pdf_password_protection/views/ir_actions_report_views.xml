@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record id="view_report_form_inherit_password" model="ir.ui.view">
+
+        <field name="name">ir.actions.report.form.password</field>
+
+        <field name="model">ir.actions.report</field>
+
+        <field name="inherit_id"
+               ref="base.act_report_xml_view"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//notebook"
+                position="before">
+
+                <group string="PDF PASSWORD PROTECTION"
+                    invisible="report_type != 'qweb-pdf'">
+
+                    <field name="enable_pdf_password"/>
+
+                    <field name="password_type"
+                        invisible="not enable_pdf_password"/>
+
+                    <field name="static_password"
+                        invisible="password_type != 'static'"/>
+
+                    <field name="dynamic_field_id"
+                        invisible="password_type != 'dynamic'"/>
+
+                </group>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>
