@@ -16,19 +16,69 @@
             <xpath expr="//notebook"
                 position="before">
 
-                <group string="PDF PASSWORD PROTECTION"
-                    invisible="report_type != 'qweb-pdf'">
+                <group col="2">
 
-                    <field name="enable_pdf_password"/>
+                    <!-- LEFT -->
+                    <group string="PDF PASSWORD PROTECTION"
+                        invisible="report_type != 'qweb-pdf'">
 
-                    <field name="password_type"
-                        invisible="not enable_pdf_password"/>
+                        <field name="enable_pdf_password"/>
 
-                    <field name="static_password"
-                        invisible="password_type != 'static'"/>
+                        <field name="password_type"
+                            invisible="not enable_pdf_password"/>
 
-                    <field name="dynamic_field_id"
-                        invisible="password_type != 'dynamic'"/>
+                        <field name="static_password"
+                            invisible="password_type != 'static'"/>
+
+                        <field name="dynamic_field_path"
+                            widget="field_selector"
+                            options="{'model': 'model'}"
+                            invisible="password_type != 'dynamic'"/>
+
+                    </group>
+
+                    <!-- RIGHT -->
+
+                    <group string="PDF WATERMARK"
+                        invisible="report_type != 'qweb-pdf'">
+
+                        <field name="enable_watermark"/>
+
+                        <group invisible="not enable_watermark">
+
+                            <field name="watermark_type"/>
+                            <field name="watermark_opacity"/>
+                            <field name="vertical_position"/>
+                            <field name="horizontal_position"/>
+
+                            <!-- IMAGE -->
+                            <field name="watermark_image"
+                                widget="image"
+                                invisible="watermark_type != 'image'"/>
+
+                            <field name="image_scale"
+                                invisible="watermark_type != 'image'"/>
+
+                            <!-- TEXT -->
+                            <field name="watermark_text"
+                                invisible="watermark_type != 'text'"/>
+
+                            <field name="font_name"
+                                invisible="watermark_type != 'text'"/>
+
+                            <field name="font_size"
+                                invisible="watermark_type != 'text'"/>
+
+                            <field name="font_color"
+                                widget="color"
+                                invisible="watermark_type != 'text'"/>
+
+                            <field name="watermark_layout"
+                                invisible="watermark_type != 'text'"/>
+
+                        </group>
+
+                    </group>
 
                 </group>
 

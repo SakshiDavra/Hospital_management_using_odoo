@@ -17,6 +17,12 @@
         'views/ir_actions_report_views.xml',
     ],
 
+    'assets': {
+        'web.assets_backend': [
+
+        ],
+    },
+
     'installable': True,
     'application': False,
 }
