@@ -18,7 +18,6 @@
 
                 <group col="2">
 
-                    <!-- LEFT -->
                     <group string="PDF PASSWORD PROTECTION"
                         invisible="report_type != 'qweb-pdf'">
 
@@ -37,8 +36,6 @@
 
                     </group>
 
-                    <!-- RIGHT -->
-
                     <group string="PDF WATERMARK"
                         invisible="report_type != 'qweb-pdf'">
 
@@ -51,7 +48,6 @@
                             <field name="vertical_position"/>
                             <field name="horizontal_position"/>
 
-                            <!-- IMAGE -->
                             <field name="watermark_image"
                                 widget="image"
                                 invisible="watermark_type != 'image'"/>
@@ -59,14 +55,13 @@
                             <field name="image_scale"
                                 invisible="watermark_type != 'image'"/>
 
-                            <!-- TEXT -->
                             <field name="watermark_text"
                                 invisible="watermark_type != 'text'"/>
 
                             <field name="font_name"
                                 invisible="watermark_type != 'text'"/>
 
-                            <field name="font_size"
+                            <field name="watermark_size"
                                 invisible="watermark_type != 'text'"/>
 
                             <field name="font_color"
