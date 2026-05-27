@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_follower_mail_config,follower.mail.config,model_follower_mail_config,base.group_system,1,1,1,1
+access_follower_mail_config_line,follower.mail.config.line,model_follower_mail_config_line,base.group_system,1,1,1,1
