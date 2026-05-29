@@ -7,32 +7,15 @@ class FollowerMailConfigLine(models.Model):
 
     active = fields.Boolean(default=True)
 
-    config_id = fields.Many2one(
-        'follower.mail.config',
-        string='Configuration',
-        required=True,
-        ondelete='cascade'
-    )
+    config_id = fields.Many2one('follower.mail.config',string='Configuration',required=True,ondelete='cascade')
 
-    model_name = fields.Char(
-        related='config_id.model_id.model'
-    )
+    model_name = fields.Char(related='config_id.model_id.model')
 
-    subtype_id = fields.Many2one(
-        'mail.message.subtype',
-        string='Subtype',
-        required=True
-    )
+    subtype_id = fields.Many2one('mail.message.subtype',string='Subtype',required=True)
 
-    allowed_partner_ids = fields.Many2many(
-        'res.partner',
-        compute='_compute_allowed_partner_ids'
-    )
+    allowed_partner_ids = fields.Many2many('res.partner',compute='_compute_allowed_partner_ids')
 
-    partner_ids = fields.Many2many(
-        'res.partner',
-        string='Followers'
-    )
+    partner_ids = fields.Many2many('res.partner',string='Followers')
 
     @api.depends('config_id.model_id')
     def _compute_allowed_partner_ids(self):

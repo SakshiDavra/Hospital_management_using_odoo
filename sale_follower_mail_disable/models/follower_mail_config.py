@@ -8,33 +8,11 @@ class FollowerMailConfig(models.Model):
 
     active = fields.Boolean(default=True)
 
-    model_id = fields.Many2one(
-        'ir.model',
-        string='Model',
-        required=True,
-        ondelete='cascade'
-    )
-    model_name = fields.Char(
-        related='model_id.model',
-        readonly=True
-    )
+    model_id = fields.Many2one('ir.model',string='Model',required=True,ondelete='cascade')
+    model_name = fields.Char(related='model_id.model',readonly=True)
+    stop_auto_follower = fields.Boolean(string='Stop Auto Follower',default=False)
+    disable_notification = fields.Boolean(string='Disable Notification',default=False)
+    filter_domain = fields.Text(string='Filter Domain')
+    line_ids = fields.One2many('follower.mail.config.line','config_id',string='Subtype Configuration')
 
-    auto_follower = fields.Boolean(
-        string='Auto Follower',
-        default=True
-    )
-
-    notification_enabled = fields.Boolean(
-        string='Enable Notification',
-        default=True
-    )
-
-    filter_domain = fields.Text(
-        string='Filter Domain'
-    )
-
-    line_ids = fields.One2many(
-        'follower.mail.config.line',
-        'config_id',
-        string='Subtype Configuration'
-    )
+    
