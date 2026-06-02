@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Search View -->
+    <record id="view_follower_mail_config_search"
+            model="ir.ui.view">
+
+        <field name="name">
+            follower.mail.config.search
+        </field>
+
+        <field name="model">
+            follower.mail.config
+        </field>
+
+        <field name="arch"
+                type="xml">
+
+            <search string="Search Configuration">
+
+                <!-- Search Field -->
+                <field name="model_id"/>
+
+                <separator/>
+
+                <!-- Filters -->
+                <filter name="active_records"
+                        string="Active"
+                        domain="[('active', '=', True)]"/>
+
+                <filter name="archived_records"
+                        string="Archived"
+                        domain="[('active', '=', False)]"/>
+
+                <filter name="stop_auto_follower"
+                        string="Stop Auto Follower"
+                        domain="[('stop_auto_follower', '=', True)]"/>
+
+                <filter name="disable_notification"
+                        string="Global Disable Notification"
+                        domain="[('disable_notification', '=', True)]"/>
+
+                <separator/>
+
+                <!-- Group By -->
+                <group expand="0"
+                        string="Group By">
+
+                    <filter name="group_model"
+                            string="Model"
+                            context="{'group_by': 'model_id'}"/>
+
+                    <filter name="group_stop_auto_follower"
+                            string="Stop Auto Follower"
+                            context="{'group_by': 'stop_auto_follower'}"/>
+
+                    <filter name="group_disable_notification"
+                            string="Global Disable Notification"
+                            context="{'group_by': 'disable_notification'}"/>
+
+                </group>
+
+            </search>
+
+        </field>
+
+    </record>
+</odoo>
