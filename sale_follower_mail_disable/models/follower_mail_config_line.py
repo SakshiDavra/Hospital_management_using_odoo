@@ -5,7 +5,7 @@ class FollowerMailConfigLine(models.Model):
     _name = 'follower.mail.config.line'
     _description = 'Follower Mail Configuration Line'
 
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string='Disable Notification')
 
     config_id = fields.Many2one('follower.mail.config',string='Configuration',required=True,ondelete='cascade')
 

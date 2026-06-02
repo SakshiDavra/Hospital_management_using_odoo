@@ -14,8 +14,6 @@
                 <field name="model_id"/>
                 <field name="stop_auto_follower"/>
                 <field name="disable_notification"/>
-                <field name="active"/>
-
             </list>
         </field>
 
@@ -32,20 +30,19 @@
         <field name="arch" type="xml">
 
             <form string="Follower Mail Configuration">
-
+                <field name="active" invisible="1"/>
                 <sheet>
-
+                    <widget name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"/>
                     <group>
-
                         <field name="model_id"/>
-                        <field name="active"/>
 
                     </group>
 
                     <!-- Active હોય ત્યારે જ દેખાડો -->
-                    <group invisible="not active">
-
-                        <field name="stop_auto_follower"/>
+                    <group>
                         
                         <field name="model_name" invisible="1"/>
 
@@ -53,12 +50,14 @@
                             widget="domain"
                             options="{'model': 'model_name'}"/>
 
+                        <field name="stop_auto_follower"/>
+
                         <field name="disable_notification"/>
 
                     </group>
 
                     <!-- Active હોય ત્યારે notebook દેખાડો -->
-                    <notebook invisible="not active">
+                    <notebook invisible="not disable_notification">
 
                         <page string="Subtype Configuration">
 
