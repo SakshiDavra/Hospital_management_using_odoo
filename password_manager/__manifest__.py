@@ -1,0 +1,24 @@
+{
+    'name': 'Password Manager',
+    'version': '19.0.1.0.0',
+    'summary': 'Secure Password Management',
+    'description': 'Password Manager Module',
+    'author': 'Sakshi',
+    'category': 'Tools',
+    'license': 'LGPL-3',
+
+    'depends': ['base','hr'],
+
+    'data': [
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'views/password_credential_type_views.xml',
+        'views/password_category_views.xml',
+        'views/password_manager_views.xml',
+        'views/menu_views.xml',
+        
+    ],
+
+    'installable': True,
+    'application': True,
+}
