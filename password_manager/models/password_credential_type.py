@@ -6,16 +6,8 @@ class PasswordCredentialType(models.Model):
     _description = 'Password Credential Type'
     _rec_name = 'name'
 
-    name = fields.Char(
-        string='Type Name',
-        required=True
-    )
+    name = fields.Char(string='Type Name',required=True)
 
-    description = fields.Text(
-        string='Description'
-    )
+    description = fields.Text(string='Description')
 
-    active = fields.Boolean(
-        string='Active',
-        default=True
-    )
+    active = fields.Boolean(string='Active',default=True)

@@ -3,3 +3,4 @@ access_password_manager,password.manager,model_password_manager,base.group_user,
 access_password_credential_type,password.credential.type,model_password_credential_type,base.group_user,1,1,1,1
 access_password_category,password.category,model_password_category,base.group_user,1,1,1,1
 access_password_access,password.access,model_password_access,base.group_user,1,1,1,1
+access_password_change_wizard,password.change.wizard,model_password_change_wizard,base.group_user,1,1,1,1

@@ -6,15 +6,8 @@ class PasswordCategory(models.Model):
     _description = 'Password Category'
     _rec_name = 'name'
 
-    name = fields.Char(
-        string='Category Name',
-        required=True
-    )
+    name = fields.Char(string='Category Name',required=True)
 
-    description = fields.Text(
-        string='Description'
-    )
+    description = fields.Text(string='Description')
 
-    active = fields.Boolean(
-        default=True
-    )
+    active = fields.Boolean(default=True)
