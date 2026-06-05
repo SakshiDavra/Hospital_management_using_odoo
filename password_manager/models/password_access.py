@@ -1,5 +1,5 @@
 from odoo import models, fields
-
+from odoo.exceptions import AccessError
 
 class PasswordAccess(models.Model):
     _name = 'password.access'
@@ -14,3 +14,9 @@ class PasswordAccess(models.Model):
     can_write = fields.Boolean()
     can_delete = fields.Boolean()
     can_share = fields.Boolean()
+
+    def unlink(self):
+        for rec in self:
+            if rec.password_id.owner_id != self.env.user:
+                raise AccessError('Only credential owner can remove access rights.')
+        return super().unlink()

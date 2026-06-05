@@ -12,9 +12,10 @@
     'data': [
 
         'data/cron.xml',
-        
-        'security/security.xml',
+            
         'security/ir.model.access.csv',
+
+        'views/password_vault_views.xml',
         'views/password_credential_type_views.xml',
         'views/password_category_views.xml',
         'views/password_manager_views.xml',
@@ -22,6 +23,7 @@
         'views/menu_views.xml',
 
         'wizard/password_change_wizard_views.xml',
+        'wizard/password_view_wizard_views.xml',
 
         
     ],

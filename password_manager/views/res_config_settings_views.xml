@@ -27,6 +27,15 @@
                         <setting string="Require Special Characters">
                             <field name="require_special"/>
                         </setting>
+                        <setting string="Reminder Before Expiry (Days)">
+                            <field name="password_reminder_days"/>
+                        </setting>
+                        <setting string="Rotation Reminder Before (Days)">
+                            <field name="rotation_reminder_days"/>
+                        </setting>
+                        <setting string="Encryption Key">
+                            <field name="encryption_key"/>
+                        </setting>
                     </block>
                 </app>
             </xpath>

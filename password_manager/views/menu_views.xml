@@ -30,5 +30,11 @@
         action="action_password_category"
         sequence="3"
     />
+    <menuitem
+        id="menu_password_vault"
+        name="Vaults"
+        parent="menu_password_manager_root"
+        action="action_password_vault"
+        sequence="5"/>
 
 </odoo>

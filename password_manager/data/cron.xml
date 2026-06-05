@@ -3,22 +3,34 @@
 
         <record id="ir_cron_expire_passwords" model="ir.cron">
             <field name="name">Expire Passwords</field>
-
             <field name="model_id" ref="model_password_manager"/>
-
             <field name="state">code</field>
-
-            <field name="code">
-model.cron_expire_passwords()
-            </field>
-
+            <field name="code">model.cron_expire_passwords()</field>
             <field name="interval_number">1</field>
-
             <field name="interval_type">days</field>
-
             <field name="active">True</field>
-
         </record>
+
+        <record id="ir_cron_password_reminder" model="ir.cron">
+            <field name="name">Password Reminder</field>
+            <field name="model_id" ref="model_password_manager"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_password_reminder()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Rotation Reminder -->
+    <record id="ir_cron_rotation_reminder" model="ir.cron">
+        <field name="name">Password Rotation Reminder</field>
+        <field name="model_id" ref="model_password_manager"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_rotation_reminder()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
 
     </data>
 </odoo>
