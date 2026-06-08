@@ -9,3 +9,6 @@ class PasswordViewWizard(models.TransientModel):
         string='Password',
         readonly=True
     )
+    timeout_seconds = fields.Integer(
+        default=10
+    )

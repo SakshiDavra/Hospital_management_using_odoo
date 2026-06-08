@@ -29,3 +29,8 @@ class ResConfigSettings(models.TransientModel):
         string='Encryption Key',
         config_parameter='password_manager.encryption_key'
     )
+    password_view_timeout = fields.Integer(
+        string="Password View Timeout (Seconds)",
+        config_parameter='password_manager.password_view_timeout',
+        default=10
+    )

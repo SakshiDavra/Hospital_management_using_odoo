@@ -36,6 +36,10 @@
                         <setting string="Encryption Key">
                             <field name="encryption_key"/>
                         </setting>
+                        <setting string="Password View Timeout (Seconds)">
+                            <field name="password_view_timeout"/>
+                        </setting>
+
                     </block>
                 </app>
             </xpath>

@@ -29,12 +29,5 @@ class PasswordChangeWizard(models.TransientModel):
 
 
     def action_update_password(self):
-
-        print("ID =", self.password_id.id)
-        print("PASSWORD =", self.new_password)
-
-        self.password_id.write({
-            'password': self.new_password
-        })
-
-        print("UPDATED")
+        self.password_id._check_password_access('write')
+        self.password_id.write({'password': self.new_password})
