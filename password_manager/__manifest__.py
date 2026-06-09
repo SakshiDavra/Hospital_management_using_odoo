@@ -7,7 +7,7 @@
     'category': 'Tools',
     'license': 'LGPL-3',
 
-    'depends': ['base','hr'],
+    'depends': ['base','hr','portal','website',],
 
     'data': [
 
@@ -20,7 +20,11 @@
         'views/password_category_views.xml',
         'views/password_manager_views.xml',
         'views/res_config_settings_views.xml',
-        
+
+        'views/password_portal_templates.xml',
+        'views/password_portal_form_templates.xml',
+        'views/password_portal_modals.xml',
+       
 
         'wizard/password_change_wizard_views.xml',
         # 'wizard/password_view_wizard_views.xml',
@@ -34,6 +38,15 @@
     ],
 
     'assets': {
+        'web.assets_frontend': [
+
+            'password_manager/static/src/js/portal_password.js',
+            'password_manager/static/src/js/password_create.js',
+            'password_manager/static/src/js/portal_rotation.js',
+            'password_manager/static/src/js/password_portal_edit_password.js',
+
+        ],
+
         'web.assets_backend': [
 
             'password_manager/static/src/js/password_auto_close.js',

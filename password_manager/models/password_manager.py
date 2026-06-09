@@ -102,7 +102,7 @@ class PasswordManager(models.Model):
                 if access.user_id:
                     users |= access.user_id
                 if access.group_id:
-                    users |= access.group_id.users 
+                    users |= access.group_id.user_ids
                 if access.department_id:
                     employees = self.env['hr.employee'].sudo().search([('department_id', '=', access.department_id.id)])
                     users |= employees.mapped('user_id')
@@ -218,26 +218,31 @@ class PasswordManager(models.Model):
     def _check_password_access(self, permission='read'):
         self.ensure_one()
         user = self.env.user
-        if user._is_admin():
-            return True
+
         if self.owner_id == user:
             return True
+
         if self.state == 'draft':
             raise AccessError('Credential is still in Draft state.')
+
         if self.state == 'expired':
             raise AccessError('Credential has expired.')
-            
+
         access = self._get_access_lines(user)
+
         if not access:
             raise AccessError('You are not allowed to access this password.')
-            
+
         for access_line in access:
             if not access_line.active:
                 continue
+
             if access_line.access_until and access_line.access_until <= fields.Datetime.now():
                 continue
+
             if self._has_permission(access_line, permission):
                 return True
+
         raise AccessError('Permission denied.')
     
     def action_show_password(self):

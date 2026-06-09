@@ -7,3 +7,5 @@ access_password_change_wizard,password.change.wizard,model_password_change_wizar
 access_password_view_wizard,password.view.wizard,model_password_view_wizard,base.group_user,1,1,1,1
 access_password_verify_wizard,password.verify.wizard,model_password_verify_wizard,base.group_user,1,1,1,1
 access_password_merge_wizard,password.merge.wizard,model_password_merge_wizard,,1,1,1,1
+
+access_password_manager_portal,password.manager.portal,model_password_manager,base.group_portal,1,0,0,0

@@ -1,19 +1,34 @@
 from odoo import models, fields
-from odoo.exceptions import AccessError
-from odoo.exceptions import AccessDenied, AccessError
+from odoo.exceptions import ValidationError
 
 class PasswordVerifyWizard(models.TransientModel):
     _name = 'password.verify.wizard'
-    _description = 'Password Verify Wizard'
-    password_id = fields.Many2one('password.manager',required=True)
-    login_password = fields.Char(string='Current Login Password',required=True)
+
+    password_id = fields.Many2one(
+        'password.manager',
+        required=True
+    )
+
+    login_password = fields.Char(
+        string='Category Password',
+        required=True
+    )
 
     def action_verify(self):
-        credential = {'login': self.env.user.login, 'password': self.login_password, 'type': 'password',}
-        try:
-            self.env.user._check_credentials(credential,{'interactive': True})
+        self.ensure_one()
 
-        except AccessDenied:
-            raise AccessError('Invalid login password.')
+        credential = self.password_id
 
-        return self.password_id._show_password_wizard()
+        valid = False
+
+        for category in credential.category_ids:
+            if self.login_password == category.category_password:
+                valid = True
+                break
+
+        if not valid:
+            raise ValidationError(
+                "Invalid Category Password."
+            )
+
+        return credential._show_password_wizard()

@@ -10,8 +10,14 @@ class PasswordChangeWizard(models.TransientModel):
         'password.manager'
     )
 
+    current_password = fields.Char(
+        string='Current Password',
+        password=True,
+    )
+
     new_password = fields.Char(
         string='New Password',
+        password=True,
     )
     def action_generate_password(self):
 
@@ -29,5 +35,16 @@ class PasswordChangeWizard(models.TransientModel):
 
 
     def action_update_password(self):
+
         self.password_id._check_password_access('write')
-        self.password_id.write({'password': self.new_password})
+
+        current_password = self.password_id._decrypt_password()
+
+        if self.current_password != current_password:
+            raise ValidationError(
+                'Current password is incorrect.'
+            )
+
+        self.password_id.write({
+            'password': self.new_password
+        })
