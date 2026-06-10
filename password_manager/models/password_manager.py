@@ -4,13 +4,16 @@ from odoo.exceptions import AccessError, ValidationError, UserError
 from dateutil.relativedelta import relativedelta
 import secrets
 import string
+from cryptography.fernet import Fernet, InvalidToken
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class PasswordManager(models.Model):
     _name = 'password.manager'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Password Manager'
     _rec_name = 'name'
-
     name = fields.Char(required=True)
     credential_type_id = fields.Many2one('password.credential.type', string='Credential Type')
     category_ids = fields.Many2many('password.category', string='Categories')
@@ -24,26 +27,14 @@ class PasswordManager(models.Model):
     notes = fields.Text()
     owner_id = fields.Many2one('res.users', default=lambda self: self.env.user, required=True)
     access_ids = fields.One2many('password.access', 'password_id', string='Access Rights')
-    state = fields.Selection([
-        ('draft', 'Draft'),
-        ('confirmed', 'Confirmed'),
-        ('expired', 'Expired'),
-    ], string='Status', default='draft', tracking=True)
+    state = fields.Selection([('draft', 'Draft'),('confirmed', 'Confirmed'),
+        ('expired', 'Expired'),], string='Status', default='draft', tracking=True)
     expiry_date = fields.Date()
     active = fields.Boolean(default=True)
     rotation_days = fields.Integer(string='Rotation Days', default=0)
     rotation_date = fields.Date(string='Next Rotation Date')
-    
-    allowed_user_ids = fields.Many2many(
-        'res.users',
-        compute='_compute_allowed_users',
-        store=True
-    )
-    duplicate_count = fields.Integer(
-        compute="_compute_duplicate_count",
-        store=True,
-        search="_search_duplicate_count"
-    )
+    allowed_user_ids = fields.Many2many('res.users',compute='_compute_allowed_users',store=True)
+    duplicate_count = fields.Integer(compute="_compute_duplicate_count",store=False,search="_search_duplicate_count")
 
     def _search_duplicate_count(self, operator, value):
         if operator not in ('=', '!=', '>', '>=', '<', '<='):
@@ -61,36 +52,45 @@ class PasswordManager(models.Model):
         
         domain = []
         for r in res:
-            domain.append([
-                ('name', '=', r['name']),
-                ('username', '=', r['username']),
-                ('credential_type_id', '=', r['credential_type_id'])
-            ])
+            domain.append([('name', '=', r['name']),('username', '=', r['username']),
+                ('credential_type_id', '=', r['credential_type_id'])])
         
         if not domain:
             return [('id', '=', False)]
             
-
         or_domain = ['|'] * (len(domain) - 1)
         for d in domain:
             or_domain.extend(d)
             
         return or_domain
 
-    @api.depends('name', 'username', 'credential_type_id')
+    @api.depends('name', 'username', 'credential_type_id', 'active')
     def _compute_duplicate_count(self):
+
         for rec in self:
-            if not rec.name or not rec.active:
-                rec.duplicate_count = 0
-                continue
-            duplicates = self.search_count([
-                ('id', '!=', rec.id),
-                ('name', '=', rec.name),
-                ('username', '=', rec.username),
-                ('credential_type_id', '=', rec.credential_type_id.id),
-                ('active', '=', True),
-            ])
-            rec.duplicate_count = duplicates
+            rec.duplicate_count = 0
+        active_records = self.filtered(lambda r: r.active and r.name)
+        if not active_records:
+            return
+        self.env.cr.execute("""SELECT name,username,credential_type_id,COUNT(*) as total
+            FROM password_manager
+            WHERE active = TRUE
+            GROUP BY name,username,credential_type_id
+            HAVING COUNT(*) > 1
+        """)
+
+        duplicate_map = {
+            (row['name'],
+                row['username'],
+                row['credential_type_id']
+            ): row['total']
+            for row in self.env.cr.dictfetchall()
+        }
+
+        for rec in active_records:
+            key = (rec.name,rec.username,rec.credential_type_id.id)
+
+            rec.duplicate_count = max(duplicate_map.get(key, 0) - 1,0)
 
     @api.depends('owner_id', 'access_ids.user_id', 'access_ids.group_id', 'access_ids.department_id', 'access_ids.active', 'access_ids.access_until')
     def _compute_allowed_users(self):
@@ -153,9 +153,19 @@ class PasswordManager(models.Model):
         return self._get_cipher().encrypt(password.encode()).decode()
 
     def _decrypt_password(self):
-        if self.password:
+        self.ensure_one()
+        if not self.password:
+            return ''
+        try:
             return self._get_cipher().decrypt(self.password.encode()).decode()
-        return ''
+
+        except InvalidToken:
+            _logger.exception("Password decryption failed for credential ID %s",self.id)
+            raise UserError("Unable to decrypt this password. Please contact your administrator.")
+
+        except Exception:
+            _logger.exception("Unexpected decryption error for credential ID %s",self.id)
+            raise UserError("An unexpected error occurred while decrypting the password.")
     
     def _calculate_rotation_date(self, days):
         if days > 0:
@@ -165,33 +175,56 @@ class PasswordManager(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+
+            if vals.get('password_type') == 'generate' and not vals.get('password'):
+                vals['password'] = self._generate_password()
+
             if vals.get('password'):
                 vals['password'] = self._encrypt_password(vals['password'])
-            rotation_days = vals.get('rotation_days', 0)
-            if rotation_days:
-                vals['rotation_date'] = self._calculate_rotation_date(rotation_days)
 
         records = super().create(vals_list)
+
         for rec in records:
             rec.message_post(body='Credential created')
-        return records
 
+        return records
+    
+    def action_generate_password_preview(self):
+        return True
+
+    
     def write(self, vals):
-        if any(f in vals for f in ['password', 'username', 'url', 'notes']):
-            for rec in self:
-                rec._check_password_access('write')
-                
+
+        for rec in self:
+
+            # State change always allow
+            if set(vals.keys()) == {'state'}:
+                continue
+
+            rec._check_password_access('write')
+
+            editable_fields = {'password'}
+
+            changed_fields = set(vals.keys()) - editable_fields
+
+            if changed_fields and rec.state != 'draft':
+                raise AccessError(
+                    'Credential can only be modified in Draft state.'
+                )
+
         password_changed = 'password' in vals
+
         if password_changed and vals.get('password'):
             vals['password'] = self._encrypt_password(vals['password'])
-            
-        if 'rotation_days' in vals:
-            vals['rotation_date'] = self._calculate_rotation_date(vals.get('rotation_days', 0))
-            
+
+
+
         result = super().write(vals)
+
         if password_changed:
             for rec in self:
                 rec.message_post(body='Password changed')
+
         return result
     
     def _get_employee_department_id(self, user):
@@ -222,7 +255,7 @@ class PasswordManager(models.Model):
         if self.owner_id == user:
             return True
 
-        if self.state == 'draft':
+        if permission == 'read' and self.state == 'draft':
             raise AccessError('Credential is still in Draft state.')
 
         if self.state == 'expired':
@@ -285,13 +318,19 @@ class PasswordManager(models.Model):
 
     def _change_state(self, state, message):
         self.ensure_one()
-        if self.owner_id != self.env.user and not self.env.user._is_admin():
-            raise AccessError('Only credential owner can change state.')
+
+        self._check_password_access('write')
+
         self.state = state
         self.message_post(body=message)
         
     def action_confirm(self):
-        self._change_state('confirmed', 'Credential confirmed')
+        self.ensure_one()
+        vals = {'state': 'confirmed'}
+        if self.rotation_days:
+            vals['rotation_date'] = (fields.Date.today() + relativedelta(days=self.rotation_days))
+        self.write(vals)
+        self.message_post(body='Credential confirmed')
                     
     def action_set_draft(self):
         self._change_state('draft', 'Credential moved to draft')
@@ -301,7 +340,7 @@ class PasswordManager(models.Model):
         for rec in self:
             if rec.expiry_date and rec.rotation_date and rec.rotation_date > rec.expiry_date:
                 raise ValidationError('Rotation date cannot be greater than expiry date.')
-
+            
     @api.model
     def _generate_password(self):
         params = self.env['ir.config_parameter'].sudo()
@@ -361,5 +400,12 @@ class PasswordManager(models.Model):
     
     def unlink(self):
         for rec in self:
+
+            if rec.state != 'draft':
+                raise UserError(
+                    "You cannot delete a confirmed or expired credential. "
+                    "You must first set it to Draft state."
+                )
             rec._check_password_access('delete')
+
         return super().unlink()

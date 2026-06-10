@@ -8,4 +8,7 @@ access_password_view_wizard,password.view.wizard,model_password_view_wizard,base
 access_password_verify_wizard,password.verify.wizard,model_password_verify_wizard,base.group_user,1,1,1,1
 access_password_merge_wizard,password.merge.wizard,model_password_merge_wizard,,1,1,1,1
 
-access_password_manager_portal,password.manager.portal,model_password_manager,base.group_portal,1,0,0,0
+access_password_manager_portal,password.manager.portal,model_password_manager,base.group_portal,1,1,1,0
+access_password_credential_type_portal,password.credential.type.portal,model_password_credential_type,base.group_portal,1,0,0,0
+access_password_category_portal,password.category.portal,model_password_category,base.group_portal,1,0,0,0
+access_password_access_portal,password.access.portal,model_password_access,base.group_portal,1,0,0,0
