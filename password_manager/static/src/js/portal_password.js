@@ -17,6 +17,7 @@ publicWidget.registry.PasswordPortal = publicWidget.Widget.extend({
 $(document).ready(function () {
     $(document).on("click", ".close-modal", function () {
         $("#verifyPasswordModal, #showPasswordModal").hide();
+        $("#portal_real_username").text("");
         $("#portal_real_password").text("");
     });
 
@@ -52,6 +53,7 @@ $(document).ready(function () {
                 }
 
                 $("#verifyPasswordModal").hide();
+                $("#portal_real_username").text(result.username);
                 $("#portal_real_password").text(result.password);
                 $("#showPasswordModal").show();
 
@@ -61,6 +63,7 @@ $(document).ready(function () {
                     if (seconds <= 0) {
                         clearInterval(timer);
                         $("#showPasswordModal").hide();
+                        $("#portal_real_username").text("");
                         $("#portal_real_password").text("");
                     }
                 }, 1000);

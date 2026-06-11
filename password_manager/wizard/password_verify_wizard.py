@@ -3,6 +3,7 @@ from odoo.exceptions import ValidationError
 
 class PasswordVerifyWizard(models.TransientModel):
     _name = 'password.verify.wizard'
+    _description = 'Password Verify Wizard'
 
     password_id = fields.Many2one(
         'password.manager',

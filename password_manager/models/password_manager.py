@@ -1,5 +1,4 @@
 from odoo import models, fields, api
-from cryptography.fernet import Fernet
 from odoo.exceptions import AccessError, ValidationError, UserError
 from dateutil.relativedelta import relativedelta
 import secrets
@@ -36,6 +35,28 @@ class PasswordManager(models.Model):
     allowed_user_ids = fields.Many2many('res.users',compute='_compute_allowed_users',store=True)
     duplicate_count = fields.Integer(compute="_compute_duplicate_count",store=False,search="_search_duplicate_count")
 
+    rotation_overdue = fields.Boolean(
+        compute='_compute_rotation_overdue',
+        store=True
+    )
+    rotation_alert = fields.Char(
+        compute="_compute_rotation_alert"
+    )
+
+    def _compute_rotation_alert(self):
+        for rec in self:
+            rec.rotation_alert = "⚠ Rotation Due" if rec.rotation_overdue else ""
+
+    @api.depends('rotation_date', 'state')
+    def _compute_rotation_overdue(self):
+        today = fields.Date.today()
+
+        for rec in self:
+            rec.rotation_overdue = (
+                rec.state == 'confirmed'
+                and rec.rotation_date
+                and rec.rotation_date < today
+            )
     def _search_duplicate_count(self, operator, value):
         if operator not in ('=', '!=', '>', '>=', '<', '<='):
             raise UserError("Unsupported operator for duplicate count search.")
@@ -137,7 +158,7 @@ class PasswordManager(models.Model):
                         summary='Password Rotation Reminder',
                         note=f'Password "{rec.name}" needs rotation in {remaining_days} day(s).'
                     )
-
+                    
     @api.model
     def cron_password_reminder(self):        
         reminder_days = int(self.env['ir.config_parameter'].sudo().get_param('password_manager.password_reminder_days', 5))
@@ -192,12 +213,11 @@ class PasswordManager(models.Model):
     def action_generate_password_preview(self):
         return True
 
-    
     def write(self, vals):
+        _logger.warning("WRITE VALS = %s", vals)
 
         for rec in self:
 
-            # State change always allow
             if set(vals.keys()) == {'state'}:
                 continue
 
@@ -206,6 +226,13 @@ class PasswordManager(models.Model):
             editable_fields = {'password'}
 
             changed_fields = set(vals.keys()) - editable_fields
+
+            _logger.warning(
+                "STATE=%s CHANGED_FIELDS=%s VALS=%s",
+                rec.state,
+                changed_fields,
+                vals
+            )
 
             if changed_fields and rec.state != 'draft':
                 raise AccessError(
@@ -216,8 +243,6 @@ class PasswordManager(models.Model):
 
         if password_changed and vals.get('password'):
             vals['password'] = self._encrypt_password(vals['password'])
-
-
 
         result = super().write(vals)
 
@@ -280,8 +305,7 @@ class PasswordManager(models.Model):
     
     def action_show_password(self):
         self.ensure_one()
-        if self.expiry_date and self.expiry_date <= fields.Date.today():
-            self.write({'state': 'expired'})
+        if (self.owner_id != self.env.user and self.expiry_date and self.expiry_date <= fields.Date.today()):
             raise AccessError('This credential has expired.')
 
         self._check_password_access('read')
@@ -296,10 +320,11 @@ class PasswordManager(models.Model):
     
     def _show_password_wizard(self):
         self.ensure_one()
-        self.message_post(body='Password viewed')
         password = self._decrypt_password()
+
+        self.message_post(body='Password viewed')
         timeout = int(self.env['ir.config_parameter'].sudo().get_param('password_manager.password_view_timeout', 10))
-       
+        
         wizard = self.env['password.view.wizard'].create({'password': password, 'timeout_seconds': timeout})
         return {
             'type': 'ir.actions.act_window',
@@ -321,16 +346,16 @@ class PasswordManager(models.Model):
 
         self._check_password_access('write')
 
-        self.state = state
+        self.write({'state': state})
         self.message_post(body=message)
         
     def action_confirm(self):
         self.ensure_one()
+        self._check_password_access('write')
         vals = {'state': 'confirmed'}
         if self.rotation_days:
             vals['rotation_date'] = (fields.Date.today() + relativedelta(days=self.rotation_days))
         self.write(vals)
-        self.message_post(body='Credential confirmed')
                     
     def action_set_draft(self):
         self._change_state('draft', 'Credential moved to draft')
@@ -383,7 +408,6 @@ class PasswordManager(models.Model):
         new_password = self._generate_password()
         self.write({
             'password': new_password,
-            'rotation_date': self._calculate_rotation_date(self.rotation_days),
         })
     
     def action_edit_password(self):

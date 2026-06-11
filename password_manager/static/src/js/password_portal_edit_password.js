@@ -24,10 +24,13 @@ $(document).ready(function () {
                     id: Date.now(),
                 }),
                 success(response) {
-                    if (
-                        response.result && response.result.password
-                    ) {
-                        $("#new_password").val(response.result.password);
+
+                    console.log("Generate Response:", response);
+
+                    const result = response.result || response;
+
+                    if (result.password) {
+                        $("#new_password").val(result.password);
                     }
                 }
             });
@@ -71,14 +74,21 @@ $(document).ready(function () {
 
                 success(response) {
 
-                    if (response.result && response.result.success
-                    ) {
+                    console.log("Update Response:", response);
+
+                    const result = response.result || response;
+
+                    if (result.success) {
+
                         $("#editPasswordModal").hide();
-                        alert("Password Updated Successfully" );
+
+                        alert("Password Updated Successfully");
+
                         location.reload();
-                    }
-                    else {
-                        alert(response.result.error || "Update Failed");
+
+                    } else {
+
+                        alert(result.error || "Update Failed");
                     }
                 },
                 error() {

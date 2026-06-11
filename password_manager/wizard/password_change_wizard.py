@@ -12,12 +12,10 @@ class PasswordChangeWizard(models.TransientModel):
 
     current_password = fields.Char(
         string='Current Password',
-        password=True,
     )
 
     new_password = fields.Char(
         string='New Password',
-        password=True,
     )
     def action_generate_password(self):
 
@@ -33,8 +31,15 @@ class PasswordChangeWizard(models.TransientModel):
             'target': 'new',
         }
 
-
     def action_update_password(self):
+
+        if not self.new_password:
+            raise ValidationError("Please enter a new password.")
+        
+        if self.new_password == current_password:
+            raise ValidationError(
+                "New password must be different from current password."
+            )
 
         self.password_id._check_password_access('write')
 
@@ -46,5 +51,5 @@ class PasswordChangeWizard(models.TransientModel):
             )
 
         self.password_id.write({
-            'password': self.new_password
+            'password': self.new_password,
         })

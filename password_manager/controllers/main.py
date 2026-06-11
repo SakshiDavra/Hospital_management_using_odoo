@@ -5,7 +5,6 @@ from odoo.addons.portal.controllers.portal import CustomerPortal, pager as porta
 
 class PasswordPortal(CustomerPortal):
 
-
     def _get_timeout(self):
         """Helper to get password view timeout config parameter."""
         param_obj = request.env['ir.config_parameter'].sudo()
@@ -72,6 +71,14 @@ class PasswordPortal(CustomerPortal):
             'owner': {'input': 'owner', 'label': 'Owner'},
             'state': {'input': 'state', 'label': 'Status'},
         }
+    
+    def _get_searchbar_groupby(self):
+        return {
+            'none': {'label': 'None'},
+            'credential_type': {'label': 'Credential Type'},
+            'category': {'label': 'Categories'},
+            'state': {'label': 'Status'},
+        }
 
     def _get_search_domain(self, search_in, search):
         if search_in == 'name':
@@ -102,46 +109,61 @@ class PasswordPortal(CustomerPortal):
         Password = request.env['password.manager']
         searchbar_filters = self._get_searchbar_filters()
         searchbar_inputs = self._get_searchbar_inputs()
-        
+        searchbar_groupby = self._get_searchbar_groupby()
+        groupby = kw.get('groupby', 'none')
         domain = [('active', '=', True)]
-
         if not request.env.user._is_admin():
-            domain += [
-                '|',
-                ('state', '!=', 'draft'),
-                ('owner_id', '=', request.env.user.id),
-            ]
-            
+            domain += ['|',('state', '!=', 'draft'),('owner_id', '=', request.env.user.id),]
         domain += searchbar_filters.get(filterby, searchbar_filters['all'])['domain']
-
         if search:
             domain += self._get_search_domain(search_in, search)
-            
         total = Password.search_count(domain)
-        pager = portal_pager(
-            url="/my/passwords",
-            url_args={'filterby': filterby, 'search': search, 'search_in': search_in},
-            total=total, page=page, step=10
-        )
+        pager = portal_pager(url="/my/passwords",
+            url_args={'filterby': filterby,'search': search,'search_in': search_in,'groupby': groupby,},
+            total=total,page=page,step=10)
 
-        passwords = Password.search(domain, order='create_date desc', limit=10, offset=pager['offset'])
-        timeout = self._get_timeout()
+        order = 'create_date desc'
+        if groupby == 'credential_type':
+            order = 'credential_type_id, create_date desc'
+        elif groupby == 'state':
+            order = 'state, create_date desc'
+        passwords = Password.search(domain,order=order,limit=10,offset=pager['offset'])
+        grouped_passwords = []
+        if groupby == 'category':
+            for category in request.env['password.category'].search([]):
+                records = Password.search([*domain,('category_ids', 'in', category.id)])
+                if records:
+                    grouped_passwords.append({'key': category,'records': records,'total_count': len(records),})
 
+        elif groupby == 'credential_type':
+            for credential_type in request.env['password.credential.type'].search([]):
+                records = passwords.filtered(lambda p: p.credential_type_id == credential_type)
+                if records:
+                    grouped_passwords.append({'key': credential_type,'records': records,'total_count': len(records),})
+
+        elif groupby == 'state':
+            for state in ['draft', 'confirmed', 'expired']:
+                records = passwords.filtered(lambda p: p.state == state )
+                if records:
+                    grouped_passwords.append({'key': state,'records': records,'total_count': len(records),})
         values = {
             'passwords': passwords,
+            'grouped_passwords': grouped_passwords,
             'pager': pager,
             'searchbar_filters': searchbar_filters,
             'searchbar_inputs': searchbar_inputs,
+            'searchbar_groupby': searchbar_groupby,
+            'groupby': groupby,
             'filterby': filterby,
             'search': search,
             'search_in': search_in,
             'default_url': '/my/passwords',
-            'timeout_seconds': timeout,
+            'timeout_seconds': self._get_timeout(),
             'page_name': 'passwords',
         }
-        return request.render('password_manager.portal_my_passwords', values)
-
-    @http.route('/my/password/verify', type='json', auth='user', website=True)
+        return request.render('password_manager.portal_my_passwords',values)
+    
+    @http.route('/my/password/verify', type='jsonrpc', auth='user', website=True)
     def verify_password(self, password_id, login_password):
         credential, error_response = self._get_password_record(password_id, access_type='read', return_json=True)
         if error_response:
@@ -154,6 +176,7 @@ class PasswordPortal(CustomerPortal):
         credential.message_post(body='Password viewed from portal')
         return {
             'success': True,
+            'username': credential.username,
             'password': credential._decrypt_password(),
             'timeout': self._get_timeout(),
         }
@@ -210,8 +233,21 @@ class PasswordPortal(CustomerPortal):
 
         password.action_confirm()
         return request.redirect('/my/password/%s' % password.id)
+    
+    @http.route('/my/password/<int:password_id>/draft', type='http', auth='user', website=True)
+    def portal_draft_password(self, password_id, **kw):
+        password, error_redirect = self._get_password_record(
+            password_id,
+            access_type='write'
+        )
+        if error_redirect:
+            return error_redirect
 
-    @http.route('/my/password/generate', type='json', auth='user', website=True)
+        password.action_set_draft()
+
+        return request.redirect('/my/password/%s' % password.id)
+    
+    @http.route('/my/password/generate', type='jsonrpc', auth='user', website=True)
     def portal_generate_password(self):
         return {'password':  request.env['password.manager']._generate_password()}
 
@@ -239,7 +275,7 @@ class PasswordPortal(CustomerPortal):
         password.write(vals)
         return request.redirect('/my/password/%s' % password.id)
 
-    @http.route('/my/password/update_password', type='json', auth='user', website=True)
+    @http.route('/my/password/update_password', type='jsonrpc', auth='user', website=True)
     def portal_update_password(self, password_id, current_password, new_password):
         password, error_response = self._get_password_record(password_id, access_type='write', return_json=True)
         if error_response:
