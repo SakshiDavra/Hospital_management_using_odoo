@@ -34,22 +34,26 @@ class PasswordChangeWizard(models.TransientModel):
     def action_update_password(self):
 
         if not self.new_password:
-            raise ValidationError("Please enter a new password.")
-        
-        if self.new_password == current_password:
             raise ValidationError(
-                "New password must be different from current password."
+                "Please enter a new password."
             )
 
         self.password_id._check_password_access('write')
 
         current_password = self.password_id._decrypt_password()
 
+        if self.new_password == current_password:
+            raise ValidationError(
+                "New password must be different from current password."
+            )
+
         if self.current_password != current_password:
             raise ValidationError(
-                'Current password is incorrect.'
+                "Current password is incorrect."
             )
 
         self.password_id.write({
             'password': self.new_password,
         })
+
+        return {'type': 'ir.actions.act_window_close'}

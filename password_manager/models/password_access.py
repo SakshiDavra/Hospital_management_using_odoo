@@ -12,41 +12,31 @@ class PasswordAccess(models.Model):
     department_id = fields.Many2one('hr.department')
     can_read = fields.Boolean()
     can_write = fields.Boolean()
-    can_delete = fields.Boolean()
+    # can_delete = fields.Boolean()
     can_share = fields.Boolean()
 
     def _check_access_rights_permission(self, password):
-
         if password.state != 'draft':
-            raise AccessError(
-                'Access Rights can only be modified when credential is in Draft state.'
-            )
-        # Owner
+            raise AccessError('Access Rights can only be modified when credential is in Draft state.')
         if password.owner_id == self.env.user:
             return True
-
-        # User has write permission on this credential
+        access_lines = password._get_access_lines(self.env.user)
+        if not any(line.can_share for line in access_lines):
+            raise AccessError("You are not allowed to manage access rights.")        
         password._check_password_access('write')
 
         return True
 
     @api.model_create_multi
     def create(self, vals_list):
-
         for vals in vals_list:
-            password = self.env['password.manager'].browse(
-                vals.get('password_id')
-            )
-
+            password = self.env['password.manager'].browse(vals.get('password_id'))
             self._check_access_rights_permission(password)
-
         return super().create(vals_list)
 
     def write(self, vals):
-
         for rec in self:
             self._check_access_rights_permission(rec.password_id)
-
         return super().write(vals)
 
     def unlink(self):

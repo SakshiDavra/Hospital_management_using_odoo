@@ -5,6 +5,7 @@
         id="menu_password_manager_root"
         name="Password Manager"
         sequence="10"
+        groups="password_manager.group_password_user,password_manager.group_password_manager"
     />
 
     <menuitem
@@ -13,6 +14,7 @@
         parent="menu_password_manager_root"
         action="action_password_manager"
         sequence="1"
+        groups="password_manager.group_password_user,password_manager.group_password_manager"
     />
 
     <menuitem
@@ -21,15 +23,16 @@
         parent="menu_password_manager_root"
         action="action_password_credential_type"
         sequence="2"
+        groups="password_manager.group_password_manager"
     />
-    <!-- Categories -->
+
     <menuitem
         id="menu_password_categories"
         name="Categories"
         parent="menu_password_manager_root"
         action="action_password_category"
         sequence="3"
+        groups="password_manager.group_password_manager"
     />
-
 
 </odoo>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="res.groups.privilege" id="privilege_password_manager">
+        <field name="name">Password Manager</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <record id="group_password_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="privilege_id" ref="privilege_password_manager"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_password_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="privilege_id" ref="privilege_password_manager"/>
+        <field name="implied_ids" eval="[(4, ref('password_manager.group_password_user'))]"/>
+
+        <!-- Admin default manager -->
+        <field name="user_ids" eval="[(4, ref('base.user_admin')),(4, ref('base.user_root'))]"/>
+    </record>
+
+</odoo>

@@ -12,9 +12,10 @@
     'data': [
 
         'data/cron.xml',
-            
-        'security/ir.model.access.csv',
+        
+        'security/security_groups.xml',
         'security/password_manager_security.xml',
+        'security/ir.model.access.csv',
 
         'views/password_credential_type_views.xml',
         'views/password_category_views.xml',
@@ -27,7 +28,6 @@
        
 
         'wizard/password_change_wizard_views.xml',
-        # 'wizard/password_view_wizard_views.xml',
         'wizard/password_verify_wizard_views.xml',
         'wizard/password_merge_wizard_views.xml',
 
@@ -36,6 +36,7 @@
 
         
     ],
+    'post_init_hook': 'post_init_hook',
 
     'assets': {
         'web.assets_frontend': [

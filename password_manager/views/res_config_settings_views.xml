@@ -33,8 +33,8 @@
                         <setting string="Rotation Reminder Before (Days)">
                             <field name="rotation_reminder_days"/>
                         </setting>
-                        <setting string="Encryption Key">
-                            <field name="encryption_key"/>
+                        <setting string="Encryption Key" invisible="1">
+                            <field name="encryption_key" invisible="1"/>
                         </setting>
                         <setting string="Password View Timeout (Seconds)">
                             <field name="password_view_timeout"/>

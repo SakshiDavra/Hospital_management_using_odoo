@@ -15,13 +15,11 @@ class PasswordManager(models.Model):
     _rec_name = 'name'
     name = fields.Char(required=True)
     credential_type_id = fields.Many2one('password.credential.type', string='Credential Type')
-    category_ids = fields.Many2many('password.category', string='Categories')
+    category_ids = fields.Many2many('password.category', string='Categories', required=True)
     username = fields.Char()
-    password_type = fields.Selection([
-        ('manual', 'Manual'),
-        ('generate', 'Generate'),
+    password_type = fields.Selection([('manual', 'Manual'),('generate', 'Generate'),
     ], string='Password Type', default='manual', required=True)
-    password = fields.Text(string='Password')
+    password = fields.Text(string='Password', required=True)
     url = fields.Char()
     notes = fields.Text()
     owner_id = fields.Many2one('res.users', default=lambda self: self.env.user, required=True)
@@ -34,29 +32,16 @@ class PasswordManager(models.Model):
     rotation_date = fields.Date(string='Next Rotation Date')
     allowed_user_ids = fields.Many2many('res.users',compute='_compute_allowed_users',store=True)
     duplicate_count = fields.Integer(compute="_compute_duplicate_count",store=False,search="_search_duplicate_count")
-
-    rotation_overdue = fields.Boolean(
-        compute='_compute_rotation_overdue',
-        store=True
-    )
-    rotation_alert = fields.Char(
-        compute="_compute_rotation_alert"
-    )
-
-    def _compute_rotation_alert(self):
-        for rec in self:
-            rec.rotation_alert = "⚠ Rotation Due" if rec.rotation_overdue else ""
+    rotation_overdue = fields.Boolean(compute='_compute_rotation_overdue',store=True)
 
     @api.depends('rotation_date', 'state')
     def _compute_rotation_overdue(self):
         today = fields.Date.today()
-
         for rec in self:
             rec.rotation_overdue = (
                 rec.state == 'confirmed'
                 and rec.rotation_date
-                and rec.rotation_date < today
-            )
+                and rec.rotation_date < today)
     def _search_duplicate_count(self, operator, value):
         if operator not in ('=', '!=', '>', '>=', '<', '<='):
             raise UserError("Unsupported operator for duplicate count search.")
@@ -69,25 +54,20 @@ class PasswordManager(models.Model):
             HAVING COUNT(id) > 1
         """
         self.env.cr.execute(query)
-        res = self.env.cr.dictfetchall()
-        
+        res = self.env.cr.dictfetchall()        
         domain = []
         for r in res:
             domain.append([('name', '=', r['name']),('username', '=', r['username']),
-                ('credential_type_id', '=', r['credential_type_id'])])
-        
+                ('credential_type_id', '=', r['credential_type_id'])])        
         if not domain:
-            return [('id', '=', False)]
-            
+            return [('id', '=', False)]            
         or_domain = ['|'] * (len(domain) - 1)
         for d in domain:
-            or_domain.extend(d)
-            
+            or_domain.extend(d)            
         return or_domain
 
     @api.depends('name', 'username', 'credential_type_id', 'active')
     def _compute_duplicate_count(self):
-
         for rec in self:
             rec.duplicate_count = 0
         active_records = self.filtered(lambda r: r.active and r.name)
@@ -100,17 +80,11 @@ class PasswordManager(models.Model):
             HAVING COUNT(*) > 1
         """)
 
-        duplicate_map = {
-            (row['name'],
-                row['username'],
-                row['credential_type_id']
-            ): row['total']
+        duplicate_map = {(row['name'],row['username'],row['credential_type_id']): row['total']
             for row in self.env.cr.dictfetchall()
         }
-
         for rec in active_records:
             key = (rec.name,rec.username,rec.credential_type_id.id)
-
             rec.duplicate_count = max(duplicate_map.get(key, 0) - 1,0)
 
     @api.depends('owner_id', 'access_ids.user_id', 'access_ids.group_id', 'access_ids.department_id', 'access_ids.active', 'access_ids.access_until')
@@ -142,22 +116,13 @@ class PasswordManager(models.Model):
         for rec in records:
             remaining_days = (rec.rotation_date - fields.Date.today()).days
             if remaining_days == reminder_days:
-                rec.message_post(body=f'Password rotation is due in {remaining_days} day(s). Please update the password.')
-                
+                rec.message_post(body=f'Password rotation is due in {remaining_days} day(s). Please update the password.')                
                 existing_activity = self.env['mail.activity'].search([
-                    ('res_model', '=', 'password.manager'),
-                    ('res_id', '=', rec.id),
-                    ('user_id', '=', rec.owner_id.id),
-                    ('summary', '=', 'Password Rotation Reminder'),
-                ], limit=1)
-
+                    ('res_model', '=', 'password.manager'),('res_id', '=', rec.id),
+                    ('user_id', '=', rec.owner_id.id),('summary', '=', 'Password Rotation Reminder'),], limit=1)
                 if not existing_activity:
-                    rec.activity_schedule(
-                        'mail.mail_activity_data_todo',
-                        user_id=rec.owner_id.id,
-                        summary='Password Rotation Reminder',
-                        note=f'Password "{rec.name}" needs rotation in {remaining_days} day(s).'
-                    )
+                    rec.activity_schedule('mail.mail_activity_data_todo',user_id=rec.owner_id.id,
+                        summary='Password Rotation Reminder',note=f'Password "{rec.name}" needs rotation in {remaining_days} day(s).')
                     
     @api.model
     def cron_password_reminder(self):        
@@ -179,7 +144,6 @@ class PasswordManager(models.Model):
             return ''
         try:
             return self._get_cipher().decrypt(self.password.encode()).decode()
-
         except InvalidToken:
             _logger.exception("Password decryption failed for credential ID %s",self.id)
             raise UserError("Unable to decrypt this password. Please contact your administrator.")
@@ -196,18 +160,13 @@ class PasswordManager(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-
             if vals.get('password_type') == 'generate' and not vals.get('password'):
                 vals['password'] = self._generate_password()
-
             if vals.get('password'):
                 vals['password'] = self._encrypt_password(vals['password'])
-
         records = super().create(vals_list)
-
         for rec in records:
             rec.message_post(body='Credential created')
-
         return records
     
     def action_generate_password_preview(self):
@@ -215,41 +174,23 @@ class PasswordManager(models.Model):
 
     def write(self, vals):
         _logger.warning("WRITE VALS = %s", vals)
-
         for rec in self:
-
             if set(vals.keys()) == {'state'}:
                 continue
-
             rec._check_password_access('write')
-
             editable_fields = {'password'}
-
             changed_fields = set(vals.keys()) - editable_fields
-
-            _logger.warning(
-                "STATE=%s CHANGED_FIELDS=%s VALS=%s",
-                rec.state,
-                changed_fields,
-                vals
-            )
+            _logger.warning("STATE=%s CHANGED_FIELDS=%s VALS=%s",rec.state,changed_fields,vals)
 
             if changed_fields and rec.state != 'draft':
-                raise AccessError(
-                    'Credential can only be modified in Draft state.'
-                )
-
+                raise AccessError('Credential can only be modified in Draft state.' )
         password_changed = 'password' in vals
-
         if password_changed and vals.get('password'):
             vals['password'] = self._encrypt_password(vals['password'])
-
         result = super().write(vals)
-
         if password_changed:
             for rec in self:
                 rec.message_post(body='Password changed')
-
         return result
     
     def _get_employee_department_id(self, user):
@@ -261,46 +202,31 @@ class PasswordManager(models.Model):
         return self.access_ids.filtered(lambda x: 
             (x.user_id and x.user_id == user) or
             (x.group_id and x.group_id in user.group_ids) or 
-            (x.department_id and employee_department_id and x.department_id.id == employee_department_id)
-        )
+            (x.department_id and employee_department_id and x.department_id.id == employee_department_id))
     
     def _has_permission(self, access_line, permission):
-        permission_map = {
-            'read': access_line.can_read,
-            'write': access_line.can_write,
-            'delete': access_line.can_delete,
-            'share': access_line.can_share,
-        }
+        permission_map = {'read': access_line.can_read,'write': access_line.can_write,'share': access_line.can_share,}
         return permission_map.get(permission, False)
             
     def _check_password_access(self, permission='read'):
         self.ensure_one()
         user = self.env.user
-
         if self.owner_id == user:
             return True
-
         if permission == 'read' and self.state == 'draft':
             raise AccessError('Credential is still in Draft state.')
-
         if self.state == 'expired':
             raise AccessError('Credential has expired.')
-
         access = self._get_access_lines(user)
-
         if not access:
             raise AccessError('You are not allowed to access this password.')
-
         for access_line in access:
             if not access_line.active:
                 continue
-
             if access_line.access_until and access_line.access_until <= fields.Datetime.now():
                 continue
-
             if self._has_permission(access_line, permission):
                 return True
-
         raise AccessError('Permission denied.')
     
     def action_show_password(self):
@@ -343,17 +269,15 @@ class PasswordManager(models.Model):
 
     def _change_state(self, state, message):
         self.ensure_one()
-
         self._check_password_access('write')
-
         self.write({'state': state})
         self.message_post(body=message)
         
     def action_confirm(self):
         self.ensure_one()
         self._check_password_access('write')
-        vals = {'state': 'confirmed'}
-        if self.rotation_days:
+        vals = {'state': 'confirmed','rotation_date': False,}
+        if self.rotation_days > 0:
             vals['rotation_date'] = (fields.Date.today() + relativedelta(days=self.rotation_days))
         self.write(vals)
                     
@@ -366,6 +290,16 @@ class PasswordManager(models.Model):
             if rec.expiry_date and rec.rotation_date and rec.rotation_date > rec.expiry_date:
                 raise ValidationError('Rotation date cannot be greater than expiry date.')
             
+    @api.constrains('expiry_date', 'rotation_days')
+    def _check_rotation_days(self):
+        for rec in self:
+            if rec.expiry_date and rec.rotation_days:
+                rotation_date = fields.Date.today() + relativedelta(days=rec.rotation_days)
+                if rotation_date > rec.expiry_date:
+                    raise ValidationError(
+                        'Rotation date cannot be greater than expiry date.'
+                    )
+                
     @api.model
     def _generate_password(self):
         params = self.env['ir.config_parameter'].sudo()
