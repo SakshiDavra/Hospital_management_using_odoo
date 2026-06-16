@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="sale_order_form_revision_inherit" model="ir.ui.view">
+        <field name="name">sale.order.form.revision.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_cancel']" position="after">
+                <button name="action_create_revision"
+                        string="Create Revision"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="not show_revision_button"/>
+            </xpath>
+
+            <xpath expr="//page[@name='order_lines']" position="after">
+                <page string="Revisions" invisible="is_revision">
+                    <field name="revision_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="revision_no"/>
+                            <field name="state"/>
+                            <field name="create_date"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
