@@ -9,7 +9,8 @@
     'license': 'LGPL-3',
 
     'depends': [
-       'sale_management',
+       'sale_management','account',
+
     ],
 
     'data': [

@@ -6,6 +6,18 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+        <xpath expr="//button[@name='action_confirm']" position="attributes">
+            <attribute name="invisible">is_revision</attribute>
+        </xpath>
+
+        <xpath expr="//button[@name='action_confirm']" position="after">
+            <button name="action_merge_revision"
+                    string="Merge Revision"
+                    type="object"
+                    class="btn-primary"
+                    invisible="not is_revision"
+                    confirm="Are you sure you want to merge this revision with the main order?"/>
+        </xpath>
             <xpath expr="//button[@name='action_cancel']" position="after">
                 <button name="action_create_revision"
                         string="Create Revision"
