@@ -15,9 +15,10 @@
 
     'data': [
         'views/res_config_settings_views.xml',
+        "views/sale_order_action.xml",
         "views/sale_order_views.xml",
+        
 
-        'data/server_actions.xml',
     ],
 
     'installable': True,

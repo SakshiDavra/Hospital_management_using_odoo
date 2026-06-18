@@ -12,6 +12,11 @@
                              help="Enable revision creation for sales orders">
                         <field name="enable_sale_revision"/>
                     </setting>
+                    <setting id="revision_prefix_setting"
+                             string="Revision Prefix"
+                             help="Prefix used while creating revisions">
+                        <field name="revision_prefix"/>
+                    </setting>
                 </block>
             </xpath>
         </field>

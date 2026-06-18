@@ -7,3 +7,8 @@ class ResConfigSettings(models.TransientModel):
     enable_sale_revision = fields.Boolean(string='Enable Sale Revision',
         config_parameter='sale_order_revision.enable_sale_revision'
     )
+    revision_prefix = fields.Char(
+        string='Revision Prefix',
+        config_parameter='sale_order_revision.revision_prefix',
+        default='R'
+    )
