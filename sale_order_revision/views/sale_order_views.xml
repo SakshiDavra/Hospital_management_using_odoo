@@ -7,9 +7,13 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
 
-            <!-- Hide Confirm on Revision -->
-            <xpath expr="//button[@name='action_confirm']" position="attributes">
-                <attribute name="invisible">is_revision</attribute>
+            <xpath expr="//button[@id='action_confirm']" position="attributes">
+                <attribute name="invisible">state != 'sent' or is_revision</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_confirm' and not(@id='action_confirm')]"
+                position="attributes">
+                <attribute name="invisible">state != 'draft' or is_revision</attribute>
             </xpath>
 
             <!-- Merge Revision -->
@@ -18,10 +22,9 @@
                         string="Merge Revision"
                         type="object"
                         class="btn-primary"
-                        invisible="not is_revision"
-                        confirm="Are you sure you want to merge this revision with the main order?"/>
+                        invisible="not is_revision or state == 'cancel'"
+                        confirm="Are you sure you want to merge this revision into the main order?&#10;⚠ This action will automatically cancel all other revisions of this order."/>
             </xpath>
-
             <!-- Create Revision -->
             <xpath expr="//button[@name='action_cancel']" position="after">
                 <button name="action_create_revision"
@@ -39,11 +42,11 @@
                         type="object"
                         class="oe_stat_button"
                         icon="fa-files-o"
-                        invisible="is_revision">
+                        invisible="is_revision or revision_count == 0">
 
                     <field name="revision_count"
-                           widget="statinfo"
-                           string="Revisions"/>
+                        widget="statinfo"
+                        string="Revisions"/>
                 </button>
 
             </xpath>

@@ -7,17 +7,28 @@
         <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//block[@name='quotation_order_setting_container']" position="after">
-                <block title="Sale Order Revision" name="sale_revision_setting_container">
-                    <setting id="enable_sale_revision_setting" string="Enable Sale Revision"
-                             help="Enable revision creation for sales orders">
+
+                <block title="Sale Order Revision"
+                    name="sale_revision_setting_container">
+
+                    <setting string="Enable Sale Revision"
+                            help="Enable revision creation for sales orders">
                         <field name="enable_sale_revision"/>
                     </setting>
-                    <setting id="revision_prefix_setting"
-                             string="Revision Prefix"
-                             help="Prefix used while creating revisions">
-                        <field name="revision_prefix"/>
+
+                    <setting string="Revision Prefix"
+                            invisible="not enable_sale_revision">
+                        <field name="revision_prefix"
+                            placeholder="Example: R, REV"/>
                     </setting>
+
+                    <setting string="Revision Separator"
+                            invisible="not enable_sale_revision">
+                        <field name="revision_separator"/>
+                    </setting>
+
                 </block>
+
             </xpath>
         </field>
     </record>

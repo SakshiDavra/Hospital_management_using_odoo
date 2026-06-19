@@ -11,175 +11,197 @@ class SaleOrder(models.Model):
     revision_no = fields.Integer(string='Revision No', default=0, copy=False)
     is_revision = fields.Boolean(string='Is Revision', default=False, copy=False)
     show_revision_button = fields.Boolean(compute='_compute_show_revision_button')
-    revision_count = fields.Integer(compute="_compute_revision_count",string="Revision Count")
-    
+    revision_count = fields.Integer(compute="_compute_revision_count", string="Revision Count")
+
+    @api.depends('revision_ids')
     def _compute_revision_count(self):
         for rec in self:
             rec.revision_count = len(rec.revision_ids)
 
-    @api.depends('state', 'is_revision')
+    @api.depends('state', 'is_revision', 'company_id')
     def _compute_show_revision_button(self):
-        enabled = self.env['ir.config_parameter'].sudo().get_param('sale_order_revision.enable_sale_revision') == 'True'
         for rec in self:
-            rec.show_revision_button = enabled and rec.state == 'sale' and not rec.is_revision
+            rec.show_revision_button = (rec.company_id.enable_sale_revision and not rec.is_revision and rec.state != 'cancel')
 
     def action_create_revision(self):
         self.ensure_one()
-
         if self.is_revision:
             raise UserError(_("You cannot create a revision from another revision."))
 
-        prefix = self.env['ir.config_parameter'].sudo().get_param('sale_order_revision.revision_prefix','R')
         rev_no = max(self.revision_ids.mapped('revision_no') or [0]) + 1
+        revision_suffix = f"{self.company_id.revision_prefix}{rev_no}" if self.company_id.revision_prefix else str(rev_no)        
         new_rev = self.copy({
-            'name': f'{self.name}-{prefix}{rev_no}',
+            'name': f"{self.name}{self.company_id.revision_separator or '/'}{revision_suffix}",
             'parent_order_id': self.id,
             'revision_no': rev_no,
             'is_revision': True,
             'state': 'draft',
         })
-        orig_lines = self.order_line.filtered(lambda l: not l.display_type)
-        rev_lines = new_rev.order_line.filtered(lambda l: not l.display_type)
 
-        for orig_line, rev_line in zip(orig_lines, rev_lines):
+        for orig_line, rev_line in zip(self.order_line.sorted('sequence'), new_rev.order_line.sorted('sequence')):
             rev_line.parent_line_id = orig_line.id
 
-        self.message_post(body=Markup('Revision <a href="#" data-oe-model="sale.order" data-oe-id="%s">%s</a> has been created.'
-            ) % (new_rev.id, new_rev.name))
+        self.message_post(
+            body=Markup('Revision <a href="#" data-oe-model="sale.order" data-oe-id="%s">%s</a> has been created.') 
+            % (new_rev.id, new_rev.name))
+        new_rev.message_post(
+            body=Markup('This revision was created from <a href="#" data-oe-model="sale.order" data-oe-id="%s">%s</a>.') 
+            % (self.id, self.name))
 
-        new_rev.message_post(body=Markup('This revision was created from <a href="#" data-oe-model="sale.order" data-oe-id="%s">%s</a>.'
-            ) % (self.id, self.name))
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order',
+            'view_mode': 'form',
+            'res_id': new_rev.id,
+            'target': 'current',
+        }
 
-        return {'type': 'ir.actions.act_window','res_model': 'sale.order',
-            'view_mode': 'form','res_id': new_rev.id,'target': 'current',}
-    
     def action_merge_revision(self):
         self.ensure_one()
+        orig, rev = self._validate_revision_merge()
+        self._update_order_fields(orig, rev)
+        self._handle_removed_lines(orig, rev)
+        
+        price_changed, positive_lines, negative_lines = self._process_revision_lines(orig, rev)
+        if price_changed:
+            self._handle_price_change_invoices(orig, rev, positive_lines, negative_lines)
+            
+        self._finalize_revision_merge(orig, rev)
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+
+    def action_view_revisions(self):
+        self.ensure_one()
+        if len(self.revision_ids) == 1:
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'sale.order',
+                'view_mode': 'form',
+                'res_id': self.revision_ids.id,
+                'target': 'current',
+            }
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Revisions'),
+            'res_model': 'sale.order',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', self.revision_ids.ids)],
+            'target': 'current',
+            'context': {'create': False},
+        }
+
+    def _validate_revision_merge(self):
         if not self.is_revision:
             raise UserError(_("Only revision orders can be merged."))
-        rev = self
-        orig = rev.parent_order_id
-
-        if not orig:
+        if not self.parent_order_id:
             raise UserError(_("Original order not found."))
-
-        if rev.state == 'cancel':
+        if self.state == 'cancel':
             raise UserError(_("Cancelled revisions cannot be merged."))
+        return self.parent_order_id, self
 
-        orig_lines = orig.order_line.filtered(lambda l: not l.display_type)
-        rev_lines = rev.order_line.filtered(lambda l: not l.display_type)
-        linked_orig_lines = rev_lines.mapped('parent_line_id')
-        removed_lines = orig_lines.filtered(lambda l: l not in linked_orig_lines)
+    def _update_order_fields(self, orig, rev):
+        orig.write({
+            'payment_term_id': rev.payment_term_id.id,
+            'validity_date': rev.validity_date,
+            'note': rev.note,
+        })
 
-        if removed_lines:
-            removed_lines.write({'product_uom_qty': 0})
+    def _handle_removed_lines(self, orig, rev):
+        parent_line_ids = set(rev.order_line.mapped('parent_line_id').ids)
+        removed_lines = orig.order_line.filtered(lambda l: l.id not in parent_line_ids)
+        section_note_lines = removed_lines.filtered('display_type')
+        section_note_lines.unlink()
+        (removed_lines - section_note_lines).write({'product_uom_qty': 0})
 
+    def _process_revision_lines(self, orig, rev):
         price_changed = False
-        positive_lines = []
-        negative_lines = []
+        positive_lines, negative_lines = [], []
 
-        for rev_line in rev_lines:
+        for rev_line in rev.order_line.sorted('sequence'):
             orig_line = rev_line.parent_line_id
 
-            if orig_line:
+            if rev_line.display_type:
+                vals = {'name': rev_line.name, 'display_type': rev_line.display_type, 'sequence': rev_line.sequence}
+                if orig_line:
+                    orig_line.write(vals)
+                else:
+                    rev_line.parent_line_id = self.env['sale.order.line'].create({'order_id': orig.id, **vals}).id
+                continue
 
-                if (float_compare(orig_line.price_unit,rev_line.price_unit,precision_rounding=orig.currency_id.rounding) != 0
-                    or
-                    float_compare(orig_line.discount,rev_line.discount,precision_rounding=0.01) != 0):
+            if orig_line:
+                if (float_compare(orig_line.price_unit, rev_line.price_unit, precision_rounding=orig.currency_id.rounding) != 0
+                    or float_compare(orig_line.discount, rev_line.discount, precision_rounding=0.01) != 0):
                     price_changed = True
 
-                already_invoiced_qty = orig_line.qty_invoiced
-
-                if already_invoiced_qty:
-                    old_amount = (orig_line.price_unit * already_invoiced_qty * (1 - (orig_line.discount or 0.0) / 100))
-                    new_amount = (rev_line.price_unit * already_invoiced_qty * (1 - (rev_line.discount or 0.0) / 100))
+                if orig_line.qty_invoiced:
+                    old_amount = orig_line.price_unit * orig_line.qty_invoiced * (100 - (orig_line.discount or 0.0)) / 100
+                    new_amount = rev_line.price_unit * orig_line.qty_invoiced * (100 - (rev_line.discount or 0.0)) / 100
                     diff = new_amount - old_amount
 
-                    if float_compare(diff,0.0,precision_rounding=orig.currency_id.rounding) != 0:
+                    if float_compare(diff, 0.0, precision_rounding=orig.currency_id.rounding) != 0:
+                        line_vals = {
+                            'product_id': rev_line.product_id.id,
+                            'name': _('%s Revision Adjustment') % rev_line.product_id.display_name,
+                            'quantity': 1,
+                            'tax_ids': [(6, 0, rev_line.tax_ids.ids)],
+                        }
                         if diff > 0:
-                            positive_lines.append(
-                                (0, 0, {
-                                    'product_id': rev_line.product_id.id,
-                                    'name': _('%s Revision Adjustment') % rev_line.product_id.display_name,
-                                    'quantity': 1,
-                                    'price_unit': diff,
-                                    'tax_ids': [(6, 0, rev_line.tax_ids.ids)],
-                                })
-                            )
-
+                            line_vals['price_unit'] = diff
+                            positive_lines.append((0, 0, line_vals))
                         elif diff < 0:
-                            negative_lines.append(
-                                (0, 0, {
-                                    'product_id': rev_line.product_id.id,
-                                    'name': _('%s Revision Adjustment') % rev_line.product_id.display_name,
-                                    'quantity': 1,
-                                    'price_unit': abs(diff),
-                                    'tax_ids': [(6, 0, rev_line.tax_ids.ids)],
-                                })
-                            )
+                            line_vals['price_unit'] = abs(diff)
+                            negative_lines.append((0, 0, line_vals))
 
-            vals = {'name': rev_line.name,
+            vals = {
+                'name': rev_line.name,
+                'sequence': rev_line.sequence,
                 'product_uom_qty': rev_line.product_uom_qty,
                 'price_unit': rev_line.price_unit,
                 'discount': rev_line.discount,
-                'tax_ids': [(6, 0, rev_line.tax_ids.ids)],}
+                'tax_ids': [(6, 0, rev_line.tax_ids.ids)],
+            }
 
             if orig_line:
                 orig_line.write(vals)
             else:
-                new_line = self.env['sale.order.line'].create({'order_id': orig.id,'product_id': rev_line.product_id.id,**vals,})
-                rev_line.parent_line_id = new_line.id
+                rev_line.parent_line_id = self.env['sale.order.line'].create({'order_id': orig.id,'product_id': rev_line.product_id.id,**vals,}).id
 
-        if price_changed:
-            draft_moves = orig.invoice_ids.filtered(lambda m: m.state == 'draft'and m.move_type in ('out_invoice', 'out_refund'))
+        return price_changed, positive_lines, negative_lines
 
-            for move in draft_moves:
-                move.button_cancel()
-                move.message_post(body=Markup("Invoice/Credit Note cancelled automatically because ""revision <b>%s</b> changed product prices.") % rev.name)
-                orig.message_post(body=Markup("Draft document <b>%s</b> was cancelled automatically due to revision changes.") % (move.name or move.id))
-            posted_moves = orig.invoice_ids.filtered(lambda m: m.state == 'posted' and m.move_type in ('out_invoice', 'out_refund'))
+    def _handle_price_change_invoices(self, orig, rev, positive_lines, negative_lines):
 
-            if posted_moves:
+        draft_moves = orig.invoice_ids.filtered(lambda m: m.state == 'draft' and m.move_type in ('out_invoice', 'out_refund'))
+        posted_moves = orig.invoice_ids.filtered(lambda m: m.state == 'posted' and m.move_type in ('out_invoice', 'out_refund'))
 
-                inv_vals = {'partner_id': orig.partner_id.id,'invoice_origin': orig.name,'invoice_date': fields.Date.today(),}
-                if positive_lines:
-                    self.env['account.move'].create({ **inv_vals,'move_type': 'out_invoice','invoice_line_ids': positive_lines,})
-                    orig.message_post(body=Markup("Draft Additional Invoice created for revision price/discount changes."))
+        for move in draft_moves:
+            move.button_cancel()
+            move.message_post(
+                body=Markup("Invoice/Credit Note cancelled automatically because revision <b>%s</b> changed product prices.") % rev.name)
+            orig.message_post(
+                body=Markup("Draft document <b>%s</b> was cancelled automatically due to revision changes.") % (move.name or move.id) )
 
-                if negative_lines:
-                    self.env['account.move'].create({**inv_vals,'move_type': 'out_refund','invoice_line_ids': negative_lines,})
-                    orig.message_post(body=Markup("Draft Credit Note created for revision price/discount changes."))
+        if posted_moves:
+            inv_vals = {
+                'partner_id': orig.partner_id.id,
+                'invoice_origin': orig.name,
+                'invoice_date': fields.Date.today(),
+            }
 
-        orig.message_post(body=Markup('Revision <a href="#" data-oe-model="sale.order" ''data-oe-id="%s">%s</a> has been merged.') % (rev.id, rev.name))
-        rev.message_post(body=Markup('Revision has been merged into ''<a href="#" data-oe-model="sale.order" ''data-oe-id="%s">%s</a>.') % (orig.id, orig.name))
+            if positive_lines:
+                self.env['account.move'].create({**inv_vals,'move_type': 'out_invoice','invoice_line_ids': positive_lines,})
+                orig.message_post(body=Markup("Draft Additional Invoice created for revision price/discount changes."))
+
+            if negative_lines:
+                self.env['account.move'].create({**inv_vals,'move_type': 'out_refund','invoice_line_ids': negative_lines,})
+                orig.message_post(body=Markup( "Draft Credit Note created for revision price/discount changes."))
+
+    def _finalize_revision_merge(self, orig, rev):
+        orig.message_post(body=Markup('Revision <a href="#" data-oe-model="sale.order" data-oe-id="%s">%s</a> has been merged.') % (rev.id, rev.name))
+        rev.message_post(body=Markup('Revision has been merged into <a href="#" data-oe-model="sale.order" data-oe-id="%s">%s</a>.') % (orig.id, orig.name))
 
         if rev.state != 'cancel':
             rev.action_cancel()
 
-        other_revisions = orig.revision_ids.filtered(lambda r: r.id != rev.id and r.state != 'cancel')
-
-        for revision in other_revisions:
+        for revision in orig.revision_ids.filtered(lambda r: r.id != rev.id and r.state != 'cancel'):
             revision.action_cancel()
-            revision.message_post(body=Markup("Revision cancelled because revision " "<b>%s</b> was merged.") % rev.name)
-
-        return {'type': 'ir.actions.client','tag': 'reload',}
-    
-    def action_view_revisions(self):
-        self.ensure_one()
-
-        revisions = self.revision_ids
-        if len(revisions) == 1:
-            return {'type': 'ir.actions.act_window',
-                'res_model': 'sale.order',
-                'view_mode': 'form',
-                'res_id': revisions.id,
-                'target': 'current',}
-
-        return {'type': 'ir.actions.act_window',
-            'name': _('Revisions'),
-            'res_model': 'sale.order',
-            'view_mode': 'list,form',
-            'domain': [('id', 'in', revisions.ids)],
-            'target': 'current',
-            'context': {'create': False,},
-        }
+            revision.message_post(body=Markup("Revision cancelled because revision <b>%s</b> was merged.") % rev.name)
