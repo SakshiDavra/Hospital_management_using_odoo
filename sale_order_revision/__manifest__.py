@@ -10,7 +10,6 @@
 
     'depends': [
        'sale_management','account',
-
     ],
 
     'data': [
