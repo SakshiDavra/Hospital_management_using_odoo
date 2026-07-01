@@ -16,7 +16,6 @@
                 <attribute name="invisible">state != 'draft' or is_revision</attribute>
             </xpath>
 
-            <!-- Merge Revision -->
             <xpath expr="//button[@name='action_confirm']" position="after">
                 <button name="action_merge_revision"
                         string="Merge Revision"
@@ -25,7 +24,7 @@
                         invisible="not is_revision or state == 'cancel'"
                         confirm="Are you sure you want to merge this revision into the main order?&#10;⚠ This action will automatically cancel all other revisions of this order."/>
             </xpath>
-            <!-- Create Revision -->
+
             <xpath expr="//button[@name='action_cancel']" position="after">
                 <button name="action_create_revision"
                         string="Create Revision"
@@ -34,7 +33,6 @@
                         invisible="not show_revision_button"/>
             </xpath>
 
-            <!-- Revision Smart Button -->
             <xpath expr="//div[@name='button_box']/button[@name='action_view_invoice']"
                    position="after">
 
@@ -51,7 +49,6 @@
 
             </xpath>
 
-            <!-- Load Count Field -->
             <xpath expr="//sheet" position="inside">
                 <field name="revision_count" invisible="1"/>
             </xpath>
