@@ -217,14 +217,24 @@ class SaleOrder(models.Model):
             'move_type': move_type, 'is_revision_adjustment': True, 'invoice_line_ids': invoice_lines, 'company_id': orig.company_id.id,
         })
 
-    def _handle_existing_adjustment(self, orig, rev, draft_invoice, draft_refund, positive_lines, negative_lines):
+    def _handle_existing_adjustment(self, orig, rev,draft_invoice, draft_refund,positive_lines, negative_lines,):
         if draft_invoice:
-            self._update_adjustment_move(draft_invoice, positive_lines, Markup("Draft invoice updated for revision <b>%s</b>.") % rev.name) if positive_lines else draft_invoice.button_cancel()
-        elif positive_lines: self._create_adjustment_move(orig, 'out_invoice', positive_lines)
+            if positive_lines:
+                self._update_adjustment_move(draft_invoice,positive_lines,Markup("Draft revision adjustment invoice updated for revision <b>%s</b>.") % rev.name,)
+            else:
+                draft_invoice.button_cancel()
+                draft_invoice.message_post(body=Markup("Draft revision adjustment invoice cancelled because it is no longer required after merging revision <b>%s</b>.") % rev.name)
+        elif positive_lines:
+            self._create_adjustment_move(orig, "out_invoice", positive_lines)
 
         if draft_refund:
-            self._update_adjustment_move(draft_refund, negative_lines, Markup("Draft credit note updated for revision <b>%s</b>.") % rev.name) if negative_lines else draft_refund.button_cancel()
-        elif negative_lines: self._create_adjustment_move(orig, 'out_refund', negative_lines)
+            if negative_lines:
+                self._update_adjustment_move(draft_refund,negative_lines,Markup("Draft revision adjustment credit note updated for revision <b>%s</b>.") % rev.name,)
+            else:
+                draft_refund.button_cancel()
+                draft_refund.message_post(body=Markup("Draft revision adjustment credit note cancelled because it is no longer required after merging revision <b>%s</b>.") % rev.name)
+        elif negative_lines:
+            self._create_adjustment_move(orig, "out_refund", negative_lines)
 
     def _get_net_posted_downpayment(self, orig, orig_dp_lines):
         if not orig_dp_lines: return 0.0
