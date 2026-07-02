@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vendor_bill_ocr_automation.InvoiceUploader">
+        <FileUploader
+            acceptedFileExtensions="'.pdf,.png,.jpg,.jpeg,.tiff'"
+            fileUploadClass="'document_file_uploader'"
+            multiUpload="false"
+            onUploaded.bind="onFileUploaded"
+            onUploadComplete.bind="onUploadComplete">
+
+            <t t-set-slot="toggler">
+                <button type="button" class="btn btn-secondary">
+                    Upload Invoice
+                </button>
+            </t>
+
+        </FileUploader>
+    </t>
+
+</templates>
