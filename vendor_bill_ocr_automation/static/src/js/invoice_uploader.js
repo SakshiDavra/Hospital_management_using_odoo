@@ -8,53 +8,45 @@ import { Component } from "@odoo/owl";
 
 export class InvoiceUploader extends Component {
     static template = "vendor_bill_ocr_automation.InvoiceUploader";
+    static components = { FileUploader };
 
     static props = {
         ...standardWidgetProps,
         acceptedFileExtensions: { type: String, optional: true },
         record: { type: Object, optional: true },
-        list: { type: Object, optional: true },
     };
-    static components = { FileUploader };
 
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.attachmentIdsToProcess = [];
-    }
-
-    async getIds() {
-        if (this.props.record) {
-            return this.props.record.data.id;
-        }
-        return this.props.list.getResIds(true);
+        this.notification = useService("notification");
     }
 
     async onFileUploaded(file) {
-        const attachmentData = {
-            name: file.name,
-            mimetype: file.type,
-            datas: file.data,
-        };
-        const [attachmentId] = await this.orm.create("ir.attachment", [attachmentData]);
-        this.attachmentIdsToProcess.push(attachmentId);
-    }
+        const fileData = file?.data || file?.content || file?.base64;
+        const resId = this.props.record?.resId || this.props.record?.data?.id;
 
-    async onUploadComplete() {
-        const ids = await this.getIds();
-        let action;
-
-        try {
-            action = await this.orm.call("purchase.order", "action_upload_invoice", [ids, this.attachmentIdsToProcess]);
-        } finally {
-            this.attachmentIdsToProcess = []; 
+        if (!fileData || !resId) {
+            this.notification.add("Invalid file or record data.", { type: "danger" });
+            return;
         }
 
-        if (action) {
-            this.action.doAction(action);
+        try {
+            const result = await this.orm.call(
+                "purchase.order",
+                "action_upload_invoice",
+                [[resId], file.name, file.type, fileData]
+            );
+
+            if (result?.type === "ir.actions.act_window") {
+                await this.action.doAction(result);
+            }
+        } catch (error) {
+            this.notification.add("OCR processing failed. Please try again.", { type: "danger" });
         }
     }
 }
 
-export const invoiceUploader = { component: InvoiceUploader };
-registry.category("view_widgets").add("invoice_uploader", invoiceUploader);
+registry.category("view_widgets").add("invoice_uploader", {
+    component: InvoiceUploader,
+});
