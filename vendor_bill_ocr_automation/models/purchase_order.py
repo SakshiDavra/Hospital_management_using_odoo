@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 from odoo import models, fields, _, Command
-
+from ..utils.ocr_engine import ProductionOCRProcessor
 _logger = logging.getLogger(__name__)
 
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
-    
+
     def action_upload_invoice(self, file_name=False, file_type=False, file_data=False, **kwargs):
         self.ensure_one()
         if not file_data:
@@ -19,21 +19,20 @@ class PurchaseOrder(models.Model):
             'res_model': self._name,
             'res_id': self.id,
         })
-
         return self._process_uploaded_invoice(attachment)
 
     def _process_uploaded_invoice(self, attachment):
-        from ..utils.ocr_engine import OCRProcessor
+        # અહીં વેરીએબલનું નામ સરખું કરી દીધું છે
+        processor = ProductionOCRProcessor()
+        ocr_result = processor.parse_invoice(attachment) 
         
-        ocr_processor = OCRProcessor(self.env)
-        ocr_result = ocr_processor.parse_invoice(attachment)
-        
+        _logger.info("PDF PARSE RESULT: %s", ocr_result)
+
         if not ocr_result or not ocr_result.get('lines'):
             _logger.warning("No line data found from PDF text processing.")
             return False
 
         invoice_vals = self._prepare_invoice()
-        
         if ocr_result.get('invoice_date'):
             invoice_vals['invoice_date'] = ocr_result['invoice_date']
         if ocr_result.get('invoice_number'):
@@ -41,18 +40,30 @@ class PurchaseOrder(models.Model):
 
         invoice_line_commands = []
         for item in ocr_result['lines']:
-            line_vals = self._prepare_ocr_invoice_line(item, pdf_tax_rate=18.0)
+            tax_rate = float(item.get("tax") or 0.0)
+
+            line_vals = self._prepare_ocr_invoice_line(
+                item,
+                pdf_tax_rate=tax_rate
+            )
             if line_vals:
                 invoice_line_commands.append(Command.create(line_vals))
-                
+
         if not invoice_line_commands:
             return False
 
         invoice_vals['invoice_line_ids'] = invoice_line_commands
-
+        
+        # ૧. ડ્રાફ્ટ વેન્ડર બિલ ક્રિએટ કરો
         vendor_bill = self.env['account.move'].create(invoice_vals)
         vendor_bill.write({'purchase_id': self.id})
-        
+
+        # ૨. સિક્યોરિટી ચેક: ઓડુ ઓટો-પોપ્યુલેટ ન કરે તે માટે કિંમતો ફરીથી ફોર્સ કરો
+        for line in vendor_bill.invoice_line_ids:
+            matching_item = next((item for item in ocr_result['lines'] if item['name'] == line.name), None)
+            if matching_item and float(matching_item.get('price', 0.0)) == 0.0:
+                line.write({'price_unit': 0.0})
+
         return {
             'type': 'ir.actions.act_window',
             'name': _('Vendor Bill'),
@@ -63,14 +74,68 @@ class PurchaseOrder(models.Model):
             'target': 'current',
         }
 
-    def _prepare_ocr_invoice_line(self, item, pdf_tax_rate=18.0):
+    def _prepare_ocr_invoice_line(self, item, pdf_tax_rate=0.0):
         self.ensure_one()
-        product_name = item.get("name", "Default Product")
-        
+        import re
+
+        # OCR tax
+        pdf_tax_rate = float(pdf_tax_rate or 0.0)
+
+        # ---------------------------------------------------------
+        # Clean Product Name
+        # ---------------------------------------------------------
+        raw_product_name = item.get("name", "Default Product").replace("\n", " ").strip()
+        raw_product_name = re.sub(r"\s+", " ", raw_product_name)
+
+        qty = float(item.get("qty", 1.0))
+        price = float(item.get("price", 0.0))
+        discount = float(item.get("discount",0.0))
+
+        # ---------------------------------------------------------
+        # Handle Laundry Pattern
+        # Example:
+        # (42 x $11)
+        # (71 pieces x $.50)
+        # ---------------------------------------------------------
+        match = re.search(
+            r'\(\s*(\d+)\s*(?:pieces|pcs|pices|nos)?\s*x\s*[\$\s]*([\d\.]+)\s*\)',
+            raw_product_name,
+            re.IGNORECASE
+        )
+
+        if match:
+            bracket_string = match.group(0)
+            val_qty = float(match.group(1))
+            val_price = float(match.group(2))
+
+            if qty == 1.0 and price > 0:
+                if abs((val_qty * val_price) - price) < 1:
+                    qty = val_qty
+                    price = val_price
+
+            clean_name = raw_product_name.replace(bracket_string, "").strip()
+
+            if not clean_name:
+                product_name = f"Laundry Service {bracket_string}"
+            else:
+                product_name = clean_name
+
+        else:
+            product_name = raw_product_name
+
+        # Remove serial number
+        product_name = re.sub(r'^\d+[\s\.\-\)]+', '', product_name).strip()
+
+        if not product_name:
+            product_name = "Laundry Service"
+
+        # ---------------------------------------------------------
+        # Product Search/Create
+        # ---------------------------------------------------------
         product = self.env["product.product"].search([
             ("name", "=ilike", product_name)
         ], limit=1)
-        
+
         if not product:
             product = self.env["product.product"].create({
                 "name": product_name,
@@ -80,40 +145,54 @@ class PurchaseOrder(models.Model):
             })
 
         account = product.product_tmpl_id._get_product_accounts()['expense']
+
         if not account:
-            account = self.env['account.account'].search([('account_type', '=', 'expense_direct')], limit=1)
+            account = self.env["account.account"].search([
+                ("account_type", "=", "expense_direct")
+            ], limit=1)
 
         line_vals = {
-            'product_id': product.id,
-            'name': product_name,
-            'quantity': float(item.get('qty', 1)),
-            'price_unit': float(item.get('price', 0.0)),
-            'product_uom_id': product.uom_id.id,
-            'account_id': account.id if account else False,
-            'tax_ids': [], 
+            "product_id": product.id,
+            "name": product_name,
+            "quantity": qty,
+            "price_unit": price,
+            "discount": discount,
+            "product_uom_id": product.uom_id.id,
+            "account_id": account.id if account else False,
+            "tax_ids": [],
         }
-        
-        matching_tax = self.env['account.tax'].search([
-            ('amount', '=', pdf_tax_rate),
-            ('type_tax_use', '=', 'purchase'),
-            ('company_id', '=', self.company_id.id)
-        ], limit=1)
-        
-        if not matching_tax:
-            _logger.info(f"Tax rate {pdf_tax_rate}% not found in Odoo. Creating new tax...")
-            try:
-                matching_tax = self.env['account.tax'].create({
-                    'name': f'Purchase GST {int(pdf_tax_rate)}%',
-                    'amount_type': 'percent',
-                    'amount': pdf_tax_rate,
-                    'type_tax_use': 'purchase',
-                    'company_id': self.company_id.id,
-                    'sequence': 10,
-                })
-            except Exception as e:
-                _logger.error(f"Failed to create tax at runtime: {str(e)}")
-        
-        if matching_tax:
-            line_vals['tax_ids'] = [Command.set(matching_tax.ids)]
-        
+
+        # ---------------------------------------------------------
+        # Tax Mapping
+        # ---------------------------------------------------------
+        if pdf_tax_rate > 0:
+
+            matching_tax = self.env["account.tax"].search([
+                ("amount", "=", pdf_tax_rate),
+                ("type_tax_use", "=", "purchase"),
+                ("company_id", "=", self.company_id.id),
+            ], limit=1)
+
+            if not matching_tax:
+                try:
+                    matching_tax = self.env["account.tax"].create({
+                        "name": f"Purchase GST {pdf_tax_rate:g}%",
+                        "amount_type": "percent",
+                        "amount": pdf_tax_rate,
+                        "type_tax_use": "purchase",
+                        "company_id": self.company_id.id,
+                        "sequence": 10,
+                    })
+
+                except Exception as e:
+                    _logger.error("Unable to create tax %.2f : %s", pdf_tax_rate, e)
+                    matching_tax = False
+
+            if matching_tax:
+                line_vals["tax_ids"] = [Command.set(matching_tax.ids)]
+
+        else:
+            # No tax detected
+            line_vals["tax_ids"] = [Command.clear()]
+
         return line_vals
