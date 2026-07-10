@@ -14,6 +14,9 @@ export class InvoiceUploader extends Component {
         ...standardWidgetProps,
         acceptedFileExtensions: { type: String, optional: true },
         record: { type: Object, optional: true },
+
+         model: { type: String, optional: true },
+        listMode: { type: Boolean, optional: true },
     };
 
     setup() {
@@ -23,26 +26,55 @@ export class InvoiceUploader extends Component {
     }
 
     async onFileUploaded(file) {
-        const fileData = file?.data || file?.content || file?.base64;
-        const resId = this.props.record?.resId || this.props.record?.data?.id;
 
-        if (!fileData || !resId) {
-            this.notification.add("Invalid file or record data.", { type: "danger" });
+        const fileData = file?.data || file?.content || file?.base64;
+
+        let resId = this.props.record?.resId || this.props.record?.data?.id;
+        let model = this.props.record?.resModel || this.props.model;
+
+        if (this.props.listMode === true) {
+            resId = false;
+        }
+
+        if (!fileData || !model) {
+            this.notification.add("Invalid file.", {
+                type: "danger",
+            });
             return;
         }
 
         try {
+            const ids = resId ? [resId] : [];
+
             const result = await this.orm.call(
-                "purchase.order",
+                model,
                 "action_upload_invoice",
-                [[resId], file.name, file.type, fileData]
+                [ids, file.name, file.type, fileData]
             );
 
-            if (result?.type === "ir.actions.act_window") {
-                await this.action.doAction(result);
+            if (!result) {
+                return;
             }
+
+            if (result.tag === "display_notification") {
+                if (this.props.record?.model?.root) {
+                    await this.props.record.model.root.load();
+                }
+                return;
+            }
+
+            console.log("ACTION RESULT", result);
+
+            await this.action.doAction(result);
+
         } catch (error) {
-            this.notification.add("OCR processing failed. Please try again.", { type: "danger" });
+
+            this.notification.add(
+                error?.message || "OCR processing failed.",
+                { type: "danger" }
+            );
+
+            throw error;
         }
     }
 }

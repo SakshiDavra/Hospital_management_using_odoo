@@ -13,14 +13,19 @@
     ],
 
     'data': [
+        'security/ir.model.access.csv',
+        'wizard/purchase_qty_wizard_view.xml',
+        'wizard/purchase_bill_validation_wizard.xml',
         'views/purchase_order_views.xml',
+        'views/stock_picking_views.xml',
+        
     ],
 
     'assets': {
         'web.assets_backend': [
             'vendor_bill_ocr_automation/static/src/js/invoice_uploader.js',
             'vendor_bill_ocr_automation/static/src/xml/invoice_uploader.xml',
-        ],
+          ],
     },
 
     'installable': True,

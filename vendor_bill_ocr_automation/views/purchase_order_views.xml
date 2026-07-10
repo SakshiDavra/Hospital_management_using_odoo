@@ -8,7 +8,7 @@
         <field name="inherit_id" ref="purchase.purchase_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//widget[@name='purchase_file_uploader']" position="replace">
-                <widget name="invoice_uploader" invisible="state != 'purchase'"/>
+                <widget name="invoice_uploader" />
             </xpath>
         </field>
     </record>
