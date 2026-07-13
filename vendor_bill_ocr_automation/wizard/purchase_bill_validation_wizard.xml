@@ -9,30 +9,31 @@
 
                 <div class="alert alert-warning" role="alert">
                     PO Qty, Received Qty and Invoice Qty do not match.
-                    Please review before creating the Vendor Bill.
+                    Review and adjust the quantities below, then click
+                    <strong>Update &amp; Create Bill</strong> - the Vendor
+                    Bill will only be created once everything lines up.
+                    Rows marked <strong>New Product</strong> are not on
+                    this Purchase Order at all and must be added to it
+                    first; they can't be resolved with a quantity fix.
                 </div>
 
                 <field name="purchase_id" invisible="1"/>
 
                 <field name="line_ids">
-                    <list create="0" delete="0">
+                    <list create="0" delete="0" editable="bottom">
                         <field name="display_name" string="Product"/>
-                        <field name="po_qty"/>
-                        <field name="receipt_qty"/>
-                        <field name="invoice_qty"/>
+                        <field name="is_new_product" invisible="1"/>
+                        <field name="po_qty" readonly="1"/>
+                        <field name="receipt_qty" readonly="1"/>
+                        <field name="invoice_qty" readonly="1"/>
+                        <field name="new_po_qty" string="New PO Qty" readonly="is_new_product"/>
+                        <field name="new_receipt_qty" string="New Receipt Qty" readonly="is_new_product"/>
                     </list>
                 </field>
 
                 <footer>
-                    <button name="action_confirm"
-                            type="object"
-                            string="Confirm &amp; Create Bill"
-                            class="btn-primary"/>
-
-                    <button name="action_cancel"
-                            type="object"
-                            string="Cancel"
-                            class="btn-secondary"/>
+                    <button name="action_apply_and_create_bill" type="object" string="Update &amp; Create Bill" class="btn-primary"/>
+                    <button name="action_cancel" type="object" string="Cancel" class="btn-secondary"/>
                 </footer>
 
             </form>
