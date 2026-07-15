@@ -12,11 +12,17 @@
         "calendar",
     ],
     "data": [
+        'security/ir.model.access.csv',
         'views/product_pricelist_views.xml',
+        "views/pos_pricelist_report_views.xml",
     ],
     "assets": {
-        'web.assets_backend': [
+        'point_of_sale._assets_pos': [
+            'pos_pricelist_advanced/static/src/js/pricelist_patch.js',
+            'pos_pricelist_advanced/static/src/js/discount_patch.js',
+            'pos_pricelist_advanced/static/src/js/manager_pin_patch.js',
         ],
+
     },
     "installable": True,
     "application": False,

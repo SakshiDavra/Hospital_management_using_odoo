@@ -54,6 +54,8 @@ class ProductPricelist(models.Model):
 
     maximum_discount = fields.Float(string="Maximum Discount",)
 
+    manager_pin_required = fields.Boolean(string="Manager PIN Required")
+
     @api.model
     def _get_recurrent_fields(self):
         return ['rrule_type','interval','count','end_type','until','event_tz','mon',
@@ -257,23 +259,14 @@ class ProductPricelist(models.Model):
                 rec.schedule_start_date = False
                 rec.schedule_end_date = False
 
-    @api.constrains("schedule_start_date", "schedule_end_date")
+    @api.constrains("enable_schedule", "schedule_start_date", "schedule_end_date")
     def _check_schedule_dates(self):
         for rec in self:
-            if (rec.enable_schedule and rec.schedule_start_date and rec.schedule_end_date and rec.schedule_start_date > rec.schedule_end_date):
-                raise ValidationError(_("Start Date cannot be greater than End Date."))
-            
-    def is_schedule_active(self):
-        self.ensure_one()
-        if not self.enable_schedule:
-            return True
-        today = fields.Date.context_today(self)
-        if self.schedule_start_date and today < self.schedule_start_date:
-            return False
-        if self.schedule_end_date and today > self.schedule_end_date:
-            return False
-        return True
-    
+            if rec.enable_schedule and (
+                not rec.schedule_start_date or not rec.schedule_end_date
+            ):
+                raise ValidationError(_("Please set both Start Date and End Date."))
+                
     @api.onchange("enable_time_slot")
     def _onchange_enable_time_slot(self):
         for rec in self:
@@ -281,19 +274,23 @@ class ProductPricelist(models.Model):
                 rec.time_slot_start = False
                 rec.time_slot_end = False
 
-    @api.constrains("time_slot_start", "time_slot_end")
+    @api.constrains("enable_time_slot", "time_slot_start", "time_slot_end")
     def _check_time_slot(self):
         for rec in self:
-            if (rec.enable_time_slot and rec.time_slot_start and rec.time_slot_end and rec.time_slot_start >= rec.time_slot_end):
-                raise ValidationError(_("Start Time must be less than End Time."))
-            
-    def is_time_slot_active(self):
-        self.ensure_one()
-        if not self.enable_time_slot:
-            return True
-        now = fields.Datetime.context_timestamp(self,fields.Datetime.now())
-        current_time = now.hour + (now.minute / 60.0)
-        return (self.time_slot_start <= current_time <= self.time_slot_end)
+            if rec.enable_time_slot and (
+                rec.time_slot_start is False or rec.time_slot_end is False
+            ):
+                raise ValidationError(
+                    _("Please set both Start Time and End Time.")
+                )
+
+            if (
+                rec.enable_time_slot
+                and rec.time_slot_start >= rec.time_slot_end
+            ):
+                raise ValidationError(
+                    _("Start Time must be less than End Time.")
+                )
     
     def action_confirm(self):
         self.write({"state": "confirm"})
@@ -359,5 +356,6 @@ class ProductPricelist(models.Model):
             "day",
             "weekday",
             "byday",
+            "manager_pin_required",
         ]
         return fields
