@@ -75,10 +75,10 @@
                             <widget name="calendar_week_days"/>
                         </div>
                         <label string="Day of Month" for="month_by"
-                               invisible="rrule_type_ui not in ['monthly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'monthly')"/>
+                            invisible="rrule_type_ui not in ['monthly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'monthly')"/>
                         <div class="d-flex gap-2"
-                             invisible="rrule_type_ui not in ['monthly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'monthly')">
-                            <field name="month_by" nolabel="1"/>
+                            invisible="rrule_type_ui not in ['monthly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'monthly')">
+                            <field name="month_by" nolabel="1" required="recurrency and rrule_type in ['monthly', 'yearly']"/>
                             <field name="day" nolabel="1" invisible="month_by != 'date'"/>
                             <field name="byday" nolabel="1" invisible="month_by != 'day'"/>
                             <field name="weekday" nolabel="1" invisible="month_by != 'day'"/>

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="pricelist_sales_report">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <main>
+                    <div class="page" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333333;">
+                        <div style="overflow:hidden; padding-bottom:15px; border-bottom: 2px solid #333333;">
+                            <div style="float:left; margin-top: 10px;">
+                                <h2 style="color:#222222; font-size:32px; font-weight:bold; letter-spacing: -0.5px; margin:0;">
+                                    Pricelist Sales Report
+                                </h2>
+                            </div>
+                            <div style="float:right; text-align:right; line-height:1.6; font-size: 13px;">
+                                <div>
+                                    <span style="color: #666666;">Generated On: </span>
+                                    <strong style="color: #000000;" t-esc="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y %I:%M %p')"/>
+                                </div>
+                                <div>
+                                    <span style="color: #666666;">Total Orders: </span>
+                                    <strong style="color: #000000;" t-esc="total_orders"/>
+                                </div>
+                                <div>
+                                    <span style="color: #666666;">Total Qty: </span>
+                                    <strong style="color: #000000;" t-esc="total_qty"/>
+                                </div>
+                                <div>
+                                    <span style="color: #666666;">Total Sales: </span>
+                                    <strong style="color: #000000; font-size: 15px;" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}" t-esc="total_sales"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background-color: #f9f9f9; padding: 12px 15px; margin-top: 15px; margin-bottom: 20px; border-radius: 4px; font-size: 13px; border: 1px solid #eaeaea;">
+                            <div style="margin-bottom: 6px; overflow: hidden;">
+                                <div style="float: left; width: 100%;">
+                                    <strong style="color: #000000;">Pricelists: </strong>
+                                    <span style="color: #444444; padding-left: 5px;">
+                                        <t t-if="wizard and wizard.pricelist_ids">
+                                            <t t-set="pl_names" t-value="[]"/>
+                                            <t t-foreach="wizard.pricelist_ids" t-as="pl">
+                                                <t t-set="pl_names" t-value="pl_names + [pl.name]"/>
+                                            </t>
+                                            <t t-esc="', '.join(pl_names)"/>
+                                        </t>
+                                        <t t-else="">
+                                            All Pricelists
+                                        </t>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <t t-if="(wizard and wizard.date_from) or (wizard and wizard.date_to)">
+                                <div style="overflow: hidden; border-top: 1px solid #eeeeee; padding-top: 6px; margin-top: 6px;">
+                                    <div style="float: left; width: 50%;">
+                                        <t t-if="wizard and wizard.date_from">
+                                            <strong style="color: #000000;">Date From: </strong>
+                                            <span style="color: #444444; padding-left: 5px;" t-field="wizard.date_from"/>
+                                        </t>
+                                    </div>
+                                    <div style="float: left; width: 50%;">
+                                        <t t-if="wizard and wizard.date_to">
+                                            <strong style="color: #000000;">Date To: </strong>
+                                            <span style="color: #444444; padding-left: 5px;" t-field="wizard.date_to"/>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+
+                        <table class="table table-sm table-striped o_report_pricelist_table"
+                               style="width:100%; border-collapse:collapse; margin-top:10px; font-size:12px;">
+                            <thead>
+                                <tr style="background-color: #f2f2f2; border-top: 1px solid #dddddd; border-bottom: 2px solid #aaaaaa;">
+                                    <th style="padding: 8px 5px; color: #000000; font-weight: bold; text-align: left;">Order</th>
+                                    <th style="padding: 8px 5px; color: #000000; font-weight: bold; text-align: left;">Date</th>
+                                    <th style="padding: 8px 5px; color: #000000; font-weight: bold; text-align: left;">Pricelist</th>
+                                    <th style="padding: 8px 5px; color: #000000; font-weight: bold; text-align: left;">Product</th>
+                                    <th style="padding: 8px 5px; color: #000000; font-weight: bold; text-align: right;">Qty</th>
+                                    <th style="padding: 8px 5px; color: #000000; font-weight: bold; text-align: right;">Price</th>
+                                    <th style="padding: 8px 5px; color: #000000; font-weight: bold; text-align: right;">Discount</th>
+                                    <th style="padding: 8px 5px; color: #000000; font-weight: bold; text-align: right;">Total</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <t t-if="group_by == 'none'">
+                                    <t t-if="flat_data">
+                                        <t t-foreach="flat_data" t-as="line">
+                                            <tr>
+                                                <td style="padding: 6px 5px;"><t t-esc="line['order']"/></td>
+                                                <td style="padding: 6px 5px;"><t t-esc="line['date']"/></td>
+                                                <td style="padding: 6px 5px;"><t t-esc="line['pricelist']"/></td>
+                                                <td style="padding: 6px 5px;"><t t-esc="line['product']"/></td>
+                                                <td style="padding: 6px 5px; text-align:right;"><t t-esc="line['qty']"/></td>
+                                                <td style="padding: 6px 5px; text-align:right;">
+                                                    <span t-options="{'widget':'monetary','display_currency':res_company.currency_id}"
+                                                          t-esc="line['price']"/>
+                                                </td>
+                                                <td style="padding: 6px 5px; text-align:right;">
+                                                    <t t-esc="line['discount']"/>%
+                                                </td>
+                                                <td style="padding: 6px 5px; text-align:right;">
+                                                    <span t-options="{'widget':'monetary','display_currency':res_company.currency_id}"
+                                                          t-esc="line['subtotal']"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <tr>
+                                            <td colspan="8" style="padding:15px; text-align:center; color:#999999;">
+                                                No records found.
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+
+                                <t t-else="">
+                                    <t t-if="grouped_data">
+                                        <t t-foreach="grouped_data.items()" t-as="shop">
+                                            <tr>
+                                                <td colspan="8"
+                                                    style="background-color:#eaeaea; padding:8px 5px; font-weight:bold; color:#000000; border-top:1px solid #cccccc; border-bottom:1px solid #cccccc;">
+                                                    <t t-esc="shop[0]"/>
+                                                    <span style="font-weight:normal; color:#666666; float:right;">
+                                                        (<t t-esc="len(shop[1])"/> lines)
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <t t-set="shop_qty" t-value="0"/>
+                                            <t t-set="shop_total" t-value="0"/>
+
+                                            <t t-foreach="shop[1]" t-as="line">
+                                                <t t-set="shop_qty" t-value="shop_qty + line['qty']"/>
+                                                <t t-set="shop_total" t-value="shop_total + line['subtotal']"/>
+                                                <tr>
+                                                    <td style="padding: 6px 5px;"><t t-esc="line['order']"/></td>
+                                                    <td style="padding: 6px 5px;"><t t-esc="line['date']"/></td>
+                                                    <td style="padding: 6px 5px;"><t t-esc="line['pricelist']"/></td>
+                                                    <td style="padding: 6px 5px;"><t t-esc="line['product']"/></td>
+                                                    <td style="padding: 6px 5px; text-align:right;"><t t-esc="line['qty']"/></td>
+                                                    <td style="padding: 6px 5px; text-align:right;">
+                                                        <span t-options="{'widget':'monetary','display_currency':res_company.currency_id}"
+                                                              t-esc="line['price']"/>
+                                                    </td>
+                                                    <td style="padding: 6px 5px; text-align:right;">
+                                                        <t t-esc="line['discount']"/>%
+                                                    </td>
+                                                    <td style="padding: 6px 5px; text-align:right;">
+                                                        <span t-options="{'widget':'monetary','display_currency':res_company.currency_id}"
+                                                              t-esc="line['subtotal']"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <tr style="border-top:1px solid #dddddd;">
+                                                <td colspan="4" style="padding:6px 5px; text-align:right; font-weight:bold;">Subtotal</td>
+                                                <td style="padding:6px 5px; text-align:right; font-weight:bold;"><t t-esc="shop_qty"/></td>
+                                                <td/>
+                                                <td/>
+                                                <td style="padding:6px 5px; text-align:right; font-weight:bold;">
+                                                    <span t-options="{'widget':'monetary','display_currency':res_company.currency_id}"
+                                                          t-esc="shop_total"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <tr>
+                                            <td colspan="8" style="padding:15px; text-align:center; color:#999999;">
+                                                No records found.
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </main>
+            </t>
+        </t>
+    </template>
+</odoo>

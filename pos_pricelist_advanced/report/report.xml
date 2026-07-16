@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_pricelist_sales_report" model="ir.actions.report">
+        <field name="name">Pricelist Sales Report</field>
+        <field name="model">pos.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pos_pricelist_advanced.pricelist_sales_report</field>
+        <field name="report_file">pos_pricelist_advanced.pricelist_sales_report</field>
+        <field name="print_report_name">'Pricelist Report'</field>
+    </record>
+
+</odoo>

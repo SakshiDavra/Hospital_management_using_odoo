@@ -1,1 +1,1 @@
-from . import pos_pricelist_report
+from . import pricelist_sales_report
