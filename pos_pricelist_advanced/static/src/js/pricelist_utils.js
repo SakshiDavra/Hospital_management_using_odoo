@@ -35,19 +35,11 @@ export function isTimeSlotActive(pricelist) {
     }
     const now = new Date();
     const currentTime = now.getHours() + now.getMinutes() / 60;
-    return (
-        currentTime >= pricelist.time_slot_start &&
-        currentTime <= pricelist.time_slot_end
-    );
+    return (currentTime >= pricelist.time_slot_start && currentTime <= pricelist.time_slot_end);
 }
 
 export function isPricelistValid(pricelist) {
     if (!pricelist) return false;
     
-    return (
-        pricelist.state === "approved" &&    
-        isScheduleActive(pricelist) &&       
-        isTimeSlotActive(pricelist) &&       
-        pricelist.is_available               
-    );
+    return (pricelist.state === "approved" && isScheduleActive(pricelist) && isTimeSlotActive(pricelist) &&  pricelist.is_available);
 }
