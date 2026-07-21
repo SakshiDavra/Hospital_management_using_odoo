@@ -8,7 +8,7 @@ import { NumberPopup } from "@point_of_sale/app/components/popups/number_popup/n
 import { makeAwaitable, ask } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
-import { isPricelistValid } from "./pricelist_utils";
+import { isPricelistValid } from "../../pricelist_utils";
 
 patch(PosStore.prototype, {
     getServerTime() {
@@ -19,22 +19,18 @@ patch(PosStore.prototype, {
         const loadedIds = this.models["product.pricelist"].map((p) => p.id);
         const pricelistModel = this.models["product.pricelist"];
         const availablePricelists = this.config.availablePricelists;
-
         let rawPricelists;
         try {
-            rawPricelists = await this.data.call("pos.config", "get_new_pricelists", [this.config.id, loadedIds]);
+            rawPricelists = await this.data.silentCall("pos.config", "get_new_pricelists", [this.config.id, loadedIds]);
         } catch (error) {
             this.notification?.add(_t("Could not refresh pricelists."), { type: "warning" });
             return;
         }
 
         if (!rawPricelists?.length) return;
-
         const newPricelistIds = [];
-
         for (const raw of rawPricelists) {
             let record = pricelistModel.get(raw.id);
-
             if (record) {
                 record.update(raw);
                 record.computeRuleIndexes?.();
@@ -42,24 +38,20 @@ patch(PosStore.prototype, {
                 record = pricelistModel.create(raw);
                 newPricelistIds.push(record.id);
             }
-
             const index = availablePricelists.findIndex((p) => p.id === record.id);
-            if (isPricelistValid(record, this)) {
-                if (index === -1) availablePricelists.push(record);
-            } else if (index !== -1) {
+            const isValid = isPricelistValid(record, this);
+            if (isValid && index === -1) {
+                availablePricelists.push(record);
+            } else if (!isValid && index !== -1) {
                 availablePricelists.splice(index, 1);
             }
         }
-
         if (!newPricelistIds.length) return;
-
         const rawItems = await this.data.call("product.pricelist", "get_new_pos_pricelist_items", [this.config.id, newPricelistIds]);
         const itemModel = this.models["product.pricelist.item"];
-
         for (const raw of rawItems) {
             itemModel.get(raw.id)?.update(raw) ?? itemModel.create(raw);
         }
-
         for (const id of newPricelistIds) {
             pricelistModel.get(id)?.computeRuleIndexes?.();
         }
@@ -78,36 +70,33 @@ patch(PosStore.prototype, {
         }
         const original = order.pricelist_id;
         let best = original;
-        order.setPricelist(original);
-        let minTotal = order.priceIncl;
-        for (const pricelist of eligible) {
-            if (original && pricelist.id === original.id) continue;
-            order.setPricelist(pricelist);
-            const total = order.priceIncl;
-            if (total < minTotal) {
-                minTotal = total;
-                best = pricelist;
+        try {
+            order.setPricelist(original);
+            let minTotal = order.priceIncl;
+            for (const pricelist of eligible) {
+                if (pricelist.id === original.id) continue;
+                order.setPricelist(pricelist);
+                const total = order.priceIncl;
+                if (total < minTotal) {
+                    minTotal = total;
+                    best = pricelist;
+                }
             }
+            return best;
+        } finally {
+            order.setPricelist(original);
         }
-        order.setPricelist(original);
-        return best;
     },
 
-    async recomputeBestPricelist(order) {
+    recomputeBestPricelist(order) {
         if (!order || !order.lines.length) {
             return;
         }
-        if (order._pricelistRecomputePending) {
-            return order._pricelistRecomputePending;
+
+        const best = this.getBestPricelistForOrder(order);
+        if (best && order.pricelist_id?.id !== best.id) {
+            order.setPricelist(best);
         }
-        order._pricelistRecomputePending = Promise.resolve().then(() => {
-            const best = this.getBestPricelistForOrder(order);
-            if (best && order.pricelist_id?.id !== best.id) {
-                order.setPricelist(best);
-            }
-            order._pricelistRecomputePending = null;
-        });
-        return order._pricelistRecomputePending;
     },
 
     addNewOrder() {
@@ -122,7 +111,7 @@ patch(PosStore.prototype, {
     async addLineToOrder(vals, order, opts = {}, configure = true) {
         const result = await super.addLineToOrder(...arguments);
         if (order) {
-            await this.recomputeBestPricelist(order);
+            this.recomputeBestPricelist(order);
         }
         return result;
     },
@@ -131,10 +120,9 @@ patch(PosStore.prototype, {
         if (!pricelist.manager_pin_required) return true;
         const apply = await ask(this.dialog, {
             title: _t("Apply Customer Pricelist?"),
-            body: _t("%s has a pricelist that requires manager approval. Apply it to this order?",partnerName),
+            body: _t("%s has a pricelist that requires manager approval. Apply it to this order?", partnerName),
         });
         if (!apply) return false;
-
         const approvers = (this.config.advanced_employee_ids || []).filter((employee) => employee._pin);
         if (!approvers.length) {
             this.dialog.add(AlertDialog, {
@@ -145,12 +133,13 @@ patch(PosStore.prototype, {
         }
         const selectedManager = approvers.length === 1
             ? approvers[0] : await makeAwaitable(this.dialog, CashierSelectionPopup, { employees: approvers });
-        if (!selectedManager) return false;
+                if (!selectedManager) return false;
         const enteredPin = await makeAwaitable(this.dialog, NumberPopup, {
             title: _t("Manager PIN"),
             formatDisplayedValue: (x) => x.replace(/./g, "•"),
         });
-        if (!enteredPin) return false;
+                if (!enteredPin) return false;
+
         if (Sha1.hash(enteredPin) !== selectedManager._pin) {
             this.dialog.add(AlertDialog, {
                 title: _t("Incorrect PIN"),
@@ -164,19 +153,14 @@ patch(PosStore.prototype, {
     async setPartnerToCurrentOrder(partner) {
         const order = this.getOrder();
         super.setPartnerToCurrentOrder(...arguments);
-        if (!partner || !order) {
-            if (order) {
-                await this.recomputeBestPricelist(order);
-            }
-            return;
-        }
+        if (!order) return;
         const customerPricelist = order.pricelist_id;
-        if (!customerPricelist || !isPricelistValid(customerPricelist, this)) {
-            await this.recomputeBestPricelist(order);
-            return;
+        let shouldRecompute = !partner || !customerPricelist || !isPricelistValid(customerPricelist, this);
+        if (!shouldRecompute) {
+            const allowed = await this.verifyManagerPinForPricelist(customerPricelist, partner.name);
+            shouldRecompute = !allowed;
         }
-        const allowed = await this.verifyManagerPinForPricelist(customerPricelist, partner.name);
-        if (!allowed) {
+        if (shouldRecompute) {
             await this.recomputeBestPricelist(order);
             return;
         }

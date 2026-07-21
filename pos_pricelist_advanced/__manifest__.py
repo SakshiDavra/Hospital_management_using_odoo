@@ -22,11 +22,11 @@
     ],
     "assets": {
         'point_of_sale._assets_pos': [
-            'pos_pricelist_advanced/static/src/js/pricelist_utils.js',
-            'pos_pricelist_advanced/static/src/js/order_tabs.js',
-            'pos_pricelist_advanced/static/src/js/pos_store_patch.js',
-            "pos_pricelist_advanced/static/src/js/control_buttons.js",
-            "pos_pricelist_advanced/static/src/js/pos_order.js",
+            'pos_pricelist_advanced/static/src/pricelist_utils.js',
+            'pos_pricelist_advanced/static/src/app/components/order_tabs.js',
+            'pos_pricelist_advanced/static/src/app/services/pos_store.js',
+            "pos_pricelist_advanced/static/src/app/screens/product_screen/control_buttons/control_buttons.js",
+            "pos_pricelist_advanced/static/src/app/models/pos_order.js",
 
         ],
     },

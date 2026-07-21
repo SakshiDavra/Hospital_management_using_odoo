@@ -233,10 +233,12 @@ class ProductPricelist(models.Model):
         for r in self:
             if not r.enable_time_slot:
                 continue
+
             if r.time_slot_start is False or r.time_slot_end is False:
-                raise ValidationError(_("Please set both Schedule Start Time and Schedule End Time."))
-            if r.time_slot_start >= r.time_slot_end:
-                raise ValidationError(_("Schedule Start Time must be less than End Time."))
+                raise ValidationError(_("Please set both Start Time and End Time."))
+
+            if r.time_slot_start == r.time_slot_end:
+                raise ValidationError(_("Start Time and End Time cannot be the same."))
 
     @api.constrains("maximum_discount")
     def _check_maximum_discount(self):

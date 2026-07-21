@@ -10,9 +10,12 @@
                     <group>
                         <group string="Filters">
                             <field name="pricelist_ids" widget="many2many_tags"/>
-                            <field name="group_by"/>
+                            <field name="config_id"/>
+                            <field name="session_id"/>
+                            <field name="cashier_id"/>
                         </group>
-                        <group string="Date">
+                        <group string="Options">
+                            <field name="group_by"/>
                             <field name="date_from"/>
                             <field name="date_to"/>
                         </group>
