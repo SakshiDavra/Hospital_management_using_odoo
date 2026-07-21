@@ -5,119 +5,102 @@
         <field name="inherit_id" ref="product.product_pricelist_view"/>
         <field name="arch" type="xml">
             <xpath expr="//form/header" position="inside">
-
-
-
-                <button name="action_confirm"
-                        type="object"
-                        string="Confirm"
-                        class="btn-primary"
-                        invisible="state != 'draft'"/>
-
-                <button name="action_approve"
-                        type="object"
-                        string="Approve"
-                        class="btn-primary"
-                        groups="base.group_system"
-                        invisible="state != 'confirm'"/>
-
-                <button name="action_cancel"
-                        type="object"
-                        string="Cancel"
-                        invisible="state in ('draft','cancelled')"/>
-
-                <button name="action_reset_to_draft"
-                        type="object"
-                        string="Reset to Draft"
-                        invisible="state == 'draft'"/>
-
-                <field name="state"
-                    widget="statusbar"
-                    statusbar_visible="draft,confirm,approved,cancelled"/>
-
-
+                <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state != 'draft'"/>
+                <button name="action_approve" type="object" string="Approve" class="btn-primary" invisible="state != 'confirm'"/>
+                <button name="action_cancel" type="object" string="Cancel" invisible="state in ('draft','cancelled')"/>
+                <button name="action_reset_to_draft" type="object" string="Reset to Draft" invisible="state == 'draft'"/>
+                <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approved,cancelled"/>
             </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="readonly">state == 'approved'</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='currency_id']" position="attributes">
+                <attribute name="readonly">state == 'approved'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="attributes">
+                <attribute name="readonly">state == 'approved'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='country_group_ids']" position="attributes">
+                <attribute name="readonly">state == 'approved'</attribute>
+            </xpath>
+
             <xpath expr="//sheet/notebook" position="before">
-                
-                <group col="2">
+                <group string="Recurrence Config">
                     <group>
-                        <field name="enable_schedule"/>
-                        <field name="schedule_start_date" invisible="not enable_schedule"/>
-                        <field name="schedule_end_date" invisible="not enable_schedule"/>
+                        <field name="enable_schedule" readonly="state == 'approved'"/>
+                        <field name="schedule_start_date" invisible="not enable_schedule" readonly="state == 'approved'"/>
+                        <field name="schedule_end_date" invisible="not enable_schedule" readonly="state == 'approved'"/>
                     </group>
                     <group>
-                        <field name="enable_time_slot"/>
-                        <field name="time_slot_start" widget="float_time" invisible="not enable_time_slot"/>
-                        <field name="time_slot_end" widget="float_time" invisible="not enable_time_slot"/>
-                    </group>
-                    <group>
-                        <field name="maximum_discount"/>
-                        <field name="manager_pin_required"/>
+                        <field name="enable_time_slot" readonly="state == 'approved'"/>
+                        <field name="time_slot_start" widget="float_time" invisible="not enable_time_slot" readonly="state == 'approved'"/>
+                        <field name="time_slot_end" widget="float_time" invisible="not enable_time_slot" readonly="state == 'approved'"/>
                     </group>
                     <group>
                         <field name="recurrence_id" invisible="1"/>
                         <field name="rrule_type" invisible="1"/>
+
                         <label for="recurrency"/>
                         <div class="d-flex align-items-baseline gap-1">
-                            <field name="recurrency" widget="boolean_toggle" options="{'autosave': False}" class="w-auto"/>
+                            <field name="recurrency" widget="boolean_toggle" options="{'autosave': False}" class="w-auto" readonly="state == 'approved'"/>
                             <span invisible="not recurrency">Repeat:</span>
-                            <field name="rrule_type_ui" invisible="not recurrency" required="recurrency" class="w-auto"/>
+                            <field name="rrule_type_ui" invisible="not recurrency" required="recurrency" class="w-auto" readonly="state == 'approved'"/>
                         </div>
+
                         <label for="interval" invisible="not recurrency or rrule_type_ui != 'custom'"/>
                         <div class="d-flex gap-1" invisible="not recurrency or rrule_type_ui != 'custom'">
-                            <field name="interval" string="Repeat every" class="oe_inline w-auto o_input_5ch"/>
-                            <field name="rrule_type" nolabel="1" class="oe_inline"/>
+                            <field name="interval" string="Repeat every" class="oe_inline w-auto o_input_5ch" readonly="state == 'approved'"/>
+                            <field name="rrule_type" nolabel="1" class="oe_inline" readonly="state == 'approved'"/>
                         </div>
-                        <span class="fw-bold text-nowrap" invisible="rrule_type_ui not in ['weekly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'weekly')">
+
+                        <span class="fw-bold text-nowrap" invisible="not recurrency or rrule_type_ui not in ['weekly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'weekly')">
                             Repeat on
                         </span>
-                        <div invisible="rrule_type_ui not in ['weekly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'weekly')">
+                        <div invisible="not recurrency or rrule_type_ui not in ['weekly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'weekly')">
                             <widget name="calendar_week_days"/>
                         </div>
-                        <label string="Day of Month" for="month_by"
-                            invisible="rrule_type_ui not in ['monthly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'monthly')"/>
-                        <div class="d-flex gap-2"
-                            invisible="rrule_type_ui not in ['monthly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'monthly')">
-                            <field name="month_by" nolabel="1" required="recurrency and rrule_type in ['monthly', 'yearly']"/>
-                            <field name="day" nolabel="1" invisible="month_by != 'date'"/>
-                            <field name="byday" nolabel="1" invisible="month_by != 'day'"/>
-                            <field name="weekday" nolabel="1" invisible="month_by != 'day'"/>
+
+                        <label string="Day of Month" for="month_by" invisible="not recurrency or rrule_type_ui not in ['monthly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'monthly')"/>
+                        <div class="d-flex gap-2" invisible="not recurrency or rrule_type_ui not in ['monthly','custom'] or (rrule_type_ui == 'custom' and rrule_type != 'monthly')">
+                            <field name="month_by" nolabel="1" required="recurrency and rrule_type in ['monthly','yearly']" readonly="state == 'approved'"/>
+                            <field name="day" nolabel="1" invisible="month_by != 'date'" readonly="state == 'approved'"/>
+                            <field name="byday" nolabel="1" invisible="month_by != 'day'" readonly="state == 'approved'"/>
+                            <field name="weekday" nolabel="1" invisible="month_by != 'day'" readonly="state == 'approved'"/>
                         </div>
+
                         <label string="Until" for="end_type" invisible="not recurrency"/>
-                        <div class="d-flex gap-2" invisible="not recurrency">
-                            <field name="end_type" nolabel="1" class="oe_inline"/>
-                            <field name="count" nolabel="1" invisible="end_type != 'count'"/>
-                            <field name="until" nolabel="1" invisible="end_type != 'end_date'"/>
+                        <div class="d-flex align-items-center gap-2" invisible="not recurrency">
+                            <field name="end_type" nolabel="1" class="w-auto" style="width:150px;" readonly="state == 'approved'"/>
+                            <field name="count" nolabel="1" invisible="end_type != 'count'" class="w-auto" style="width:50px;" readonly="state == 'approved'"/>
+                            <field name="until" nolabel="1" invisible="end_type != 'end_date'" class="w-auto" readonly="state == 'approved'"/>
                         </div>
-                        <field name="event_tz" invisible="not recurrency"/>
+
+                        <field name="event_tz" invisible="not recurrency" readonly="state == 'approved'"/>
                     </group>
-                    
+                    <group>
+                        <field name="maximum_discount" class="w-auto" widget="percentage" readonly="state == 'approved'"/>
+                        <field name="manager_pin_required" readonly="state == 'approved'"/>
+                    </group>
                 </group>
             </xpath>
+
+            <xpath expr="//field[@name='item_ids']" position="attributes">
+                <attribute name="readonly">state == 'approved'</attribute>
+            </xpath>
+
         </field>
     </record>
-
-
 
     <record id="pos_config_form_inherit_pricelist" model="ir.ui.view">
         <field name="name">res.config.settings.inherit.pos.pricelist</field>
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-
-            <xpath expr="//field[@name='pos_available_pricelist_ids']"
-                position="attributes">
-
-                <attribute name="domain">
-                    [('state','=','approved')]
-                </attribute>
-
-                <attribute name="context">
-                    {'approved_only': True}
-                </attribute>
-
+            <xpath expr="//field[@name='pos_available_pricelist_ids']" position="attributes">
+                <attribute name="domain">[('state','=','approved')]</attribute>
+                <attribute name="context">{'approved_only': True}</attribute>
             </xpath>
-
         </field>
     </record>
 </odoo>

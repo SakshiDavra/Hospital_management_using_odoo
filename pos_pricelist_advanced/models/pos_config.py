@@ -1,20 +1,14 @@
 from odoo import models
+from odoo.exceptions import ValidationError
 
 
 class PosConfig(models.Model):
     _inherit = "pos.config"
 
-    def write(self, vals):
-        if "pos_available_pricelist_ids" in vals:
-            for command in vals["pos_available_pricelist_ids"]:
-                if command[0] == 4:
-                    pricelist = self.env["product.pricelist"].browse(command[1])
-                    if pricelist.state != "approved":
-                        raise ValueError("Only approved pricelists can be selected.")
-                elif command[0] == 6:
-                    approved_ids = self.env["product.pricelist"].search([
-                        ("id", "in", command[2]),
-                        ("state", "=", "approved"), ]).ids
-                    command[2][:] = approved_ids
+    def get_new_pricelists(self, loaded_ids):
+        self.ensure_one()
 
-        return super().write(vals)
+        pricelists = self.available_pricelist_ids.filtered(
+            lambda p: p.id not in loaded_ids
+        )
+        return pricelists._load_pos_data_read(pricelists, self)

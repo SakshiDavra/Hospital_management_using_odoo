@@ -19,15 +19,14 @@
         'report/report.xml',
         'report/pricelist_sales_report.xml',
 
-        "data/ir_cron_pricelist_time_slot.xml",
     ],
     "assets": {
         'point_of_sale._assets_pos': [
             'pos_pricelist_advanced/static/src/js/pricelist_utils.js',
-            'pos_pricelist_advanced/static/src/js/pricelist_patch.js',
-            'pos_pricelist_advanced/static/src/js/manager_pin_patch.js',
-            'pos_pricelist_advanced/static/src/js/partner_pricelist_patch.js',
-            'pos_pricelist_advanced/static/src/js/discount_patch.js',
+            'pos_pricelist_advanced/static/src/js/order_tabs.js',
+            'pos_pricelist_advanced/static/src/js/pos_store_patch.js',
+            "pos_pricelist_advanced/static/src/js/control_buttons.js",
+            "pos_pricelist_advanced/static/src/js/pos_order.js",
 
         ],
     },
