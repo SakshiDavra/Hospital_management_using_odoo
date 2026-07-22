@@ -5,12 +5,14 @@ import { ControlButtons } from "@point_of_sale/app/screens/product_screen/contro
 import { SelectionPopup } from "@point_of_sale/app/components/popups/selection_popup/selection_popup";
 import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { _t } from "@web/core/l10n/translation";
-import { isPricelistValid } from "../../../../pricelist_utils";
+import { PricelistUtils } from "../../../../pricelist_utils";
 
 patch(ControlButtons.prototype, {
     getPricelistList() {
         const selectionList = this.pos.config.availablePricelists
-            .filter((pricelist) => isPricelistValid(pricelist, this.pos))
+            .filter((pricelist) =>
+                PricelistUtils.isPricelistValid(pricelist, this.pos)
+            )
             .map((pricelist) => ({
                 id: pricelist.id,
                 label: pricelist.name,

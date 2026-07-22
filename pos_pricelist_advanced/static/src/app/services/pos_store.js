@@ -8,7 +8,7 @@ import { NumberPopup } from "@point_of_sale/app/components/popups/number_popup/n
 import { makeAwaitable, ask } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
-import { isPricelistValid } from "../../pricelist_utils";
+import { PricelistUtils } from "../../pricelist_utils";
 
 patch(PosStore.prototype, {
     getServerTime() {
@@ -16,30 +16,31 @@ patch(PosStore.prototype, {
     },
 
     async loadLatestPricelists() {
-        const loadedIds = this.models["product.pricelist"].map((p) => p.id);
         const pricelistModel = this.models["product.pricelist"];
         const availablePricelists = this.config.availablePricelists;
         let rawPricelists;
         try {
-            rawPricelists = await this.data.silentCall("pos.config", "get_new_pricelists", [this.config.id, loadedIds]);
+            rawPricelists = (await this.data.silentCall("pos.session","load_data",
+                    [[this.session.id], ["pos.preset", "product.pricelist"]]
+                )
+            )["product.pricelist"];
+            console.log(rawPricelists);
         } catch (error) {
-            this.notification?.add(_t("Could not refresh pricelists."), { type: "warning" });
+            console.error(error);
             return;
         }
-
-        if (!rawPricelists?.length) return;
         const newPricelistIds = [];
         for (const raw of rawPricelists) {
             let record = pricelistModel.get(raw.id);
             if (record) {
                 record.update(raw);
-                record.computeRuleIndexes?.();
             } else {
                 record = pricelistModel.create(raw);
                 newPricelistIds.push(record.id);
             }
+            record.computeRuleIndexes?.();
             const index = availablePricelists.findIndex((p) => p.id === record.id);
-            const isValid = isPricelistValid(record, this);
+            const isValid = PricelistUtils.isPricelistValid(record, this);
             if (isValid && index === -1) {
                 availablePricelists.push(record);
             } else if (!isValid && index !== -1) {
@@ -59,7 +60,7 @@ patch(PosStore.prototype, {
 
     getEligiblePricelists() {
         return this.config.availablePricelists.filter(
-            (pl) => isPricelistValid(pl, this) && !pl.manager_pin_required && pl.id !== this.config.pricelist_id?.id
+            (pl) => PricelistUtils.isPricelistValid(pl, this) && !pl.manager_pin_required && pl.id !== this.config.pricelist_id?.id
         );
     },
 
@@ -155,7 +156,7 @@ patch(PosStore.prototype, {
         super.setPartnerToCurrentOrder(...arguments);
         if (!order) return;
         const customerPricelist = order.pricelist_id;
-        let shouldRecompute = !partner || !customerPricelist || !isPricelistValid(customerPricelist, this);
+        let shouldRecompute = !partner || !customerPricelist || !PricelistUtils.isPricelistValid(customerPricelist, this);
         if (!shouldRecompute) {
             const allowed = await this.verifyManagerPinForPricelist(customerPricelist, partner.name);
             shouldRecompute = !allowed;
