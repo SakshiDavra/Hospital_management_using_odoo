@@ -308,12 +308,3 @@ class ProductPricelist(models.Model):
             "is_available", "rrule", "until", "end_type", "recurrence_id",
             "rrule_type", "create_date", "write_date",
         ]
-
-    @api.model
-    def get_new_pos_pricelist_items(self, config_id, pricelist_ids):
-        config = self.env["pos.config"].browse(config_id)
-        PricelistItem = self.env["product.pricelist.item"]
-        domain = [
-            ("pricelist_id", "in", pricelist_ids), *PricelistItem._check_company_domain(config.company_id),
-        ]
-        return PricelistItem.search_read(domain, PricelistItem._load_pos_data_fields(config), load=False)
