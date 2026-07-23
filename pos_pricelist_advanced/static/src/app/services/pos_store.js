@@ -9,36 +9,32 @@ import { makeAwaitable, ask } from "@point_of_sale/app/utils/make_awaitable_dial
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { PricelistUtils } from "../../pricelist_utils";
-
 patch(PosStore.prototype, {
     getServerTime() {
         return new Date(Date.now() + (this.serverTimeOffset || 0));
     },
-
     async loadLatestPricelists() {
         const pricelistModel = this.models["product.pricelist"];
+        const itemModel = this.models["product.pricelist.item"];
         const availablePricelists = this.config.availablePricelists;
-        let rawPricelists;
+        let data;
         try {
-            rawPricelists = (await this.data.silentCall("pos.session","load_data",
-                    [[this.session.id], ["pos.preset", "product.pricelist"]]
-                )
-            )["product.pricelist"];
-            console.log(rawPricelists);
+            data = await this.data.silentCall("pos.config","get_new_pricelists",[this.config.id, pricelistModel.map((p) => p.id)]);
         } catch (error) {
             console.error(error);
             return;
         }
-        const newPricelistIds = [];
-        for (const raw of rawPricelists) {
+        const { pricelists = [], items = [] } = data;
+        if (!pricelists.length) return;
+        const updatedPricelists = [];
+        for (const raw of pricelists) {
             let record = pricelistModel.get(raw.id);
             if (record) {
                 record.update(raw);
             } else {
                 record = pricelistModel.create(raw);
-                newPricelistIds.push(record.id);
             }
-            record.computeRuleIndexes?.();
+            updatedPricelists.push(record);
             const index = availablePricelists.findIndex((p) => p.id === record.id);
             const isValid = PricelistUtils.isPricelistValid(record, this);
             if (isValid && index === -1) {
@@ -47,28 +43,17 @@ patch(PosStore.prototype, {
                 availablePricelists.splice(index, 1);
             }
         }
-        if (!newPricelistIds.length) return;
-        const rawItems = await this.data.call("product.pricelist", "get_new_pos_pricelist_items", [this.config.id, newPricelistIds]);
-        const itemModel = this.models["product.pricelist.item"];
-        for (const raw of rawItems) {
+        for (const raw of items) {
             itemModel.get(raw.id)?.update(raw) ?? itemModel.create(raw);
         }
-        for (const id of newPricelistIds) {
-            pricelistModel.get(id)?.computeRuleIndexes?.();
+        for (const pricelist of updatedPricelists) {
+            pricelist.computeRuleIndexes?.();
         }
     },
-
-    getEligiblePricelists() {
-        return this.config.availablePricelists.filter(
-            (pl) => PricelistUtils.isPricelistValid(pl, this) && !pl.manager_pin_required && pl.id !== this.config.pricelist_id?.id
-        );
-    },
-
     getBestPricelistForOrder(order) {
-        const eligible = this.getEligiblePricelists();
-        if (!order || !eligible.length) {
-            return order?.pricelist_id || null;
-        }
+        if (!order) return null;
+        const eligible = PricelistUtils.getEligiblePricelists(this);
+        if (!eligible.length) return order.pricelist_id;
         const original = order.pricelist_id;
         let best = original;
         try {
@@ -77,9 +62,8 @@ patch(PosStore.prototype, {
             for (const pricelist of eligible) {
                 if (pricelist.id === original.id) continue;
                 order.setPricelist(pricelist);
-                const total = order.priceIncl;
-                if (total < minTotal) {
-                    minTotal = total;
+                if (order.priceIncl < minTotal) {
+                    minTotal = order.priceIncl;
                     best = pricelist;
                 }
             }
@@ -88,35 +72,31 @@ patch(PosStore.prototype, {
             order.setPricelist(original);
         }
     },
-
     recomputeBestPricelist(order) {
-        if (!order || !order.lines.length) {
+        if (!order) return;
+        if (!order.lines.length) {
+            const pricelist = PricelistUtils.getEligiblePricelists(this)[0];
+            if (pricelist && pricelist.id !== order.pricelist_id?.id) {
+                order.setPricelist(pricelist);
+            }
             return;
         }
-
         const best = this.getBestPricelistForOrder(order);
-        if (best && order.pricelist_id?.id !== best.id) {
+        if (best?.id !== order.pricelist_id?.id) {
             order.setPricelist(best);
         }
     },
-
     addNewOrder() {
         const order = super.addNewOrder(...arguments);
-        const pricelist = this.getEligiblePricelists()[0];
-        if (pricelist) {
-            order.setPricelist(pricelist);
-        }
+        const pricelist = PricelistUtils.getEligiblePricelists(this)[0];
+        pricelist && order.setPricelist(pricelist);
         return order;
     },
-
     async addLineToOrder(vals, order, opts = {}, configure = true) {
         const result = await super.addLineToOrder(...arguments);
-        if (order) {
-            this.recomputeBestPricelist(order);
-        }
+        if (order) this.recomputeBestPricelist(order);
         return result;
     },
-
     async verifyManagerPinForPricelist(pricelist, partnerName) {
         if (!pricelist.manager_pin_required) return true;
         const apply = await ask(this.dialog, {
@@ -150,7 +130,6 @@ patch(PosStore.prototype, {
         }
         return true;
     },
-
     async setPartnerToCurrentOrder(partner) {
         const order = this.getOrder();
         super.setPartnerToCurrentOrder(...arguments);
@@ -162,12 +141,11 @@ patch(PosStore.prototype, {
             shouldRecompute = !allowed;
         }
         if (shouldRecompute) {
-            await this.recomputeBestPricelist(order);
+            this.recomputeBestPricelist(order);
             return;
         }
         order.setPricelist(customerPricelist);
     },
-
     async orderDone(order) {
         await this.loadLatestPricelists();
         return super.orderDone(...arguments);

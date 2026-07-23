@@ -26,7 +26,7 @@
             'pos_pricelist_advanced/static/src/app/components/order_tabs.js',
             'pos_pricelist_advanced/static/src/app/services/pos_store.js',
             "pos_pricelist_advanced/static/src/app/screens/product_screen/control_buttons/control_buttons.js",
-            "pos_pricelist_advanced/static/src/app/models/pos_order.js",
+            'pos_pricelist_advanced/static/src/app/components/order_summary.js',
 
         ],
     },
