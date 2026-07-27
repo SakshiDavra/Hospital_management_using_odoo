@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_crm_assignment_rule_manager,crm.assignment.rule.manager,model_crm_assignment_rule,sales_team.group_sale_manager,1,1,1,1
+access_crm_assignment_rule_type_manager,crm.assignment.rule.type.manager,model_crm_assignment_rule_type,sales_team.group_sale_manager,1,1,1,1

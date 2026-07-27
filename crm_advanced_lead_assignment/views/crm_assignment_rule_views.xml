@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ====================================================== -->
+    <!-- Lead Assignment Rules                                  -->
+    <!-- ====================================================== -->
+
+    <record id="action_crm_assignment_rule" model="ir.actions.act_window">
+        <field name="name">Lead Assignment Rules</field>
+        <field name="res_model">crm.assignment.rule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_crm_assignment_rule_list" model="ir.ui.view">
+        <field name="name">crm.assignment.rule.list</field>
+        <field name="model">crm.assignment.rule</field>
+        <field name="arch" type="xml">
+            <list default_order="priority">
+                <field name="priority"/>
+                <field name="name"/>
+                <field name="rule_type_id"/>
+                <field name="company_id" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_crm_assignment_rule_form" model="ir.ui.view">
+        <field name="name">crm.assignment.rule.form</field>
+        <field name="model">crm.assignment.rule</field>
+        <field name="arch" type="xml">
+            <form string="Lead Assignment Rule">
+                <sheet>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"
+                                   placeholder="e.g. Territory Assignment"/>
+                        </h1>
+                    </div>
+
+                    <group string="Rule Information">
+                        <group>
+                            <field name="rule_type_id"
+                                   readonly="id != False"/>
+                            <field name="priority"/>
+                        </group>
+
+                        <group>
+                            <field name="company_id"
+                                  />
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_crm_assignment_rule"
+        name="Lead Assignment Rules"
+        parent="crm.menu_crm_config_lead"
+        action="action_crm_assignment_rule"
+        groups="sales_team.group_sale_manager"
+        sequence="7"/>
+
+
+    <!-- ====================================================== -->
+    <!-- Assignment Rule Types                                  -->
+    <!-- ====================================================== -->
+
+    <record id="action_crm_assignment_rule_type" model="ir.actions.act_window">
+        <field name="name">Assignment Rule Types</field>
+        <field name="res_model">crm.assignment.rule.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_crm_assignment_rule_type_list" model="ir.ui.view">
+        <field name="name">crm.assignment.rule.type.list</field>
+        <field name="model">crm.assignment.rule.type</field>
+        <field name="arch" type="xml">
+            <list default_order="sequence">
+                <field name="sequence"/>
+                <field name="name"/>
+                <field name="lead_field_id"/>
+                <field name="skill_type_id"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_crm_assignment_rule_type_form" model="ir.ui.view">
+        <field name="name">crm.assignment.rule.type.form</field>
+        <field name="model">crm.assignment.rule.type</field>
+        <field name="arch" type="xml">
+            <form string="Assignment Rule Type">
+                <sheet>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group>
+
+                        <group>
+                            <field name="lead_field_id"
+                                   domain="[('model', '=', 'crm.lead')]"/>
+                            <field name="skill_type_id"/>
+                        </group>
+
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+
+                    </group>
+
+                    <group>
+                        <field name="description"/>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_crm_assignment_rule_type"
+        name="Assignment Rule Types"
+        parent="crm.menu_crm_config_lead"
+        action="action_crm_assignment_rule_type"
+        groups="sales_team.group_sale_manager"
+        sequence="6"/>
+
+</odoo>
