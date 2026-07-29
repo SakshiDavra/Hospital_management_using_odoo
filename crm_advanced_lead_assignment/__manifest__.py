@@ -8,6 +8,7 @@
     "depends": [
         "crm",
         "base_address_extended",
+        "product",
         "hr_skills",
     ],
     "data": [

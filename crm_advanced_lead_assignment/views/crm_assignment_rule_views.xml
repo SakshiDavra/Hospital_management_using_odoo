@@ -5,18 +5,37 @@
     <!-- Lead Assignment Rules                                  -->
     <!-- ====================================================== -->
 
+    
+    <record id="view_crm_assignment_rule_search" model="ir.ui.view">
+        <field name="name">crm.assignment.rule.search</field>
+        <field name="model">crm.assignment.rule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="rule_type_id"/>
+                <field name="company_id"/>
+                <filter
+                    name="archived"
+                    string="Archived"
+                    domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+
     <record id="action_crm_assignment_rule" model="ir.actions.act_window">
         <field name="name">Lead Assignment Rules</field>
         <field name="res_model">crm.assignment.rule</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_crm_assignment_rule_search"/>
     </record>
 
     <record id="view_crm_assignment_rule_list" model="ir.ui.view">
         <field name="name">crm.assignment.rule.list</field>
         <field name="model">crm.assignment.rule</field>
         <field name="arch" type="xml">
-            <list default_order="priority">
-                <field name="priority"/>
+            <list default_order="sequence">
+                <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="rule_type_id"/>
                 <field name="company_id" optional="hide"/>
@@ -42,9 +61,7 @@
 
                     <group string="Rule Information">
                         <group>
-                            <field name="rule_type_id"
-                                   readonly="id != False"/>
-                            <field name="priority"/>
+                            <field name="rule_type_id" readonly="id != False"/>
                         </group>
 
                         <group>
@@ -82,11 +99,11 @@
         <field name="name">crm.assignment.rule.type.list</field>
         <field name="model">crm.assignment.rule.type</field>
         <field name="arch" type="xml">
-            <list default_order="sequence">
-                <field name="sequence"/>
+            <list>
                 <field name="name"/>
                 <field name="lead_field_id"/>
                 <field name="skill_type_id"/>
+                <field name="processing_type"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
@@ -107,22 +124,38 @@
                     </div>
 
                     <group>
-
                         <group>
+
+                            <field name="processing_type"/>
+
+                            <field name="match_model_id"
+                                invisible="processing_type != 'description'"/>
+
                             <field name="lead_field_id"
-                                   domain="[('model', '=', 'crm.lead')]"/>
-                            <field name="skill_type_id"/>
+                                     invisible="processing_type == 'existing_customer'"/>                            
+
+                            <field name="skill_type_id"
+                                invisible="processing_type not in ['field', 'description']"/>
+
                         </group>
 
                         <group>
-                            <field name="sequence"/>
                             <field name="active"/>
                         </group>
-
                     </group>
 
                     <group>
                         <field name="description"/>
+                    </group>
+
+                    <group invisible="processing_type != 'score'">
+                        <field name="score_line_ids">
+                            <list editable="bottom">
+                                <field name="from_score"/>
+                                <field name="to_score"/>
+                                <field name="skill_id"/>
+                            </list>
+                        </field>
                     </group>
 
                 </sheet>
@@ -137,5 +170,4 @@
         action="action_crm_assignment_rule_type"
         groups="sales_team.group_sale_manager"
         sequence="6"/>
-
 </odoo>
