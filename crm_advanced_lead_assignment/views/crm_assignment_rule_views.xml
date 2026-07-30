@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo>
-
-    <!-- ====================================================== -->
-    <!-- Lead Assignment Rules                                  -->
-    <!-- ====================================================== -->
-
-    
+<odoo>    
     <record id="view_crm_assignment_rule_search" model="ir.ui.view">
         <field name="name">crm.assignment.rule.search</field>
         <field name="model">crm.assignment.rule</field>
@@ -14,14 +8,17 @@
                 <field name="name"/>
                 <field name="rule_type_id"/>
                 <field name="company_id"/>
-                <filter
-                    name="archived"
-                    string="Archived"
-                    domain="[('active', '=', False)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
             </search>
         </field>
     </record>
 
+    <!-- action -->
+    <record id="action_crm_assignment_rule_type" model="ir.actions.act_window">
+        <field name="name">Assignment Rule Types</field>
+        <field name="res_model">crm.assignment.rule.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
 
     <record id="action_crm_assignment_rule" model="ir.actions.act_window">
         <field name="name">Lead Assignment Rules</field>
@@ -30,6 +27,7 @@
         <field name="search_view_id" ref="view_crm_assignment_rule_search"/>
     </record>
 
+    <!-- views -->
     <record id="view_crm_assignment_rule_list" model="ir.ui.view">
         <field name="name">crm.assignment.rule.list</field>
         <field name="model">crm.assignment.rule</field>
@@ -43,57 +41,31 @@
             </list>
         </field>
     </record>
-
     <record id="view_crm_assignment_rule_form" model="ir.ui.view">
         <field name="name">crm.assignment.rule.form</field>
         <field name="model">crm.assignment.rule</field>
         <field name="arch" type="xml">
             <form string="Lead Assignment Rule">
                 <sheet>
-
                     <div class="oe_title">
-                        <label for="name"/>
                         <h1>
-                            <field name="name"
-                                   placeholder="e.g. Territory Assignment"/>
+                            <field name="name" placeholder="e.g. Territory Assignment"/>
                         </h1>
                     </div>
-
-                    <group string="Rule Information">
-                        <group>
+                    <group>
+                        <group string="Rule Details">
                             <field name="rule_type_id" readonly="id != False"/>
+                            <field name="sequence"/>
                         </group>
-
-                        <group>
-                            <field name="company_id"
-                                  />
+                        <group string="Settings">
+                            <field name="company_id"/>
                             <field name="active"/>
                         </group>
                     </group>
-
                 </sheet>
             </form>
         </field>
-    </record>
-
-    <menuitem
-        id="menu_crm_assignment_rule"
-        name="Lead Assignment Rules"
-        parent="crm.menu_crm_config_lead"
-        action="action_crm_assignment_rule"
-        groups="sales_team.group_sale_manager"
-        sequence="7"/>
-
-
-    <!-- ====================================================== -->
-    <!-- Assignment Rule Types                                  -->
-    <!-- ====================================================== -->
-
-    <record id="action_crm_assignment_rule_type" model="ir.actions.act_window">
-        <field name="name">Assignment Rule Types</field>
-        <field name="res_model">crm.assignment.rule.type</field>
-        <field name="view_mode">list,form</field>
-    </record>
+    </record> 
 
     <record id="view_crm_assignment_rule_type_list" model="ir.ui.view">
         <field name="name">crm.assignment.rule.type.list</field>
@@ -117,51 +89,53 @@
                 <sheet>
 
                     <div class="oe_title">
-                        <label for="name"/>
                         <h1>
-                            <field name="name"/>
+                            <field name="name" placeholder="Rule Type Name"/>
                         </h1>
                     </div>
 
                     <group>
-                        <group>
-
+                        <group string="Configuration">
                             <field name="processing_type"/>
-
-                            <field name="match_model_id"
-                                invisible="processing_type != 'description'"/>
-
-                            <field name="lead_field_id"
-                                     invisible="processing_type == 'existing_customer'"/>                            
-
-                            <field name="skill_type_id"
-                                invisible="processing_type not in ['field', 'description']"/>
-
+                            <field name="match_model_id" invisible="processing_type != 'description'"/>
+                            <field name="lead_field_id" invisible="processing_type == 'existing_customer'"
+                                required="processing_type in ('field','score','description')"/>
+                            <field name="skill_type_id" invisible="processing_type not in ['field','description']"/>
                         </group>
-
-                        <group>
+                        <group string="Settings">
                             <field name="active"/>
                         </group>
                     </group>
 
-                    <group>
-                        <field name="description"/>
-                    </group>
-
-                    <group invisible="processing_type != 'score'">
-                        <field name="score_line_ids">
-                            <list editable="bottom">
-                                <field name="from_score"/>
-                                <field name="to_score"/>
-                                <field name="skill_id"/>
-                            </list>
-                        </field>
-                    </group>
-
+                    <notebook>
+                        <page string="Description">
+                            <field name="description" nolabel="1"
+                                placeholder="Enter description..."/>
+                        </page>
+                        <page string="Score Ranges"
+                            invisible="processing_type != 'score'">
+                            <field name="score_line_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="from_score"/>
+                                    <field name="to_score"/>
+                                    <field name="skill_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
     </record>
+
+    <!-- menus -->
+    <menuitem
+        id="menu_crm_assignment_rule"
+        name="Lead Assignment Rules"
+        parent="crm.menu_crm_config_lead"
+        action="action_crm_assignment_rule"
+        groups="sales_team.group_sale_manager"
+        sequence="7"/>
 
     <menuitem
         id="menu_crm_assignment_rule_type"
